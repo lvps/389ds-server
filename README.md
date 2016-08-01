@@ -28,13 +28,21 @@ them are as follows:
 Examples
 --------
 
-Configure an 389-server on the targed machine:
-
+1. Configure an 389-server on the targed machine (variables in playbook):
+$ cat ldap.yaml
     - hosts: all
       sudo: true
       roles:
       - { role: 389-ldap-server, admin_domain: example.com, admin_password: secret }
+$ ansible-playbook ldap.yaml
 
+2. Configure an 389-server on the targed machine (variables in CLI):
+$ cat ldap.yaml
+    - hosts: all
+      sudo: true
+      roles:
+      - 389-ldap-server
+$ ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
 
 
 Author Information
