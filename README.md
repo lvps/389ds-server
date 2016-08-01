@@ -33,9 +33,7 @@ Configure an 389-server on the targed machine:
     - hosts: all
       sudo: true
       roles:
-      - role: 389-ldap-server
-        admin_domain: example.com
-        admin_password: secret
+      - { role: 389-ldap-server, admin_domain: example.com, admin_password: secret }
 
 
 
