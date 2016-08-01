@@ -7,3 +7,4 @@
     ldap_rootdn: cn=root
     serverid: ldapsrv
     replication_password: Admin123
+    replication_supplier: yes

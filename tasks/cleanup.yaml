@@ -4,3 +4,5 @@
     with_items:
      - /root/repluser.ldif
      - /root/ldap.inf
+     - /root/suplier_changelog.ldif
+     - /root/suplier_replica.ldif
