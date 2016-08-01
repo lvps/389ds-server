@@ -1,0 +1,13 @@
+---
+  - name: Copying installation template
+    template: src=templates/ldap.inf.j2 dest=/root/ldap.inf
+
+  - name: Checking that server is already installed
+    command: systemctl is-enabled dirsrv@{{ serverid }}
+    register: results_raw
+    ignore_errors: True
+
+  - name: Install Directory Server and Admin server
+    shell: /usr/sbin/setup-ds-admin.pl -s -f /root/ldap.inf
+    when: results_raw.stdout.find('enabled') == -1
+

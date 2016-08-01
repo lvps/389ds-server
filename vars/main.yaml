@@ -1,0 +1,9 @@
+---
+
+    admin_password: Admin123
+    admin_domain: example.com
+    ldap_password: Admin123
+    ldap_suffix: dc=example,dc=com
+    ldap_rootdn: cn=root
+    serverid: ldapsrv
+    replication_password: Admin123

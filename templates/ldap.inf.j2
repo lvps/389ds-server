@@ -1,0 +1,24 @@
+[General]
+FullMachineName= {{ ansible_nodename }}
+SuiteSpotUserID= ldap
+SuiteSpotGroup= ldap
+AdminDomain= {{ admin_domain }}
+ConfigDirectoryAdminID= admin
+ConfigDirectoryAdminPwd= {{ admin_password }}
+ConfigDirectoryLdapURL= ldap://{{ ansible_nodename }}:389/o=NetscapeRoot
+[slapd]
+SlapdConfigForMC= Yes
+UseExistingMC= 0
+ServerPort= 389
+ServerIdentifier= {{ serverid }}
+Suffix= {{ ldap_suffix }}
+RootDN= {{ ldap_rootdn }}
+RootDNPwd= {{ ldap_password }}
+#ds_bename=exampleDB
+AddSampleEntries= No
+[admin]
+Port= 9830
+ServerIpAddress= 0.0.0.0
+ServerAdminID= admin
+ServerAdminPwd= {{ admin_password }}
+

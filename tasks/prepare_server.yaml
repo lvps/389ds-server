@@ -1,0 +1,38 @@
+---
+
+  - name: Update packages
+    yum: name=* state=latest
+
+  - name: Setup epel-repository
+    yum: name=epel-release state=present
+
+  - name: Install 389-ds and openldap-client packages
+    yum: name={{item}} state=present
+    with_items:
+      - 389-ds-base
+      - 389-admin
+      - openldap-clients
+
+  - name: Configuring sysctl variables
+    sysctl: name=net.ipv4.tcp_keepalive_time  value=300 sysctl_set=yes state=present
+
+  - name: Configuring sysctl variables 
+    sysctl: name=net.ipv4.ip_local_port_range value='1024 65000' sysctl_set=yes state=present
+
+  - name: Configuring sysctl variables
+    sysctl: name=fs.file-max  value=64000 sysctl_set=yes state=present
+
+  - name: Configuring File Descriptors
+    lineinfile: dest=/etc/sysconfig/dirsrv.systemd state=present insertafter="^[Service]"  line=LimitNOFILE=8192
+
+  - name: Disabling SELinux
+    selinux: policy=targeted state=permissive
+
+  - name: Configuring group ldap
+    group: name=ldap gid=389
+
+  - name: Configuring user ldap
+    user: name=ldap comment="Dirsrv user" uid=389 group=ldap shell=/sbin/nologin
+
+  - name: Configuring /etc/hosts
+    copy: src=files/hosts dest=/etc/hosts

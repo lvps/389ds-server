@@ -1,0 +1,27 @@
+---
+  - name: Generate password hash for Replication Manager
+    shell: /usr/bin/pwdhash {{ replication_password }}
+    register: pwd_hash_raw
+
+  - name: Make a pwd hash variable
+    set_fact: pwd_hash='{{ pwd_hash_raw.stdout }}'
+
+  - name: Copy installation template
+    template: src=templates/rm.ldif.j2 dest=/root/repluser.ldif
+
+  - name: check dse content
+    shell: cat /etc/dirsrv/slapd-{{ serverid }}/dse.ldif
+    register: dse_contents
+
+  - name: Stopping Directory Server
+    service: name=dirsrv@{{ serverid }} state=stopped
+    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+
+  - name: Add replication manager user
+    shell: cat /root/repluser.ldif >>/etc/dirsrv/slapd-{{ serverid }}/dse.ldif
+    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+
+  - name: Starting Directory Server
+    service: name=dirsrv@{{ serverid }} state=started
+    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+
