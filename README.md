@@ -5,8 +5,9 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 
 Requirements
 ------------
-
-This role requires Ansible 1.4 or higher.  Currently it supports only Red Hat-based systems with systemd  (RHEL 7.x, CentOS 7.x)
+This role requires Ansible 1.4 or higher. 
+Currently it supports only Red Hat-based systems with systemd  (RHEL 7.x, CentOS 7.x).
+It is assumed that proper hostname is configured and resolving works fine.
 
 Role Variables
 --------------
