@@ -159,9 +159,9 @@ nsds5BeginReplicaRefresh: start
 
 - hosts: ldapmaster
   roles:
-     - { role: 389-ldap-server, enable_replication_consumer: true, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
-     - { role: 389-ldap-server, enable_replication_consumer: true, enable_replication_supplier: true, replication_consumer_host: ldap97.example.com , replication_agreement_name: agreement2}
-     - { role: 389-ldap-server, enable_replication_consumer: true, enable_replication_supplier: true, replication_consumer_host: ldap98.example.com , replication_agreement_name: agreement3}
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap97.example.com , replication_agreement_name: agreement2}
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap98.example.com , replication_agreement_name: agreement3}
 ```
 
 ## Author Information
