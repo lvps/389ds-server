@@ -13,6 +13,7 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 - Hub support
 - Configuration speed improvements
 - Advanced configuration support
+- Ubuntu/Debian/SuSE/RHEL6.x/CentOS6.x support
 
 ## Requirements
 - Ansible version: 1.4 or higher
