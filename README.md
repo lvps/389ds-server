@@ -15,13 +15,22 @@ Role Variables
 The variables that can be passed to this role and a brief description about
 them are as follows:
 
-    admin_password: Admin123                  # Administration server password (user admin)
-    admin_domain: example.com                 # Admin domain
-    ldap_password: Admin123                   # This is the password for admin for LDAP server
-    ldap_suffix: dc=example,dc=com            # The domain prefix for ldap
-    ldap_rootdn: cn=root                      # This is rootdn for admin for LDAP server
-    serverid: ldapsrv                         # dirsrv service 
-    replication_password: Admin123
+    ldap_password: Admin123
+    ldap_suffix: dc=example,dc=com
+    ldap_rootdn: cn=root
+    serverid: ldapsrv
+
+    admin_password: Admin123
+    admin_domain: example.com
+
+    enable_replication_supplier: false
+    replication_nsds5replicaid: 7
+    replication_agreement_name: ExampleAgreement
+    replication_consumer_host: consumer.example.com
+
+    enable_replication_consumer: false
+    replication_user: replmanager
+    replication_user_password: Admin123
 
 
 
