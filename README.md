@@ -6,7 +6,14 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 - Repcation support:
   - Configuring replication supplier
   - Configuring replication consumer
-  - Multi Master replications
+  - Multi slaves replications
+
+## ToDo
+- Multi-Master replication support
+- Hub support
+- Configuration speed improvements
+- Advanced configuration support
+- Ubuntu/Debian/SuSE/RHEL6.x/CentOS6.x support
 
 ## Requirements
 - Ansible version: 1.4 or higher
