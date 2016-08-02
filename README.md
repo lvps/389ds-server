@@ -87,5 +87,64 @@ If variables are not set in the yaml file - default values will be used
 ```
 It is assumed that consumer hostname is known before configuring supplier.
 
+### 5. Configuring master->slave replications
+```
+---
+- hosts: ldapserver2
+  roles:
+     - { role: 389-ldap-server, enable_replication_consumer: true }
+
+- hosts: ldapserver1
+  roles:
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com }
+```
+Note! it is important to configure consumer(slave) before supplier (master).
+If the order is wrong you can fix the problem by re-runing the syncronization projecess as shown below:
+- connect to supplier (master LDAP server)
+- Find agreement information in LDAP server configuration:
+  - run "ldapsearch -x -D cn=root -wAdmin123 -b cn=config objectClass=nsds5replicationagreement'
+you will have something like:
+```
+# ExampleAgreement, supplierreplica, dc\3Dexample\2Cdc\3Dcom, mapping tree, con
+ fig
+dn: cn=ExampleAgreement,cn=supplierreplica,cn=dc\3Dexample\2Cdc\3Dcom,cn=mappi
+ ng tree,cn=config
+objectClass: top
+objectClass: nsds5replicationagreement
+cn: ExampleAgreement
+nsDS5ReplicaHost: ldap96.example.com
+nsDS5ReplicaPort: 389
+nsDS5ReplicaBindDN: cn=replmanager,cn=config
+nsDS5ReplicaBindMethod: SIMPLE
+nsDS5ReplicaRoot: dc=example,dc=com
+description: Agreement between ldap95.example.com and ldap96.example.com
+nsDS5ReplicaUpdateSchedule: 0001-2359 0123456
+nsDS5ReplicatedAttributeList: (objectclass=*) $ EXCLUDE authorityRevocationLis
+ t
+nsDS5ReplicaCredentials: {AES-TUhNR0NTcUdTSWIzRFFFRkRUQm1NRVVHQ1NxR1NJYjNEUUVG
+ RERBNEJDUmhOR0kyWlRBMU9TMWpPRE5qTXpCaA0KTmkxaFptTXdNbU13TnkwellUQXpNRFZpTVFBQ
+ 0FRSUNBU0F3Q2dZSUtvWklodmNOQWdjd0hRWUpZSVpJQVdVRA0KQkFFcUJCQllKMUZ5cVNUK25YSU
+ tVRXVuR3FKbA==}bSvopZmv0sFDa11fJ03dKQ==
+nsds5replicareapactive: 0
+nsds5replicaLastUpdateStart: 19700101000000Z
+nsds5replicaLastUpdateEnd: 19700101000000Z
+nsds5replicaChangesSentSinceStartup:
+nsds5replicaLastUpdateStatus: 402 Replication error acquiring replica: unknown
+  error - Replica has different database generation ID, remote replica may nee
+ d to be initialized
+nsds5replicaUpdateInProgress: FALSE
+nsds5replicaLastInitStart: 20160802124732Z
+nsds5replicaLastInitEnd: 19700101000000Z
+nsds5replicaLastInitStatus: -1  - LDAP error: Can't contact LDAP server
+```
+- Re-Start Sync proccess by
+ldapmodify -D cn=root -wYOUR_PASSWORD
+dn: cn=ExampleAgreement,cn=supplierreplica,cn="dc=example,dc=com",cn=mapping tree,cn=config
+changetype: modify
+replace: nsds5BeginReplicaRefresh
+nsds5BeginReplicaRefresh: start
+<CTRL +D>
+
+
 ## Author Information
 Name: Artemii Kropachev
