@@ -99,10 +99,12 @@ It is assumed that consumer hostname is known before configuring supplier.
      - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com }
 ```
 Note! it is important to configure consumer(slave) before supplier (master).
-If the order is wrong you can fix the problem by re-runing the syncronization projecess as shown below:
+If the order is wrong you can fix the problem by re-runing the syncronization process as shown below:
 - connect to supplier (master LDAP server)
 - Find agreement information in LDAP server configuration:
-  - run "ldapsearch -x -D cn=root -wAdmin123 -b cn=config objectClass=nsds5replicationagreement'
+```
+$ ldapsearch -x -D cn=root -wAdmin123 -b cn=config objectClass=nsds5replicationagreement'
+```
 you will have something like:
 ```
 # ExampleAgreement, supplierreplica, dc\3Dexample\2Cdc\3Dcom, mapping tree, con
@@ -138,12 +140,14 @@ nsds5replicaLastInitEnd: 19700101000000Z
 nsds5replicaLastInitStatus: -1  - LDAP error: Can't contact LDAP server
 ```
 - Re-Start Sync proccess by
-ldapmodify -D cn=root -wYOUR_PASSWORD
+```
+$ ldapmodify -D cn=root -wYOUR_PASSWORD
 dn: cn=ExampleAgreement,cn=supplierreplica,cn="dc=example,dc=com",cn=mapping tree,cn=config
 changetype: modify
 replace: nsds5BeginReplicaRefresh
 nsds5BeginReplicaRefresh: start
-<CTRL +D>
+<CTRL + D>
+```
 
 
 ## Author Information
