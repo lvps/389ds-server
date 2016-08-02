@@ -40,6 +40,7 @@ The variables that can be passed to this role and a brief description about them
 # mkdir -p /etc/ansible/roles
 # cd /etc/ansible/roles
 # git clone https://github.com/neoncyrex/389-ldap-server.git
+# vi /etc/ansible/hosts
 ```
 ## Usage and Examples
 
