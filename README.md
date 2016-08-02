@@ -9,9 +9,9 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
   - Multi slaves replications
 
 ## ToDo
+- TLS support
 - Multi-Master replication support
 - Hub support
-- Configuration speed improvements
 - Advanced configuration support
 - Ubuntu/Debian/SuSE/RHEL6.x/CentOS6.x support
 
