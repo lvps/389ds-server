@@ -1,0 +1,12 @@
+galaxy_info:
+  author: "Artemii Kropachev"
+  company: "Bell Integrator"
+  license: Apache2
+  min_ansible_version: 1.4
+  platforms:
+   - name: EL
+     versions:
+      - 7
+  categories:
+   - system
+dependencies: []

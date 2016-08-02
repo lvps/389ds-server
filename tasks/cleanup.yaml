@@ -2,7 +2,9 @@
   - name: Remove temporary files
     file: path={{ item }} state=absent
     with_items:
-     - /root/repluser.ldif
      - /root/ldap.inf
-     - /root/suplier_changelog.ldif
-     - /root/suplier_replica.ldif
+     - /root/consumer_replica.ldif
+     - /root/replication_user.ldif
+     - /root/supplier_changelog.ldif
+     - /root/supplier_replica.ldif
+     - /root/supplier_replication_agreement.ldif
