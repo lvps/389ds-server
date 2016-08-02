@@ -67,7 +67,7 @@ If variables are not set in the yaml file - default values will be used
 > $ ansible-playbook ldap.yaml
 
 
-### 3. Configure a a single 389-server on the targed machine(s) (variables in CLI):
+### 3. Configure a single 389-server on the targed machine(s) (variables in CLI):
 
 > $ cat ldap.yaml
 ```
@@ -78,6 +78,14 @@ If variables are not set in the yaml file - default values will be used
 ```
 > $ ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
 
+### 4. Configuring single replication master
+```
+---
+- hosts: ldapserver1
+  roles:
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com }
+```
+It is assumed that consumer hostname is known before configuring supplier.
 
 ## Author Information
 Name: Artemii Kropachev
