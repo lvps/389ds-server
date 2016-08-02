@@ -10,10 +10,13 @@
     admin_domain: example.com
 
 # Replication supplier settings
+    enable_replication_supplier: false
     replication_nsds5replicaid: 7
     replication_agreement_name: ExampleAgreement
     replication_consumer_host: consumer.example.com
 
 # Replication consumer settings
+    enable_replication_consumer: false
+    # this will create LDAP user cn=replmanager,cn=config
     replication_user: replmanager
     replication_user_password: Admin123

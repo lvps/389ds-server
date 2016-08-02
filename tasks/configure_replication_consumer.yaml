@@ -2,15 +2,18 @@
   - name: Generate password hash for replication user
     shell: /usr/bin/pwdhash {{ replication_user_password }}
     register: pwd_hash_raw
+    when: enable_replication_consumer
 
   - name: Make a pwd hash variable
     set_fact: pwd_hash='{{ pwd_hash_raw.stdout }}'
+    when: enable_replication_consumer
 
   - name: Copy ldif templates
     template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
     with_items:
      - consumer_replica.ldif
      - replication_user.ldif
+    when: enable_replication_consumer
 
 #  - name: check dse content
 #    shell: cat /etc/dirsrv/slapd-{{ serverid }}/dse.ldif
@@ -32,21 +35,15 @@
     shell: ldapmodify -D {{ ldap_rootdn }} -w {{ ldap_password }} -h localhost -v < /root/replication_user.ldif
     register: results
     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
-
-  - debug: msg='Replication user already exists'
-    when: results.stderr.find('exists') != -1
-
-  - name: Copy installation templates (consumer replica)
-    template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
-    with_items:
-     - consumer_replica.ldif
+    when: enable_replication_consumer
 
   - name: Configuring consumer replica
     shell: ldapmodify -D {{ ldap_rootdn }} -w {{ ldap_password }} -h localhost -v < /root/consumer_replica.ldif
     register: results
     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
+    when: enable_replication_consumer
 
   - name: Restarting Directory Server
     service: name=dirsrv@{{ serverid }} state=restarted
-    when: results.stderr.find('exists') == -1
+    when: (results.stderr.find('exists') == -1)and enable_replication_consumer
 

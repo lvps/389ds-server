@@ -1,4 +1,4 @@
-dn: cn={{ replication_agreement_name }},cn=replica,cn="{{ ldap_suffix }}",cn=mapping tree,cn=config
+dn: cn={{ replication_agreement_name }},cn=supplierreplica,cn="{{ ldap_suffix }}",cn=mapping tree,cn=config
 changetype: add
 objectclass: top
 objectclass: nsds5replicationagreement
@@ -9,7 +9,7 @@ nsds5ReplicaBindDN: cn={{ replication_user }},cn=config
 nsds5replicabindmethod: SIMPLE
 nsds5replicaroot: {{ ldap_suffix }}
 description: Agreement between {{ ansible_nodename }} and {{ replication_consumer_host }}
-nsds5replicaupdateschedule: 0000-0500 1
+nsds5replicaupdateschedule: 0001-2359 0123456
 nsds5replicatedattributelist: (objectclass=*) $ EXCLUDE authorityRevocationList
 nsds5replicacredentials: {{ replication_user_password }}
 nsds5BeginReplicaRefresh: start
