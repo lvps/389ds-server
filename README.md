@@ -15,25 +15,20 @@ Role Variables
 The variables that can be passed to this role and a brief description about
 them are as follows:
 
-# General 389-ds settings
     ldap_password: Admin123
     ldap_suffix: dc=example,dc=com
     ldap_rootdn: cn=root
     serverid: ldapsrv
 
-# Admin server settings
     admin_password: Admin123
     admin_domain: example.com
 
-# Replication supplier settings
     enable_replication_supplier: false
     replication_nsds5replicaid: 7
     replication_agreement_name: ExampleAgreement
     replication_consumer_host: consumer.example.com
 
-# Replication consumer settings
     enable_replication_consumer: false
-    # this will create LDAP user cn=replmanager,cn=config
     replication_user: replmanager
     replication_user_password: Admin123
 
