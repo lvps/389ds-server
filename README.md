@@ -37,36 +37,26 @@ The variables that can be passed to this role and a brief description about them
 
 ## Usage
 
-### 1. Configure an 389-server on the targed machine (variables in playbook):
+### 1. Configure a single 389-server on the targed machine(s) (variables in playbook):
 
 > $ cat ldap.yaml
-    
 	- hosts: all
-
 	  sudo: true
-
           roles:
-
 		- { role: 389-ldap-server, admin_domain: example.com, admin_password: secret }
-
 
 > $ ansible-playbook ldap.yaml
 
 
 
 
-### 2. Configure an 389-server on the targed machine (variables in CLI):
+### 2. Configure a a single 389-server on the targed machine(s) (variables in CLI):
 
 > $ cat ldap.yaml
-    
 	- hosts: all
-
           sudo: true
-
           roles:
-
 		- 389-ldap-server
-
 
 > $ ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
 
