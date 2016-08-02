@@ -1,19 +1,20 @@
-389-ldap-server
-===============
-
+# 389-ldap-server
 This role installs the 389-server (LDAP server)  on the target machine(s).
 
-Requirements
-------------
-This role requires Ansible 1.4 or higher. 
-Currently it supports only Red Hat-based systems with systemd  (RHEL 7.x, CentOS 7.x).
-It is assumed that proper hostname is configured and resolving works fine.
+## Features
+- Configuring single LDAP server
+- Repcation support:
+  - Configuring replication supplier
+  - Configuring replication consumer
+  - Multi Master replications
 
-Role Variables
---------------
+## Requirements
+- Ansible version: 1.4 or higher
+- OS: RHEL 7.x, CentOS 7.x
+- Valid FQDN (hostname) is in place
 
-The variables that can be passed to this role and a brief description about
-them are as follows:
+## Role Variables
+The variables that can be passed to this role and a brief description about them are as follows:
 
     ldap_password: Admin123
     ldap_suffix: dc=example,dc=com
@@ -34,12 +35,11 @@ them are as follows:
 
 
 
-Usage
---------
+## Usage
 
-1. Configure an 389-server on the targed machine (variables in playbook):
+### 1. Configure an 389-server on the targed machine (variables in playbook):
 
-cat ldap.yaml
+> $ cat ldap.yaml
     
 	- hosts: all
 
@@ -50,14 +50,14 @@ cat ldap.yaml
 		- { role: 389-ldap-server, admin_domain: example.com, admin_password: secret }
 
 
-ansible-playbook ldap.yaml
+> $ ansible-playbook ldap.yaml
 
 
 
 
-2. Configure an 389-server on the targed machine (variables in CLI):
+### 2. Configure an 389-server on the targed machine (variables in CLI):
 
-cat ldap.yaml
+> $ cat ldap.yaml
     
 	- hosts: all
 
@@ -68,10 +68,8 @@ cat ldap.yaml
 		- 389-ldap-server
 
 
-ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
+> $ ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
 
 
-Author Information
-------------------
-
-Artemii Kropachev
+## Author Information
+Name: Artemii Kropachev
