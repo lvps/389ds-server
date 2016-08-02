@@ -15,7 +15,7 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 
 ## Role Variables
 The variables that can be passed to this role and a brief description about them are as follows:
-
+```
     ldap_password: Admin123
     ldap_suffix: dc=example,dc=com
     ldap_rootdn: cn=root
@@ -32,12 +32,23 @@ The variables that can be passed to this role and a brief description about them
     enable_replication_consumer: false
     replication_user: replmanager
     replication_user_password: Admin123
+```
 
 
+## Usage and Examples
 
-## Usage
+### 1. Configure a single 389-server on the targed machine(s):
+If variables are not set in the yaml file - default values will be used
+> $ cat ldap.yaml
+```
+	- hosts: all
+	  sudo: true
+          roles:
+		- { role: 389-ldap-server }
+```
+> $ ansible-playbook ldap.yaml
 
-### 1. Configure a single 389-server on the targed machine(s) (variables in playbook):
+### 2. Configure a single 389-server on the targed machine(s) (variables in playbook):
 
 > $ cat ldap.yaml
 ```
@@ -49,9 +60,7 @@ The variables that can be passed to this role and a brief description about them
 > $ ansible-playbook ldap.yaml
 
 
-
-
-### 2. Configure a a single 389-server on the targed machine(s) (variables in CLI):
+### 3. Configure a a single 389-server on the targed machine(s) (variables in CLI):
 
 > $ cat ldap.yaml
 ```
