@@ -9,19 +9,30 @@
   - name: Copy installation template
     template: src=templates/rm.ldif.j2 dest=/root/repluser.ldif
 
-  - name: check dse content
-    shell: cat /etc/dirsrv/slapd-{{ serverid }}/dse.ldif
-    register: dse_contents
+#  - name: check dse content
+#    shell: cat /etc/dirsrv/slapd-{{ serverid }}/dse.ldif
+#    register: dse_contents
+#
+#  - name: Stopping Directory Server
+#    service: name=dirsrv@{{ serverid }} state=stopped
+#    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+#
+#  - name: Add replication manager user
+#    shell: cat /root/repluser.ldif >>/etc/dirsrv/slapd-{{ serverid }}/dse.ldif
+#    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+#
+#  - name: Starting Directory Server
+#    service: name=dirsrv@{{ serverid }} state=started
+#    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
 
-  - name: Stopping Directory Server
-    service: name=dirsrv@{{ serverid }} state=stopped
-    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+  - name: Adding replication user
+    shell: ldapmodify -D {{ ldap_rootdn }} -w {{ ldap_password }} -h localhost -v < /root/repluser.ldif
+    register: results
+    failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
 
-  - name: Add replication manager user
-    shell: cat /root/repluser.ldif >>/etc/dirsrv/slapd-{{ serverid }}/dse.ldif
-    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
+  - debug: msg='Replication user already exists'
+    when: results.stderr.find('exists') != -1
 
-  - name: Starting Directory Server
-    service: name=dirsrv@{{ serverid }} state=started
-    when: "dse_contents.stdout.find('dn: cn=replication manager,cn=config') == -1"
-
+  - name: Restarting Directory Server
+    service: name=dirsrv@{{ serverid }} state=restarted
+    when: results.stderr.find('exists') == -1
