@@ -42,8 +42,3 @@
     register: results
     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
     when: enable_replication_consumer
-
-  - name: Restarting Directory Server
-    service: name=dirsrv@{{ serverid }} state=restarted
-    when: (results.stderr.find('exists') == -1)and enable_replication_consumer
-

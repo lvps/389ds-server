@@ -16,7 +16,7 @@
   - name: Configuring sysctl variables
     sysctl: name=net.ipv4.tcp_keepalive_time  value=300 sysctl_set=yes state=present
 
-  - name: Configuring sysctl variables 
+  - name: Configuring sysctl variables
     sysctl: name=net.ipv4.ip_local_port_range value='1024 65000' sysctl_set=yes state=present
 
   - name: Configuring sysctl variables
