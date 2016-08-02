@@ -149,6 +149,20 @@ nsds5BeginReplicaRefresh: start
 <CTRL + D>
 ```
 
+### 5. Configuring multi-slaves
+```
+---
+
+- hosts: ldapslaves
+  roles:
+     - { role: 389-ldap-server, enable_replication_consumer: true }
+
+- hosts: ldapmaster
+  roles:
+     - { role: 389-ldap-server, enable_replication_consumer: true, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
+     - { role: 389-ldap-server, enable_replication_consumer: true, enable_replication_supplier: true, replication_consumer_host: ldap97.example.com , replication_agreement_name: agreement2}
+     - { role: 389-ldap-server, enable_replication_consumer: true, enable_replication_supplier: true, replication_consumer_host: ldap98.example.com , replication_agreement_name: agreement3}
+```
 
 ## Author Information
 Name: Artemii Kropachev
