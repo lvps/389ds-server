@@ -1,10 +1,19 @@
 ---
-
-    admin_password: Admin123
-    admin_domain: example.com
+# General 389-ds settings
     ldap_password: Admin123
     ldap_suffix: dc=example,dc=com
     ldap_rootdn: cn=root
     serverid: ldapsrv
-    replication_password: Admin123
-    replication_supplier: yes
+
+# Admin server settings
+    admin_password: Admin123
+    admin_domain: example.com
+
+# Replication supplier settings
+    replication_nsds5replicaid: 7
+    replication_agreement_name: ExampleAgreement
+    replication_consumer_host: consumer.example.com
+
+# Replication consumer settings
+    replication_user: replmanager
+    replication_user_password: Admin123

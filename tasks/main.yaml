@@ -1,7 +1,7 @@
 ---
     - include: prepare_server.yaml
-    - include: configure_ldap.yaml
-    - include: configure_replication_user.yaml
+    - include: configure_ldap_server.yaml
+    - include: configure_replication_consumer.yaml
     - include: configure_replication_supplier.yaml
     - include: cleanup.yaml
 

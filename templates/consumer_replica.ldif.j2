@@ -1,0 +1,12 @@
+dn: cn=replica,cn="{{ ldap_suffix }}",cn=mapping tree,cn=config
+changetype: add
+objectclass: top
+objectclass: nsds5replica
+objectclass: extensibleObject
+cn: replica
+nsds5replicaroot: {{ ldap_suffix }}
+nsds5replicaid: 65535
+nsds5replicatype: 2
+nsds5ReplicaBindDN: cn={{ replication_user }},cn=config
+nsds5flags: 0
+
