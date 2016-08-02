@@ -44,7 +44,7 @@ The variables that can be passed to this role and a brief description about them
 	- hosts: all
 	  sudo: true
           roles:
-		- { role: 389-ldap-server, admin_domain: example.com, admin_password: secret }
+		- { role: 389-ldap-server, admin_password: secret, ldap_suffix="dc=example,dc=com" }
 ```
 > $ ansible-playbook ldap.yaml
 
