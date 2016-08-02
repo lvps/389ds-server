@@ -34,7 +34,13 @@ The variables that can be passed to this role and a brief description about them
     replication_user_password: Admin123
 ```
 
-
+## Installation (CentOS 7.x or RHEL 7.x)
+```
+# yum install -y git ansible
+# mkdir -p /etc/ansible/roles
+# cd /etc/ansible/roles
+# git clone https://github.com/neoncyrex/389-ldap-server.git
+```
 ## Usage and Examples
 
 ### 1. Configure a single 389-server on the targed machine(s):
