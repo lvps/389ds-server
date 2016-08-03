@@ -34,5 +34,8 @@
   - name: Configuring user ldap
     user: name=ldap comment="Dirsrv user" uid=389 group=ldap shell=/sbin/nologin
 
-  - name: Configuring /etc/hosts
-    copy: src=files/hosts dest=/etc/hosts
+#  - name: Configuring firewall rules
+#    firewalld: service=ldap permanent=true state=enabled
+
+#  - name: Configuring firewall rules
+#    firewalld: port=9830  permanent=true state=enabled
