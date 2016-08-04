@@ -23,20 +23,29 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 ## Role Variables
 The variables that can be passed to this role and a brief description about them are as follows:
 ```
+# Configuration type
+    # if it is set - preparation and 389-ds configuration activities will be skipped (usually to add a new replication agreement)
+    skip_config: false
+
+# General 389-ds settings
     ldap_password: Admin123
     ldap_suffix: dc=example,dc=com
     ldap_rootdn: cn=root
     serverid: ldapsrv
 
+# Admin server settings
     admin_password: Admin123
     admin_domain: example.com
 
+# Replication supplier settings
     enable_replication_supplier: false
     replication_nsds5replicaid: 7
     replication_agreement_name: ExampleAgreement
     replication_consumer_host: consumer.example.com
 
+# Replication consumer settings
     enable_replication_consumer: false
+    # this will create LDAP user cn=replmanager,cn=config
     replication_user: replmanager
     replication_user_password: Admin123
 ```
@@ -167,8 +176,8 @@ nsds5BeginReplicaRefresh: start
 - hosts: ldapmaster
   roles:
      - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap97.example.com , replication_agreement_name: agreement2}
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap98.example.com , replication_agreement_name: agreement3}
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap97.example.com, replication_agreement_name: agreement2, skip_config: true }
+     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap98.example.com, replication_agreement_name: agreement3, skip_config: true}
 ```
 
 ## Author Information

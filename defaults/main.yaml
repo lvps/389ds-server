@@ -1,4 +1,9 @@
 ---
+
+# Configuration type
+    # if it is set - preparation and 389-ds configuration activities will be skipped (usually to add a new replication agreement)
+    skip_config: false
+
 # General 389-ds settings
     ldap_password: Admin123
     ldap_suffix: dc=example,dc=com
