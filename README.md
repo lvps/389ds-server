@@ -40,8 +40,8 @@ The variables that can be passed to this role and a brief description about them
 # Replication supplier settings
     supplier: false
     replication_nsds5replicaid: 7
-    replication_agreement_name: ExampleAgreement
-    replication_consumer_host: consumer.example.com
+    agreement_name: ExampleAgreement
+    consumer_host: consumer.example.com
 
 # Replication consumer settings
     consumer: false
@@ -99,7 +99,7 @@ If variables are not set in the yaml file - default values will be used
 ---
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap96.example.com }
+     - { role: 389-ldap-server, supplier: true, consumer_host: ldap96.example.com }
 ```
 It is assumed that consumer hostname is known before configuring supplier.
 
@@ -112,7 +112,7 @@ It is assumed that consumer hostname is known before configuring supplier.
 
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap96.example.com }
+     - { role: 389-ldap-server, supplier: true, consumer_host: ldap96.example.com }
 ```
 Note! it is important to configure consumer(slave) before supplier (master).
 If the order is wrong you can fix the problem by re-runing the syncronization process as shown below:
@@ -175,9 +175,9 @@ nsds5BeginReplicaRefresh: start
 
 - hosts: ldapmaster
   roles:
-     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
-     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap97.example.com, replication_agreement_name: agreement2, skip_config: true }
-     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap98.example.com, replication_agreement_name: agreement3, skip_config: true}
+     - { role: 389-ldap-server, supplier: true, consumer_host: ldap96.example.com, agreement_name: agreement1 }
+     - { role: 389-ldap-server, supplier: true, consumer_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
+     - { role: 389-ldap-server, supplier: true, consumer_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
 ```
 
 ## Author Information

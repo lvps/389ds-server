@@ -17,8 +17,8 @@
 # Replication supplier settings
     supplier: false
     replication_nsds5replicaid: 7
-    replication_agreement_name: ExampleAgreement
-    replication_consumer_host: consumer.example.com
+    agreement_name: ExampleAgreement
+    consumer_host: consumer.example.com
 
 # Replication consumer settings
     consumer: false
