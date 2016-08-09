@@ -5,9 +5,9 @@
     skip_config: false
 
 # General 389-ds settings
-    ldap_password: Admin123
-    ldap_suffix: dc=example,dc=com
-    ldap_rootdn: cn=root
+    password: Admin123
+    suffix: dc=example,dc=com
+    rootdn: cn=root
     serverid: ldapsrv
 
 # Admin server settings
@@ -15,13 +15,13 @@
     admin_domain: example.com
 
 # Replication supplier settings
-    enable_replication_supplier: false
+    supplier: false
     replication_nsds5replicaid: 7
     replication_agreement_name: ExampleAgreement
     replication_consumer_host: consumer.example.com
 
 # Replication consumer settings
-    enable_replication_consumer: false
+    consumer: false
     # this will create LDAP user cn=replmanager,cn=config
     replication_user: replmanager
     replication_user_password: Admin123

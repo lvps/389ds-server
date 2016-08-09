@@ -6,10 +6,10 @@
       when: not skip_config
 
     - include: configure_replication_consumer.yaml
-      when: enable_replication_consumer
+      when: consumer
 
     - include: configure_replication_supplier.yaml
-      when: enable_replication_supplier
+      when: supplier
 
     - include: cleanup.yaml
 

@@ -7,17 +7,17 @@
       - supplier_replication_agreement.ldif
 
    - name: Configuring replication supplier changelog
-     shell: ldapmodify -D {{ ldap_rootdn }} -w {{ ldap_password }} -h localhost -v < /root/supplier_changelog.ldif
+     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_changelog.ldif
      register: results
      failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
 
    - name: Configuring replication suplier replica
-     shell: ldapmodify -D {{ ldap_rootdn }} -w {{ ldap_password }} -h localhost -v < /root/supplier_replica.ldif
+     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replica.ldif
      register: results
      failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1)or(results.stderr.find('replica already configured for') != -1))
 
    - name: Configuring replication agreement
-     shell: ldapmodify -D {{ ldap_rootdn }} -w {{ ldap_password }} -h localhost -v < /root/supplier_replication_agreement.ldif
+     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replication_agreement.ldif
      register: results
      failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
 

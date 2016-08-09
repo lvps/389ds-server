@@ -1,10 +1,10 @@
-dn: cn=consumerreplica,cn="{{ ldap_suffix }}",cn=mapping tree,cn=config
+dn: cn=consumerreplica,cn="{{ suffix }}",cn=mapping tree,cn=config
 changetype: add
 objectclass: top
 objectclass: nsds5replica
 objectclass: extensibleObject
 cn: consumerreplica
-nsds5replicaroot: {{ ldap_suffix }}
+nsds5replicaroot: {{ suffix }}
 nsds5replicaid: 65535
 nsds5replicatype: 2
 nsds5ReplicaBindDN: cn={{ replication_user }},cn=config

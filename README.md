@@ -28,9 +28,9 @@ The variables that can be passed to this role and a brief description about them
     skip_config: false
 
 # General 389-ds settings
-    ldap_password: Admin123
-    ldap_suffix: dc=example,dc=com
-    ldap_rootdn: cn=root
+    password: Admin123
+    suffix: dc=example,dc=com
+    rootdn: cn=root
     serverid: ldapsrv
 
 # Admin server settings
@@ -38,13 +38,13 @@ The variables that can be passed to this role and a brief description about them
     admin_domain: example.com
 
 # Replication supplier settings
-    enable_replication_supplier: false
+    supplier: false
     replication_nsds5replicaid: 7
     replication_agreement_name: ExampleAgreement
     replication_consumer_host: consumer.example.com
 
 # Replication consumer settings
-    enable_replication_consumer: false
+    consumer: false
     # this will create LDAP user cn=replmanager,cn=config
     replication_user: replmanager
     replication_user_password: Admin123
@@ -78,7 +78,7 @@ If variables are not set in the yaml file - default values will be used
 	- hosts: all
 	  sudo: true
           roles:
-		- { role: 389-ldap-server, admin_password: secret, ldap_suffix="dc=example,dc=com" }
+		- { role: 389-ldap-server, admin_password: secret, suffix="dc=example,dc=com" }
 ```
 > $ ansible-playbook ldap.yaml
 
@@ -99,7 +99,7 @@ If variables are not set in the yaml file - default values will be used
 ---
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com }
+     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap96.example.com }
 ```
 It is assumed that consumer hostname is known before configuring supplier.
 
@@ -108,11 +108,11 @@ It is assumed that consumer hostname is known before configuring supplier.
 ---
 - hosts: ldapserver2
   roles:
-     - { role: 389-ldap-server, enable_replication_consumer: true }
+     - { role: 389-ldap-server, consumer: true }
 
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com }
+     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap96.example.com }
 ```
 Note! it is important to configure consumer(slave) before supplier (master).
 If the order is wrong you can fix the problem by re-runing the syncronization process as shown below:
@@ -171,13 +171,13 @@ nsds5BeginReplicaRefresh: start
 
 - hosts: ldapslaves
   roles:
-     - { role: 389-ldap-server, enable_replication_consumer: true }
+     - { role: 389-ldap-server, consumer: true }
 
 - hosts: ldapmaster
   roles:
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap97.example.com, replication_agreement_name: agreement2, skip_config: true }
-     - { role: 389-ldap-server, enable_replication_supplier: true, replication_consumer_host: ldap98.example.com, replication_agreement_name: agreement3, skip_config: true}
+     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap96.example.com, replication_agreement_name: agreement1 }
+     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap97.example.com, replication_agreement_name: agreement2, skip_config: true }
+     - { role: 389-ldap-server, supplier: true, replication_consumer_host: ldap98.example.com, replication_agreement_name: agreement3, skip_config: true}
 ```
 
 ## Author Information
