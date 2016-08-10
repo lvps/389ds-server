@@ -1,5 +1,5 @@
 # 389-ldap-server
-![Build status: ](https://travis-ci.org/neoncyrex/389-ldap-server.svg?branch=master)
+[![Build Status](https://travis-ci.org/neoncyrex/389-ldap-server.svg?branch=master)](https://travis-ci.org/neoncyrex/389-ldap-server)
 
 This role installs the 389-server (LDAP server)  on the target machine(s).
 
