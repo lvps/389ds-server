@@ -19,6 +19,7 @@
     replication_nsds5replicaid: 7
     agreement_name: ExampleAgreement
     consumer_host: consumer.example.com
+    init_consumer: true
 
 # Replication consumer settings
     consumer: false
