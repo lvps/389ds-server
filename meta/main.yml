@@ -8,5 +8,5 @@ galaxy_info:
      versions:
       - 7
   categories:
-   - system
+   - ldap
 dependencies: []
