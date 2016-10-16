@@ -1,41 +1,48 @@
 ---
+- name: Configure EPEL repository
+  yum: name=epel-release state=present
 
-  - name: Update packages
-    yum: name=* state=latest
+- name: Install packages
+  yum: name={{item}} state=present
+  with_items:
+    - 389-ds-base
+    - 389-admin
+    - openldap-clients
 
-  - name: Setup epel-repository
-    yum: name=epel-release state=present
+- name: Configure sysctl variables
+  sysctl: name={{item.name}}  value={{item.value}} sysctl_set=yes state=present
+  with_items:
+    - {name: net.ipv4.tcp_keepalive_time, value: 300}
+    - {name: net.ipv4.ip_local_port_range, value: "1024 65000"}
+    - {name: fs.file-max, value: 64000}
 
-  - name: Install 389-ds and openldap-client packages
-    yum: name={{item}} state=present
-    with_items:
-      - 389-ds-base
-      - 389-admin
-      - openldap-clients
+- name: Configure file descriptors for dirsrv systemd service
+  lineinfile:
+    dest=/etc/sysconfig/dirsrv.systemd
+    state=present
+    insertafter="^[Service]"
+    line=LimitNOFILE=8192
 
-  - name: Configuring sysctl variables
-    sysctl: name=net.ipv4.tcp_keepalive_time  value=300 sysctl_set=yes state=present
+- name: Configure group ldap
+  group: name=ldap gid=389
 
-  - name: Configuring sysctl variables
-    sysctl: name=net.ipv4.ip_local_port_range value='1024 65000' sysctl_set=yes state=present
+- name: Configure user ldap
+  user: name=ldap comment="Dirsrv user" uid=389 group=ldap shell=/sbin/nologin
 
-  - name: Configuring sysctl variables
-    sysctl: name=fs.file-max  value=64000 sysctl_set=yes state=present
+- name: Check that firewalld service is active
+  command: systemctl is-active firewalld
+  register: firewalld_results
+  ignore_errors: true
+  changed_when: false
 
-  - name: Configuring File Descriptors
-    lineinfile: dest=/etc/sysconfig/dirsrv.systemd state=present insertafter="^[Service]"  line=LimitNOFILE=8192
+- block:
+    - debug: msg="firewalld service is running"
+    - name: Allow ldap port on firewalld
+      firewalld: service=ldap permanent=true state=enabled
+    - name: Allow port 9830 on firdwalld
+      firewalld: port=9830/tcp  permanent=true state=enabled
+  when: "'active' in firewalld_results.stdout"
 
-  - name: Disabling SELinux
-    selinux: policy=targeted state=permissive
-
-  - name: Configuring group ldap
-    group: name=ldap gid=389
-
-  - name: Configuring user ldap
-    user: name=ldap comment="Dirsrv user" uid=389 group=ldap shell=/sbin/nologin
-
-#  - name: Configuring firewall rules
-#    firewalld: service=ldap permanent=true state=enabled
-
-#  - name: Configuring firewall rules
-#    firewalld: port=9830  permanent=true state=enabled
+# - name: Configuring SELinux
+#   selinux: policy=targeted state=permissive
+#

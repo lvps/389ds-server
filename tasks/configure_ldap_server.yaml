@@ -1,17 +1,13 @@
 ---
-  - name: Copying installation template
-    template: src=templates/ldap.inf.j2 dest=/root/ldap.inf
+- block:
+   - name: Check that server is already installed
+     command: systemctl is-enabled dirsrv@{{ serverid }}
+     register: results_raw
+     changed_when: false
 
-  - name: Checking that server is already installed
-    command: systemctl is-enabled dirsrv@{{ serverid }}
-    register: results_raw
-    ignore_errors: True
-    failed_when:  false
+  rescue:
+   - name: Copy installation template
+     template: src=templates/ldap.inf.j2 dest=/root/ldap.inf
 
-  - debug: msg='389 directory server is already configured'
-    when: results_raw.stdout.find('enabled') != -1
-
-  - name: Configuring Directory Server and Admin server
-    shell: /usr/sbin/setup-ds-admin.pl -s -f /root/ldap.inf
-    when: results_raw.stdout.find('enabled') == -1
-
+   - name: Run installation script setup-ds-admin.pl
+     shell: /usr/sbin/setup-ds-admin.pl -s -f /root/ldap.inf

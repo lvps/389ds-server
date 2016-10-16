@@ -1,24 +1,26 @@
 ---
-  - name: Generate password hash for replication user
-    shell: /usr/bin/pwdhash  "{{ replication_user_password }}"
-    register: pwd_hash_raw
+- name: Generate password hash for replication user
+  shell: /usr/bin/pwdhash  "{{ replication_user_password }}"
+  register: pwd_hash_raw
 
-  - name: Make a pwd hash variable
-    set_fact: pwd_hash='{{ pwd_hash_raw.stdout }}'
+- name: Make a pwd hash variable
+  set_fact: pwd_hash="{{ pwd_hash_raw.stdout }}"
 
-  - name: Copy ldif templates
-    template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
-    with_items:
-     - consumer_replica.ldif
-     - replication_user.ldif
+- name: Copy ldif templates
+  template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
+  with_items:
+   - consumer_replica.ldif
+   - replication_user.ldif
 
-  - name: Adding replication user
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/replication_user.ldif
-    register: results
-    failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
+- name: Add replication user
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/replication_user.ldif
+  register: results
+  failed_when: not((results.rc == 0)or("'Already exists' in results.sterr")
+  changed_when: results.rc == 0
 
-  - name: Configuring consumer replica
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/consumer_replica.ldif
-    register: results
-    failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
-    when: not supplier
+- name: Configure consumer replica
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/consumer_replica.ldif
+  register: results
+  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr")
+  when: not supplier
+  changed_when: results.rc == 0

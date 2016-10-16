@@ -1,30 +1,33 @@
 ---
-   - name: Copy installation templates
-     template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
-     with_items:
-      - supplier_changelog.ldif
-      - supplier_replica.ldif
-      - supplier_replication_agreement.ldif
-      - supplier_init_consumer.ldif
+- name: Copy installation templates
+  template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
+  with_items:
+   - supplier_changelog.ldif
+   - supplier_replica.ldif
+   - supplier_replication_agreement.ldif
+   - supplier_init_consumer.ldif
 
-   - name: Configuring replication supplier changelog
-     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_changelog.ldif
-     register: results
-     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
+- name: Configure replication supplier changelog
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_changelog.ldif
+  register: results
+  failed_when: not((results.rc == 0)or("'Already exists') in results.stderr")
+  changed_when: results.rc == 0
 
-   - name: Configuring replication supplier replica
-     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replica.ldif
-     register: results
-     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1)or(results.stderr.find('replica already configured for') != -1))
+- name: Configuring replication supplier replica
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replica.ldif
+  register: results
+  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr")or("'replica already configured for' in results.stdeer"))
+  changed_when: results.rc == 0
 
-   - name: Configuring replication agreement
-     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replication_agreement.ldif
-     register: results
-     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
+- name: Configuring replication agreement
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replication_agreement.ldif
+  register: results
+  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr"))
+  changed_when: results.rc == 0
 
-   - name: Initializing consumer from supplier
-     shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_init_consumer.ldif
-     register: results
-     failed_when:  not((results.rc == 0)or(results.stderr.find('Already exists') != -1))
-     when: init_consumer
-
+- name: Initializing consumer from supplier
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_init_consumer.ldif
+  register: results
+  failed_when:  not((results.rc == 0)or("'Already exists' in results.stderr"))
+  when: init_consumer
+  changed_when: results.rc == 0
