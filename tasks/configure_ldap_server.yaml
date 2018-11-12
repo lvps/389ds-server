@@ -4,6 +4,7 @@
      command: systemctl is-enabled dirsrv@{{ serverid }}
      register: results_raw
      changed_when: false
+     ignore_errors: true
 
   rescue:
    - name: Copy installation template
