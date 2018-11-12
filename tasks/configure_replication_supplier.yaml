@@ -10,24 +10,24 @@
 - name: Configure replication supplier changelog
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_changelog.ldif
   register: results
-  failed_when: not((results.rc == 0)or("'Already exists') in results.stderr")
+  failed_when: not((results.rc == 0)or('Already exists') in results.stderr)
   changed_when: results.rc == 0
 
 - name: Configuring replication supplier replica
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replica.ldif
   register: results
-  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr")or("'replica already configured for' in results.stdeer"))
+  failed_when: not((results.rc == 0)or('Already exists' in results.stderr)or('replica already configured for' in results.stdeer))
   changed_when: results.rc == 0
 
 - name: Configuring replication agreement
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_replication_agreement.ldif
   register: results
-  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr"))
+  failed_when: not((results.rc == 0)or('Already exists' in results.stderr))
   changed_when: results.rc == 0
 
 - name: Initializing consumer from supplier
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/supplier_init_consumer.ldif
   register: results
-  failed_when:  not((results.rc == 0)or("'Already exists' in results.stderr"))
+  failed_when:  not((results.rc == 0)or('Already exists' in results.stderr))
   when: init_consumer
   changed_when: results.rc == 0

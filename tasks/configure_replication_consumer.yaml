@@ -15,12 +15,12 @@
 - name: Add replication user
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/replication_user.ldif
   register: results
-  failed_when: not((results.rc == 0)or("'Already exists' in results.sterr")
+  failed_when: not((results.rc == 0)or('Already exists' in results.sterr))
   changed_when: results.rc == 0
 
 - name: Configure consumer replica
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/consumer_replica.ldif
   register: results
-  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr")
+  failed_when: not((results.rc == 0)or("'Already exists' in results.stderr"))
   when: not supplier
   changed_when: results.rc == 0
