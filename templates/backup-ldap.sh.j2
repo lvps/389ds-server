@@ -1,0 +1,6 @@
+#!/bin/bash
+db2bak /var/lib/dirsrv/slapd-{{ serverid }}/bak/{{ serverid }}
+tar -zcvf /var/lib/dirsrv/slapd-{{ serverid }}/bak/{{ serverid }}.tar.gz /var/lib/dirsrv/slapd-{{ serverid }}/bak/{{ serverid }}
+DATE=$(date +"%y.%m.%d.%X")
+aws s3 cp /var/lib/dirsrv/slapd-{{ serverid }}/bak/{{ serverid }}.tar.gz s3://{{ config_bucket }}/backup/{{ serverid }}.$DATE.tar.gz
+rm -rf /var/lib/dirsrv/slapd-{{ serverid }}/bak/{{ serverid }}.tar.gz /var/lib/dirsrv/slapd-{{ serverid }}/bak/{{ serverid }}
