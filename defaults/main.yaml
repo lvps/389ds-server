@@ -25,3 +25,16 @@
  # this will create LDAP user cn=replmanager,cn=config
  replication_user: replmanager
  replication_user_password: Admin123
+
+ tls_key: |
+   -----BEGIN RSA PRIVATE KEY-----
+   -----END RSA PRIVATE KEY-----
+ 
+ # full cert chain
+ tls_cert: |
+   -----BEGIN CERTIFICATE-----
+   -----END CERTIFICATE-----
+   -----BEGIN CERTIFICATE-----
+   -----END CERTIFICATE-----
+   -----BEGIN CERTIFICATE-----
+   -----END CERTIFICATE-----

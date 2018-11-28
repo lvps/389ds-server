@@ -8,6 +8,7 @@
     - 389-ds-base
     - 389-admin
     - openldap-clients
+    - pyOpenSSL
 
 - name: Configure sysctl variables
   sysctl: name={{item.name}}  value={{item.value}} sysctl_set=yes state=present
