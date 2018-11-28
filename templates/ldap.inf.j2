@@ -1,11 +1,11 @@
 [General]
-FullMachineName= {{ ansible_nodename }}
+FullMachineName= {{ ldap_fqdn }}
 SuiteSpotUserID= dirsrv
 SuiteSpotGroup= dirsrv
 AdminDomain= {{ admin_domain }}
 ConfigDirectoryAdminID= admin
 ConfigDirectoryAdminPwd= {{ admin_password }}
-ConfigDirectoryLdapURL= ldap://{{ ansible_nodename }}:389/o=NetscapeRoot
+ConfigDirectoryLdapURL= ldap://{{ ldap_fqdn }}:389/o=NetscapeRoot
 [slapd]
 SlapdConfigForMC= Yes
 UseExistingMC= 0

@@ -5,6 +5,9 @@
 - include: configure_ldap_server.yaml
   when: not skip_config
 
+- include: configure_tls.yaml
+  when: not skip_config
+
 - include: configure_replication_consumer.yaml
   when: consumer
 

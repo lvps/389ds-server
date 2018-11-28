@@ -8,6 +8,7 @@
  suffix: dc=example,dc=com
  rootdn: cn=root
  serverid: ldapsrv
+ ldap_fqdn: "{{ ansible_nodename }}"
 
 # Admin server settings
  admin_password: Admin123
