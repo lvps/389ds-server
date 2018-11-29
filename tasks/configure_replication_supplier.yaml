@@ -1,4 +1,6 @@
 ---
+- include: configure_replication_user.yaml
+
 - name: Copy installation templates
   template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
   with_items:
