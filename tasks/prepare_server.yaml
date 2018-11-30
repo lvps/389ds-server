@@ -15,14 +15,6 @@
   with_items:
     - {name: net.ipv4.tcp_keepalive_time, value: 300}
     - {name: net.ipv4.ip_local_port_range, value: "1024 65000"}
-    - {name: fs.file-max, value: 64000}
-
-- name: Configure file descriptors for dirsrv systemd service
-  lineinfile:
-    dest=/etc/sysconfig/dirsrv.systemd
-    state=present
-    insertafter="^[Service]"
-    line=LimitNOFILE=8192
 
 - name: Configure group dirsrv
   group: name=dirsrv gid=389

@@ -7,13 +7,11 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 ## Features
 - Configuring single LDAP server
 - Repcation support:
-  - Configuring replication supplier
-  - Configuring replication consumer
+  - Configuring replication master
+  - Configuring replication replica
   - Multi slaves replications
 
 ## ToDo
-- TLS support
-- Multi-Master replication support
 - Hub support
 - Advanced configuration support
 - Ubuntu/Debian/SuSE/RHEL6.x/CentOS6.x support
@@ -40,14 +38,14 @@ The variables that can be passed to this role and a brief description about them
     admin_password: Admin123
     admin_domain: example.com
 
-# Replication supplier settings
-    supplier: false
+# Replication master settings
+    rwmaster: false
     replication_nsds5replicaid: 7
     agreement_name: ExampleAgreement
-    consumer_host: consumer.example.com
+    replica_host: replica.example.com
 
-# Replication consumer settings
-    consumer: false
+# Replication replica settings
+    roreplica: false
     # this will create LDAP user cn=replmanager,cn=config
     replication_user: replmanager
     replication_user_password: Admin123
@@ -102,33 +100,33 @@ If variables are not set in the yaml file - default values will be used
 ---
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, supplier: true, consumer_host: ldap96.example.com }
+     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap96.example.com }
 ```
-It is assumed that consumer hostname is known before configuring supplier.
+It is assumed that replica hostname is known before configuring rwmaster.
 
 ### 5. Configuring master->slave replications
 ```
 ---
 - hosts: ldapserver2
   roles:
-     - { role: 389-ldap-server, consumer: true }
+     - { role: 389-ldap-server, roreplica: true }
 
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, supplier: true, consumer_host: ldap96.example.com }
+     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap96.example.com }
 ```
-Note! it is important to configure consumer(slave) before supplier (master).
+Note! it is important to configure roreplica before rwmaster.
 If the order is wrong you can fix the problem by re-runing the syncronization process as shown below:
-- connect to supplier (master LDAP server)
+- connect to rwmaster (master LDAP server)
 - Find agreement information in LDAP server configuration:
 ```
 $ ldapsearch -x -D cn=root -wAdmin123 -b cn=config objectClass=nsds5replicationagreement'
 ```
 you will have something like:
 ```
-# ExampleAgreement, supplierreplica, dc\3Dexample\2Cdc\3Dcom, mapping tree, con
+# ExampleAgreement, replica, dc\3Dexample\2Cdc\3Dcom, mapping tree, con
  fig
-dn: cn=ExampleAgreement,cn=supplierreplica,cn=dc\3Dexample\2Cdc\3Dcom,cn=mappi
+dn: cn=ExampleAgreement,cn=replica,cn=dc\3Dexample\2Cdc\3Dcom,cn=mappi
  ng tree,cn=config
 objectClass: top
 objectClass: nsds5replicationagreement
@@ -160,8 +158,8 @@ nsds5replicaLastInitStatus: -1  - LDAP error: Can't contact LDAP server
 ```
 - Re-Start Sync proccess by
 ```
-$ ldapmodify -D cn=root -wYOUR_PASSWORD
-dn: cn=ExampleAgreement,cn=supplierreplica,cn="dc=example,dc=com",cn=mapping tree,cn=config
+$ ldapmodify -D cn=root -w YOUR_PASSWORD
+dn: cn=ExampleAgreement,cn=replica,cn="dc=example,dc=com",cn=mapping tree,cn=config
 changetype: modify
 replace: nsds5BeginReplicaRefresh
 nsds5BeginReplicaRefresh: start
@@ -174,14 +172,16 @@ nsds5BeginReplicaRefresh: start
 
 - hosts: ldapslaves
   roles:
-     - { role: 389-ldap-server, consumer: true }
+     - { role: 389-ldap-server, roreplica: true }
 
 - hosts: ldapmaster
   roles:
-     - { role: 389-ldap-server, supplier: true, consumer_host: ldap96.example.com, agreement_name: agreement1 }
-     - { role: 389-ldap-server, supplier: true, consumer_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
-     - { role: 389-ldap-server, supplier: true, consumer_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
+     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap96.example.com, agreement_name: agreement1 }
+     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
+     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
 ```
 
 ## Author Information
 Name: Artemii Kropachev
+
+Modified by: Colby Prior

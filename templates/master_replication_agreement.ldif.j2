@@ -3,12 +3,12 @@ changetype: add
 objectclass: top
 objectclass: nsds5replicationagreement
 cn: {{ agreement_name }}
-nsds5replicahost: {{ consumer_host }}
+nsds5replicahost: {{ replica_host }}
 nsds5replicaport: 389
 nsds5ReplicaBindDN: cn={{ replication_user }},cn=config
 nsds5replicabindmethod: SIMPLE
 nsds5replicaroot: {{ suffix }}
-description: Agreement between {{ ldap_fqdn }} and {{ consumer_host }}
+description: Agreement between {{ ldap_fqdn }} and {{ replica_host }}
 nsds5replicaupdateschedule: 0001-2359 0123456
 nsds5replicatedattributelist: (objectclass=*) $ EXCLUDE authorityRevocationList
 nsds5replicacredentials: {{ replication_user_password }}

@@ -9,8 +9,8 @@
    - name: Copy installation template
      template: src=templates/ldap.inf.j2 dest=/root/ldap.inf
 
-   - name: Run installation script setup-ds-admin.pl
-     shell: /usr/sbin/setup-ds-admin.pl -s -f /root/ldap.inf
+   - name: Run installation script setup-ds.pl
+     shell: /usr/sbin/setup-ds.pl -s -f /root/ldap.inf
 
 - name: Copy backup script
   template:

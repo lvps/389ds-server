@@ -30,6 +30,7 @@
    - nsssl2.ldif
    - rsa-encryption.ldif
 
+# ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
 - name: Set nsslapd-security
   shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsslapd_security.ldif
   register: results

@@ -8,10 +8,10 @@
 - include: configure_tls.yaml
   when: not skip_config
 
-- include: configure_replication_consumer.yaml
-  when: consumer
+- include: configure_replication_replica.yaml
+  when: roreplica
 
-- include: configure_replication_supplier.yaml
-  when: supplier
+- include: configure_replication_master.yaml
+  when: rwmaster
 
 - include: cleanup.yaml
