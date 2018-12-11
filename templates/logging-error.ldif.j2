@@ -1,7 +1,7 @@
 dn: cn=config
 changetype: modify
 replace: nsslapd-errorlog-logging-enabled
-nsslapd-errorlog-logging-enabled: {{logging.error.enabled}}
+nsslapd-errorlog-logging-enabled: on
 -
 replace: nsslapd-errorlog-logrotationtimeunit
 nsslapd-errorlog-logrotationtimeunit: {{logging.error.logrotationtimeunit}}

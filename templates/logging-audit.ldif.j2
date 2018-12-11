@@ -1,7 +1,7 @@
 dn: cn=config
 changetype: modify
 replace: nsslapd-auditlog-logging-enabled
-nsslapd-auditlog-logging-enabled: {{logging.audit.enabled}}
+nsslapd-auditlog-logging-enabled: on
 -
 replace: nsslapd-auditlog-logrotationtimeunit
 nsslapd-auditlog-logrotationtimeunit: {{logging.audit.logrotationtimeunit}}

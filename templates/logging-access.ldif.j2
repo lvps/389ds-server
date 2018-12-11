@@ -1,7 +1,7 @@
 dn: cn=config
 changetype: modify
 replace: nsslapd-accesslog-logging-enabled
-nsslapd-accesslog-logging-enabled: {{logging.access.enabled}}
+nsslapd-accesslog-logging-enabled: on
 -
 replace: nsslapd-accesslog-logrotationtimeunit
 nsslapd-accesslog-logrotationtimeunit: {{logging.access.logrotationtimeunit}}
