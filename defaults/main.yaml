@@ -1,41 +1,65 @@
 ---
 # Configuration type
 # if it is set - preparation and 389-ds configuration activities will be skipped (usually to add a new replication agreement)
- skip_config: false
+skip_config: false
 
 # General 389-ds settings
- password: Admin123
- suffix: dc=example,dc=com
- rootdn: cn=root
- serverid: ldapsrv
- ldap_fqdn: "{{ ansible_nodename }}"
+password: Admin123
+suffix: dc=example,dc=com
+rootdn: cn=root
+serverid: ldapsrv
+ldap_fqdn: "{{ ansible_nodename }}"
 
 # Admin server settings
- admin_password: Admin123
- admin_domain: example.com
+admin_password: Admin123
+admin_domain: example.com
 
 # Replication master settings
- rwmaster: false
- replication_nsds5replicaid: 7
- agreement_name: ExampleAgreement
- replica_host: replica.example.com
- init_replica: false
+rwmaster: false
+replication_nsds5replicaid: 7
+agreement_name: ExampleAgreement
+replica_host: replica.example.com
+init_replica: false
 
 # Replication replica settings
- roreplica: false
- # this will create LDAP user cn=replmanager,cn=config
- replication_user: replmanager
- replication_user_password: Admin123
+roreplica: false
+# this will create LDAP user cn=replmanager,cn=config
+replication_user: replmanager
+replication_user_password: Admin123
 
- tls_key: |
-   -----BEGIN RSA PRIVATE KEY-----
-   -----END RSA PRIVATE KEY-----
- 
- # full cert chain
- tls_cert: |
-   -----BEGIN CERTIFICATE-----
-   -----END CERTIFICATE-----
-   -----BEGIN CERTIFICATE-----
-   -----END CERTIFICATE-----
-   -----BEGIN CERTIFICATE-----
-   -----END CERTIFICATE-----
+# Logging config
+logging:
+  audit:
+    enabled: on
+    logrotationtimeunit: day
+    logmaxdiskspace: 400
+    maxlogsize: 200
+    maxlogsperdir: 7
+    mode: 600
+  access:
+    enabled: on
+    logrotationtimeunit: day
+    logmaxdiskspace: 400
+    maxlogsize: 200
+    maxlogsperdir: 7
+    mode: 600
+  error:
+    enabled: on
+    logrotationtimeunit: day
+    logmaxdiskspace: 400
+    maxlogsize: 200
+    maxlogsperdir: 7
+    mode: 600
+
+tls_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  -----END RSA PRIVATE KEY-----
+
+# full cert chain
+tls_cert: |
+  -----BEGIN CERTIFICATE-----
+  -----END CERTIFICATE-----
+  -----BEGIN CERTIFICATE-----
+  -----END CERTIFICATE-----
+  -----BEGIN CERTIFICATE-----
+  -----END CERTIFICATE-----

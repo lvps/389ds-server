@@ -1,0 +1,19 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-auditlog-logging-enabled
+nsslapd-auditlog-logging-enabled: {{logging.audit.enabled}}
+-
+replace: nsslapd-auditlog-logrotationtimeunit
+nsslapd-auditlog-logrotationtimeunit: {{logging.audit.logrotationtimeunit}}
+-
+replace: nsslapd-auditlog-logmaxdiskspace
+nsslapd-auditlog-logmaxdiskspace: {{logging.audit.logmaxdiskspace}}
+-
+replace: nsslapd-auditlog-maxlogsize
+nsslapd-auditlog-maxlogsize: {{logging.audit.maxlogsize}}
+-
+replace: nsslapd-auditlog-maxlogsperdir
+nsslapd-auditlog-maxlogsperdir: {{logging.audit.maxlogsperdir}}
+-
+replace: nsslapd-auditlog-mode
+nsslapd-auditlog-mode: {{logging.audit.mode}}

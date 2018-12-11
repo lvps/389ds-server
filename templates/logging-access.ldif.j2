@@ -1,0 +1,19 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-accesslog-logging-enabled
+nsslapd-accesslog-logging-enabled: {{logging.access.enabled}}
+-
+replace: nsslapd-accesslog-logrotationtimeunit
+nsslapd-accesslog-logrotationtimeunit: {{logging.access.logrotationtimeunit}}
+-
+replace: nsslapd-accesslog-logmaxdiskspace
+nsslapd-accesslog-logmaxdiskspace: {{logging.access.logmaxdiskspace}}
+-
+replace: nsslapd-accesslog-maxlogsize
+nsslapd-accesslog-maxlogsize: {{logging.access.maxlogsize}}
+-
+replace: nsslapd-accesslog-maxlogsperdir
+nsslapd-accesslog-maxlogsperdir: {{logging.access.maxlogsperdir}}
+-
+replace: nsslapd-accesslog-mode
+nsslapd-accesslog-mode: {{logging.access.mode}}

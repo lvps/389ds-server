@@ -4,7 +4,7 @@ objectclass: top
 objectclass: nsds5replicationagreement
 cn: {{ agreement_name }}
 nsds5replicahost: {{ replica_host }}
-nsds5replicaport: 389
+nsds5replicaport: 636
 nsds5ReplicaBindDN: cn={{ replication_user }},cn=config
 nsds5replicabindmethod: SIMPLE
 nsds5replicaroot: {{ suffix }}

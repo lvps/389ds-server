@@ -1,0 +1,19 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-errorlog-logging-enabled
+nsslapd-errorlog-logging-enabled: {{logging.error.enabled}}
+-
+replace: nsslapd-errorlog-logrotationtimeunit
+nsslapd-errorlog-logrotationtimeunit: {{logging.error.logrotationtimeunit}}
+-
+replace: nsslapd-errorlog-logmaxdiskspace
+nsslapd-errorlog-logmaxdiskspace: {{logging.error.logmaxdiskspace}}
+-
+replace: nsslapd-errorlog-maxlogsize
+nsslapd-errorlog-maxlogsize: {{logging.error.maxlogsize}}
+-
+replace: nsslapd-errorlog-maxlogsperdir
+nsslapd-errorlog-maxlogsperdir: {{logging.error.maxlogsperdir}}
+-
+replace: nsslapd-errorlog-mode
+nsslapd-errorlog-mode: {{logging.error.mode}}

@@ -1,0 +1,26 @@
+---
+- name: Copy ldif templates for logging
+  template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
+  with_items:
+   - logging-audit.ldif.j2
+   - logging-error.ldif.j2
+   - logging-access.ldif.j2
+
+# ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
+- name: Set logging-audit
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/logging-audit.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+
+- name: Set logging-error
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/logging-error.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+
+- name: Set logging-access
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/logging-access.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
