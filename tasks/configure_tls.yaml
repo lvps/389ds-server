@@ -9,6 +9,14 @@
     content: "{{ tls_cert }}"
     dest: "/root/{{ tls_cn }}.crt"
 
+- name: copy public cert chain to ca-trust
+  copy:
+    content: "{{ tls_cert }}"
+    dest: "/etc/pki/ca-trust/source/anchors/{{ tls_cn }}.crt"
+
+- name: Add public cert to ca trust
+  shell: "/bin/update-ca-trust"
+
 - name: Create pkcs12
   openssl_pkcs12:
     action: export
