@@ -48,6 +48,12 @@ logging:
     maxlogsperdir: 7
     mode: 600
 
+# Plugin configuration
+gid_min: 1000
+gid_max: 1999
+uid_min: 1000
+uid_max: 1999
+
 tls_key: |
   -----BEGIN RSA PRIVATE KEY-----
   -----END RSA PRIVATE KEY-----

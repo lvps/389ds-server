@@ -6,4 +6,5 @@ dnatype: gidNumber
 dnamagicregen: 99999
 dnafilter: (objectclass=posixGroup)
 dnascope: {{ suffix }}
-dnanextvalue: 1000
+dnanextvalue: {{ gid_min }}
+dnamaxvalue: {{ gid_max }}

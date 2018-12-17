@@ -6,4 +6,5 @@ dnatype: uidNumber
 dnamagicregen: 99999
 dnafilter: (objectclass=posixAccount)
 dnascope: {{ suffix }}
-dnanextvalue: 1000
+dnanextvalue: {{ uid_min }}
+dnamaxvalue: {{ uid_max }}
