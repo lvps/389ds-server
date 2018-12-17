@@ -8,6 +8,9 @@
 - include: configure_logging.yaml
   when: not skip_config
 
+- include: configure_plugins.yaml
+  when: not skip_config
+
 - include: configure_tls.yaml
   when: not skip_config
 

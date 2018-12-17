@@ -1,0 +1,9 @@
+dn: cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+objectClass: top
+objectClass: extensibleObject
+cn: UID numbers
+dnatype: uidNumber
+dnamagicregen: 99999
+dnafilter: (objectclass=posixAccount)
+dnascope: {{ suffix }}
+dnanextvalue: 1000

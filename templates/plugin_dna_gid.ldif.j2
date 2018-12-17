@@ -1,0 +1,9 @@
+dn: cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+objectClass: top
+objectClass: extensibleObject
+cn: GID numbers
+dnatype: gidNumber
+dnamagicregen: 99999
+dnafilter: (objectclass=posixGroup)
+dnascope: {{ suffix }}
+dnanextvalue: 1000

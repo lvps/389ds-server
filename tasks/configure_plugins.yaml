@@ -1,0 +1,36 @@
+---
+- name: Copy ldif templates for plugins
+  template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
+  with_items:
+   - plugin_memberof.ldif
+   - plugin_dna.ldif
+   - plugin_dna_uid.ldif
+   - plugin_dna_gid.ldif
+ 
+- name: Enable memberof plugin
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/plugin_memberof.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+  notify: dirsrv restart
+
+- name: Enable DNA plugin
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/plugin_dna.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+  notify: dirsrv restart
+
+- name: Configure DNA UID generation
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/plugin_dna_uid.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+  notify: dirsrv restart
+
+- name: Configure DNA GID generation
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/plugin_dna_gid.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+  notify: dirsrv restart

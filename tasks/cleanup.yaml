@@ -14,6 +14,10 @@
    - /root/nsssl3.ldif
    - /root/nsssl2.ldif
    - /root/rsa-encryption.ldif
+   - /root/plugin_memberof.ldif
+   - /root/plugin_dna.ldif
+   - /root/plugin_dna_uid.ldif
+   - /root/plugin_dna_gid.ldif
    - /root/{{ tls_cn }}.p12
    - /root/{{ tls_cn }}.key
    - logging-audit.ldif.j2
