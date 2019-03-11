@@ -2,7 +2,7 @@
 - name: Remove temporary files
   file: path={{ item }} state=absent
   with_items:
-   - /root/ldap.inf
+   - /root/install.inf
    - /root/roreplica.ldif
    - /root/replication_user.ldif
    - /root/master_changelog.ldif
@@ -23,3 +23,4 @@
    - logging-audit.ldif.j2
    - logging-error.ldif.j2
    - logging-access.ldif.j2
+   # TODO: why these .j2 files?

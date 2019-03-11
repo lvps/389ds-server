@@ -1,0 +1,33 @@
+#
+# {{ ansible_managed }}
+#
+# Supported directives:
+# https://access.redhat.com/documentation/en-us/red_hat_directory_server/9.0/html/installation_guide/Advanced_Configuration-Silent#Advanced_Configuration-inf-File-directives
+
+
+[General]
+FullMachineName = {{ ldap_fqdn }}
+SuiteSpotUserID = dirsrv
+SuiteSpotGroup = dirsrv
+AdminDomain = {{ admin_domain }}
+ConfigDirectoryAdminID = admin
+ConfigDirectoryAdminPwd = {{ admin_password }}
+ConfigDirectoryLdapURL = ldap://{{ ldap_fqdn }}:389/o=NetscapeRoot
+
+[slapd]
+SlapdConfigForMC = Yes
+UseExistingMC = 0
+ServerPort = 389
+ServerIdentifier = {{ serverid }}
+Suffix = {{ suffix }}
+RootDN = {{ rootdn }}
+RootDNPwd = {{ password }}
+#ds_bename =exampleDB
+AddSampleEntries = No
+
+[admin]
+Port = 9830
+ServerIpAddress = 0.0.0.0
+ServerAdminID = admin
+ServerAdminPwd = {{ admin_password }}
+

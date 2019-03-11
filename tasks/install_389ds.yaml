@@ -1,0 +1,41 @@
+---
+- name: install 389DS
+  yum:
+    name: 389-ds-base
+    state: latest
+  #register: ds389_install_state
+
+# as suggested by Red Hat Directory Server manual
+- name: add user 'dirsrv'
+  user:
+    name: dirsrv
+    group: dirsrv
+    comment: System user for 389DS
+    shell: /sbin/nologin
+    system: true
+    create_home: false
+
+- name: check if instance directory exists
+  stat:
+    path: "/var/lib/dirsrv/slapd-{{ serverid }}"
+  register: instance_dir
+
+- set_fact:
+    instance_dir_exists: "{{ instance_dir.stat.exists and instance_dir.stat.isdir }}"
+
+- name: Install instance (unless already installed)
+  block:
+    - name: Copy installation template
+      template:
+        src: templates/install.inf.j2
+        dest: /root/install.inf
+
+    - name: Run installation script setup-ds.pl
+      shell: /usr/sbin/setup-ds.pl -s -f /root/install.inf
+
+  when: not instance_dir_exists
+  always:
+    - name: Remove installation template
+      file:
+        state: absent
+        path: /root/install.inf

@@ -1,8 +1,8 @@
 ---
-- include: prepare_server.yaml
+- include: install_389ds.yaml
   when: not skip_config
 
-- include: configure_ldap_server.yaml
+- include: configure_firewall.yaml
   when: not skip_config
 
 - include: configure_logging.yaml
