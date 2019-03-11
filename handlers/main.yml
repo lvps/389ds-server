@@ -1,4 +1,5 @@
 ---
+# TODO: restart dirsrv.target instead?
 - name: dirsrv restart
   service:
     name: "dirsrv@{{ serverid }}"

@@ -11,16 +11,3 @@
 
    - name: Run installation script setup-ds.pl
      shell: /usr/sbin/setup-ds.pl -s -f /root/ldap.inf
-
-- name: Copy backup script
-  template:
-    src: templates/backup-ldap.sh.j2
-    dest: /usr/sbin/backup-ldap.sh
-    mode: 0744
-  when: config_bucket is defined
-
-- name: Copy backup script cron job
-  template:
-    src: templates/backup-ldap-cron.j2
-    dest: /etc/cron.d/backup-ldap-cron
-  when: config_bucket is defined

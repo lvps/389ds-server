@@ -1,7 +1,5 @@
-# 389-ldap-server
-[![Build Status](https://travis-ci.org/neoncyrex/389-ldap-server.svg?branch=master)](https://travis-ci.org/neoncyrex/389-ldap-server)
-
-This role installs the 389-server (LDAP server)  on the target machine(s).
+# 389ds-server
+This role installs the 389DS server (LDAP server)  on the target machine(s).
 
 
 ## Features
@@ -25,10 +23,10 @@ This role installs the 389-server (LDAP server)  on the target machine(s).
 The variables that can be passed to this role and a brief description about them are as follows:
 ```
 # Configuration type
-    # if it is set - preparation and 389-ds configuration activities will be skipped (usually to add a new replication agreement)
+    # if it is set - preparation and 389DS configuration activities will be skipped (usually to add a new replication agreement)
     skip_config: false
 
-# General 389-ds settings
+# General 389DS settings
     password: Admin123
     suffix: dc=example,dc=com
     rootdn: cn=root
@@ -56,7 +54,7 @@ The variables that can be passed to this role and a brief description about them
 # yum install -y git ansible
 # mkdir -p /etc/ansible/roles
 # cd /etc/ansible/roles
-# git clone https://github.com/neoncyrex/389-ldap-server.git
+# git clone https://github.com/lvps/389ds-server.git
 # vi /etc/ansible/hosts
 ```
 ## Usage and Examples
@@ -68,7 +66,7 @@ If variables are not set in the yaml file - default values will be used
 	- hosts: all
 	  sudo: true
           roles:
-		- { role: 389-ldap-server }
+		- { role: 389ds-server }
 ```
 > $ ansible-playbook ldap.yaml
 
@@ -79,7 +77,7 @@ If variables are not set in the yaml file - default values will be used
 	- hosts: all
 	  sudo: true
           roles:
-		- { role: 389-ldap-server, admin_password: secret, suffix="dc=example,dc=com" }
+		- { role: 389ds-server, admin_password: secret, suffix="dc=example,dc=com" }
 ```
 > $ ansible-playbook ldap.yaml
 
@@ -91,7 +89,7 @@ If variables are not set in the yaml file - default values will be used
 	- hosts: all
           sudo: true
           roles:
-		- 389-ldap-server
+		- 389ds-server
 ```
 > $ ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
 
@@ -100,7 +98,7 @@ If variables are not set in the yaml file - default values will be used
 ---
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap96.example.com }
+     - { role: 389ds-server, rwmaster: true, replica_host: ldap96.example.com }
 ```
 It is assumed that replica hostname is known before configuring rwmaster.
 
@@ -109,11 +107,11 @@ It is assumed that replica hostname is known before configuring rwmaster.
 ---
 - hosts: ldapserver2
   roles:
-     - { role: 389-ldap-server, roreplica: true }
+     - { role: 389ds-server, roreplica: true }
 
 - hosts: ldapserver1
   roles:
-     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap96.example.com }
+     - { role: 389ds-server, rwmaster: true, replica_host: ldap96.example.com }
 ```
 Note! it is important to configure roreplica before rwmaster.
 If the order is wrong you can fix the problem by re-runing the syncronization process as shown below:
@@ -172,16 +170,17 @@ nsds5BeginReplicaRefresh: start
 
 - hosts: ldapslaves
   roles:
-     - { role: 389-ldap-server, roreplica: true }
+     - { role: 389ds-server, roreplica: true }
 
 - hosts: ldapmaster
   roles:
-     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap96.example.com, agreement_name: agreement1 }
-     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
-     - { role: 389-ldap-server, rwmaster: true, replica_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
+     - { role: 389ds-server, rwmaster: true, replica_host: ldap96.example.com, agreement_name: agreement1 }
+     - { role: 389ds-server, rwmaster: true, replica_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
+     - { role: 389ds-server, rwmaster: true, replica_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
 ```
 
 ## Author Information
-Name: Artemii Kropachev
 
+Modified by: lvps
 Modified by: Colby Prior
+Original author: Artemii Kropachev
