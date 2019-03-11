@@ -17,19 +17,10 @@
 #    - {name: net.ipv4.tcp_keepalive_time, value: 300}
 #    - {name: net.ipv4.ip_local_port_range, value: "1024 65000"}
 
+# TODO: but is this *really* needed? What if I want the server to be accessible from localhost only?
+- name: Allow ldap port on firewalld
+  firewalld: service=ldap permanent=true state=enabled
 
-- name: Check that firewalld service is active
-  command: systemctl is-active firewalld
-  register: firewalld_results
-  ignore_errors: true
-  changed_when: false
-
-- block:
-    - debug: msg="firewalld service is running"
-    - name: Allow ldap port on firewalld
-      firewalld: service=ldap permanent=true state=enabled
-    - name: Allow port 9830 on firdwalld
-      firewalld: port=9830/tcp  permanent=true state=enabled
-  when: "'active' in firewalld_results.stdout"
-
-
+# TODO: this should be conditional (not every server has the admin server enabled)
+- name: Allow port 9830 on firdwalld
+  firewalld: port=9830/tcp  permanent=true state=enabled

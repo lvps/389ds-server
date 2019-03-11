@@ -1,12 +1,12 @@
 ---
-- name: install 389DS
+- name: Install 389DS
   yum:
     name: 389-ds-base
     state: latest
   #register: ds389_install_state
 
 # as suggested by Red Hat Directory Server manual
-- name: add user 'dirsrv'
+- name: Add user 'dirsrv'
   user:
     name: dirsrv
     group: dirsrv
@@ -15,7 +15,7 @@
     system: true
     create_home: false
 
-- name: check if instance directory exists
+- name: Check if instance directory exists
   stat:
     path: "/var/lib/dirsrv/slapd-{{ serverid }}"
   register: instance_dir
@@ -23,8 +23,9 @@
 - set_fact:
     instance_dir_exists: "{{ instance_dir.stat.exists and instance_dir.stat.isdir }}"
 
-- name: Install instance (unless already installed)
-  block:
+# TODO: also repeat as many operations as possible with ldapmodify commands, so if something changed (e.g. Directory Manager password) it gets picked up and applied, rather being silently skipped because the server has already been installed 4 years ago or whatever
+# TODO: also, how do we change the Directory Manager password if we need it to change the password?
+- block:
     - name: Copy installation template
       template:
         src: templates/install.inf.j2
