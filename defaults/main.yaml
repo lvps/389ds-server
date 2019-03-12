@@ -6,13 +6,16 @@ skip_config: false
 # General 389-ds settings
 password: Admin123
 suffix: dc=example,dc=com
+# TODO: why isn't this cn=Directory Manager?
 rootdn: cn=root
 serverid: ldapsrv
 ldap_fqdn: "{{ ansible_nodename }}"
 
 # Admin server settings
-admin_password: Admin123
-admin_domain: example.com
+# TODO: everything is done with the admin account later on... but isn't it optional?
+# Why aren't we using Directory Manager instead?
+admin_password: "{{ password }}"
+admin_domain: "{{ '.'.join(ldap_fqdn.split('.')[1:]) }}"
 
 # Replication master settings
 rwmaster: false
