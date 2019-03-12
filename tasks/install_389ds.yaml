@@ -28,15 +28,32 @@
 - block:
     - name: Copy installation template
       template:
+        # TODO: /root or /tmp? Or a named temp directory in /tmp?
         src: templates/install.inf.j2
         dest: /root/install.inf
+        #src: install.inf.j2
+        #dest: /tmp/389ds_install.inf
+        # TODO: is this a good idea? Will it work? The next "vagrant destroy && vagrant up" will tell...
+        owner: dirsrv
+        group: dirsrv
+        mode: 0660
+      when: not instance_dir_exists
 
     - name: Run installation script setup-ds.pl
       shell: /usr/sbin/setup-ds.pl -s -f /root/install.inf
+      when: not instance_dir_exists
 
-  when: not instance_dir_exists
   always:
     - name: Remove installation template
       file:
         state: absent
         path: /root/install.inf
+
+# The setup script starts the server itself, but
+# the service/target still needs to be enabled
+- name: start and enable 389DS
+  become: true
+  service:
+    name: dirsrv.target
+    state: started
+    enabled: yes
