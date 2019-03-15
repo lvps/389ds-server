@@ -10,20 +10,7 @@
 FullMachineName = {{ ldap_fqdn }}
 SuiteSpotUserID = dirsrv
 SuiteSpotGroup = dirsrv
-ConfigDirectoryAdminID = {{ config_directory_admin }}
-ConfigDirectoryAdminPwd = {{ config_directory_admin_password }}
 # TODO: StrictHostCheck = false when installing behind a load balancer
-{% if config_directory_url is defined %}
-# Use an existing Configuration Server
-UseExistingMC = Yes
-SlapdConfigForMC = No
-ConfigDirectoryLdapURL = {{ config_directory_url }}
-AdminDomain = {{ admin_domain }}
-{% else %}
-# Use this server as a Configuration Server, too
-UseExistingMC = No
-SlapdConfigForMC = Yes
-{% endif %}
 
 [slapd]
 ServerPort = 389
@@ -37,14 +24,11 @@ AddSampleEntries = No
 InstallLdifFile = suggest
 # TODO: SchemaFile may be useful
 # TODO: ConfigFile may be useful (adds entries to dse.ldif)
-# TODO: These MAY be for the ConfigDirectoryLdapURL thing: define a new variable for the config root URL, do an if-else here...
-SlapdConfigForMC = Yes
-UseExistingMC = 0
+
 
 # This part is only used by the admin server. Which is not installed or configured in any way by this role.
 # [admin]
 # SysUser = nobody? That's the default, but "This should be changed for most deployments."
-# TODO: put into a variable? Is it even worth it to install the admin server?
 # Port = 9830
 # TODO: default to 127.0.0.1?
 # ServerIpAddress = 0.0.0.0

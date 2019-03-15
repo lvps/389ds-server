@@ -10,11 +10,6 @@ rootdn: cn=Directory Manager
 ldap_fqdn: "{{ ansible_nodename }}"
 serverid: ldap
 
-# Configuration Directory account
-config_directory_admin: admin
-#config_directory_admin_password: adminsecret
-# set config_directory_url and admin_domain to use an existing configuration server
-
 # Admin server settings
 # admin_password: "{{ password }}"
 # admin_domain: "{{ '.'.join(ldap_fqdn.split('.')[1:]) }}"

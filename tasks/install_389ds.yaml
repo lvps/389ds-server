@@ -33,8 +33,9 @@
         mode: 0600
       when: not instance_dir_exists
 
-    # This will install the Directory Server only and optionally the Configuration Directory Server (if config_directory_url is not defined).
-    # The Administration Server will not be installed.
+    # This will install the Directory Server *only*.
+    # No Configuration Directory Server: it's documented but it doesn't really exist.
+    # No Administration Server: it isn't worth the effort.
     - name: Run installation script setup-ds.pl
       shell: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
       when: not instance_dir_exists
