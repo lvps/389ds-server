@@ -10,18 +10,27 @@
 FullMachineName = {{ ldap_fqdn }}
 SuiteSpotUserID = dirsrv
 SuiteSpotGroup = dirsrv
-# TODO: this may be on another server ↓
-ConfigDirectoryLdapURL = ldap://{{ ldap_fqdn }}:389/o=NetscapeRoot
+ConfigDirectoryAdminID = {{ config_directory_admin }}
+ConfigDirectoryAdminPwd = {{ config_directory_admin_password }}
+# TODO: StrictHostCheck = false when installing behind a load balancer
+{% if config_directory_url is defined %}
+# Use an existing Configuration Server
+UseExistingMC = Yes
+SlapdConfigForMC = No
+ConfigDirectoryLdapURL = {{ config_directory_url }}
 AdminDomain = {{ admin_domain }}
-ConfigDirectoryAdminID = admin
-ConfigDirectoryAdminPwd = {{ admin_password }}
+{% else %}
+# Use this server as a Configuration Server, too
+UseExistingMC = No
+SlapdConfigForMC = Yes
+{% endif %}
 
 [slapd]
 ServerPort = 389
 ServerIdentifier = {{ serverid }}
 Suffix = {{ suffix }}
 RootDN = {{ rootdn }}
-RootDNPwd = {{ password }}
+RootDNPwd = {{ rootdn_password }}
 AddOrgEntries = No
 AddSampleEntries = No
 # TODO: this creates "common container entries (like ou=People)". Make it optional.
@@ -32,13 +41,14 @@ InstallLdifFile = suggest
 SlapdConfigForMC = Yes
 UseExistingMC = 0
 
-[admin]
+# This part is only used by the admin server. Which is not installed or configured in any way by this role.
+# [admin]
 # SysUser = nobody? That's the default, but "This should be changed for most deployments."
 # TODO: put into a variable? Is it even worth it to install the admin server?
-Port = 9830
+# Port = 9830
 # TODO: default to 127.0.0.1?
-ServerIpAddress = 0.0.0.0
+# ServerIpAddress = 0.0.0.0
 # TODO: this is another account. Defaults to the same as ConfigDirectoryAdminID anyway.
-ServerAdminID = admin
-ServerAdminPwd = {{ admin_password }}
+#ServerAdminID = admin
+#ServerAdminPwd = admin_password
 

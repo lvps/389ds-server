@@ -28,26 +28,22 @@
 - block:
     - name: Copy installation template
       template:
-        # TODO: /root or /tmp? Or a named temp directory in /tmp?
         src: templates/install.inf.j2
-        dest: /root/install.inf
-        #src: install.inf.j2
-        #dest: /tmp/389ds_install.inf
-        # TODO: is this a good idea? Will it work? The next "vagrant destroy && vagrant up" will tell...
-        owner: dirsrv
-        group: dirsrv
-        mode: 0660
+        dest: /tmp/install.inf
+        mode: 0600
       when: not instance_dir_exists
 
+    # This will install the Directory Server only and optionally the Configuration Directory Server (if config_directory_url is not defined).
+    # The Administration Server will not be installed.
     - name: Run installation script setup-ds.pl
-      shell: /usr/sbin/setup-ds.pl -s -f /root/install.inf
+      shell: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
       when: not instance_dir_exists
 
   always:
     - name: Remove installation template
       file:
         state: absent
-        path: /root/install.inf
+        path: /tmp/install.inf
 
 # The setup script starts the server itself, but
 # the service/target still needs to be enabled

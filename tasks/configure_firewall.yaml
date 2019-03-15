@@ -21,6 +21,5 @@
 - name: Allow ldap port on firewalld
   firewalld: service=ldap permanent=true state=enabled
 
-# TODO: this should be conditional (not every server has the admin server enabled)
-- name: Allow port 9830 on firdwalld
-  firewalld: port=9830/tcp  permanent=true state=enabled
+#- name: Allow port 9830 on firdwalld
+#  firewalld: port=9830/tcp  permanent=true state=enabled

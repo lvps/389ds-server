@@ -2,7 +2,7 @@
 - name: Remove temporary files
   file: path={{ item }} state=absent
   with_items:
-   - /root/install.inf
+   - /tmp/install.inf
    - /root/roreplica.ldif
    - /root/replication_user.ldif
    - /root/master_changelog.ldif
