@@ -1,52 +1,33 @@
 # 389ds-server
-This role installs the 389DS server (LDAP server)  on the target machine(s).
+This role installs the 389DS server (LDAP server) on the target machine(s).
 
+This is a fork of a fork, still **work in progress**, not production ready.
 
 ## Features
 - Configuring single LDAP server
-- Repcation support:
-  - Configuring replication master
-  - Configuring replication replica
-  - Multi slaves replications
+- Configuring logging
+- Configuring MemberOf and DNA plugin
+- Configuring TLS
 
-## ToDo
-- Hub support
-- Advanced configuration support
-- Ubuntu/Debian/SuSE/RHEL6.x/CentOS6.x support
+Also: replication. I Will move it to another role, probably.
+
+## TODO
+- Support for other plugins
+- Support for CentOS 8
+
+### Could be done but not planned for the short term
+- Administration Server (and Configuration Directory Server)
+- Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
 
 ## Requirements
-- Ansible version: 1.4 or higher
+- Ansible version: 2.5 or higher
 - OS: RHEL 7.x, CentOS 7.x
 - Valid FQDN (hostname) is in place
 
 ## Role Variables
 The variables that can be passed to this role and a brief description about them are as follows:
 ```
-# Configuration type
-    # if it is set - preparation and 389DS configuration activities will be skipped (usually to add a new replication agreement)
-    skip_config: false
-
-# General 389DS settings
-    password: Admin123
-    suffix: dc=example,dc=com
-    rootdn: cn=root
-    serverid: ldapsrv
-
-# Admin server settings
-    admin_password: Admin123
-    admin_domain: example.com
-
-# Replication master settings
-    rwmaster: false
-    replication_nsds5replicaid: 7
-    agreement_name: ExampleAgreement
-    replica_host: replica.example.com
-
-# Replication replica settings
-    roreplica: false
-    # this will create LDAP user cn=replmanager,cn=config
-    replication_user: replmanager
-    replication_user_password: Admin123
+# TODO: rewrite this section
 ```
 
 ## Installation (CentOS 7.x or RHEL 7.x)
@@ -59,42 +40,32 @@ The variables that can be passed to this role and a brief description about them
 ```
 ## Usage and Examples
 
-### 1. Configure a single 389-server on the targed machine(s):
-If variables are not set in the yaml file - default values will be used
-> $ cat ldap.yaml
-```
+### Configure a single 389-server on the targed machine(s):
+If variables are not set in the yaml file, default values will be used.
+
+For a base install only two variables must be specified since they have no
+defaults: `suffix` and `rootdn_password`. The server will start on port 389,
+with root DN `cn=Directory Manager`.
+
+```yaml
 	- hosts: all
-	  sudo: true
-          roles:
-		- { role: 389ds-server }
+    become: true
+    roles:
+      - {
+          role: 389ds-server,
+          suffix: "dc=example,dc=local",
+          rootdn_password: secret
+        }
 ```
-> $ ansible-playbook ldap.yaml
 
-### 2. Configure a single 389-server on the targed machine(s) (variables in playbook):
+Variables can also be passed via CLI:
 
-> $ cat ldap.yaml
 ```
-	- hosts: all
-	  sudo: true
-          roles:
-		- { role: 389ds-server, admin_password: secret, suffix="dc=example,dc=com" }
+ansible-playbook -e 'password:secret' ldap.yaml
 ```
-> $ ansible-playbook ldap.yaml
 
-
-### 3. Configure a single 389-server on the targed machine(s) (variables in CLI):
-
-> $ cat ldap.yaml
-```
-	- hosts: all
-          sudo: true
-          roles:
-		- 389ds-server
-```
-> $ ansible-playbook -e 'admin_domain=example.com admin_password:secret' ldap.yaml
-
-### 4. Configuring single replication master
-```
+### Configuring single replication master
+```yaml
 ---
 - hosts: ldapserver1
   roles:
@@ -102,8 +73,8 @@ If variables are not set in the yaml file - default values will be used
 ```
 It is assumed that replica hostname is known before configuring rwmaster.
 
-### 5. Configuring master->slave replications
-```
+### Configuring master->slave replications
+```yaml
 ---
 - hosts: ldapserver2
   roles:
@@ -164,8 +135,8 @@ nsds5BeginReplicaRefresh: start
 <CTRL + D>
 ```
 
-### 5. Configuring multi-slaves
-```
+### Configuring multi-slaves
+```yaml
 ---
 
 - hosts: ldapslaves
@@ -181,6 +152,6 @@ nsds5BeginReplicaRefresh: start
 
 ## Author Information
 
-Modified by: lvps
-Modified by: Colby Prior
+Modified by: lvps  
+Modified by: Colby Prior  
 Original author: Artemii Kropachev
