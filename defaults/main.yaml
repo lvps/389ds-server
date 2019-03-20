@@ -30,18 +30,21 @@ replication_user_password: Admin123
 # Logging config
 logging:
   audit:
+    enabled: true
     logrotationtimeunit: day
     logmaxdiskspace: 400
     maxlogsize: 200
     maxlogsperdir: 7
     mode: 600
   access:
+    enabled: true
     logrotationtimeunit: day
     logmaxdiskspace: 400
     maxlogsize: 200
     maxlogsperdir: 7
     mode: 600
   error:
+    enabled: true
     logrotationtimeunit: day
     logmaxdiskspace: 400
     maxlogsize: 200

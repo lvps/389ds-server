@@ -1,26 +1,53 @@
 ---
-- name: Copy ldif templates for logging
-  template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
-  with_items:
-   - logging-audit.ldif
-   - logging-error.ldif
-   - logging-access.ldif
-
 # ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
-- name: Set logging-audit
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/logging-audit.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+# this excludes state=present and state=absent, but state=exact still works (only does a ldapsearch)
+- name: Configure Audit logging
+  ldap_attr:
+    server_uri: "ldap:///localhost"
+    bind_dn: "{{ rootdn }}"
+    bind_pw: "{{ rootdn_password }}"
+    dn: cn=config
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: 'nsslapd-auditlog-logging-enabled', value: "{{ 'on' if logging.audit.enabled else 'off' }}" }
+  - { name: 'nsslapd-auditlog-logrotationtimeunit', value: "{{ logging.audit.logrotationtimeunit }}" }
+  - { name: 'nsslapd-auditlog-logmaxdiskspace', value: "{{ logging.audit.logmaxdiskspace }}"}
+  - { name: 'nsslapd-auditlog-maxlogsize', value: "{{ logging.audit.maxlogsize }}" }
+  - { name: 'nsslapd-auditlog-maxlogsperdir', value: "{{ logging.audit.maxlogsperdir }}" }
+  - { name: 'nsslapd-auditlog-mode', value: "{{ logging.audit.mode }}" }
 
-- name: Set logging-error
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/logging-error.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+- name: Configure Error logging
+  ldap_attr:
+    server_uri: "ldap:///localhost"
+    bind_dn: "{{ rootdn }}"
+    bind_pw: "{{ rootdn_password }}"
+    dn: cn=config
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "nsslapd-errorlog-logging-enabled", value: "{{ 'on' if logging.error.enabled else 'off' }}" }
+  - { name: "nsslapd-errorlog-logrotationtimeunit", value: "{{ logging.error.logrotationtimeunit }}" }
+  - { name: "nsslapd-errorlog-logmaxdiskspace", value: "{{ logging.error.logmaxdiskspace }}" }
+  - { name: "nsslapd-errorlog-maxlogsize", value: "{{ logging.error.maxlogsize }}" }
+  - { name: "nsslapd-errorlog-maxlogsperdir", value: "{{ logging.error.maxlogsperdir }}" }
+  - { name: "nsslapd-errorlog-mode", value: "{{ logging.error.mode }}" }
 
-- name: Set logging-access
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/logging-access.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+- name: Configure Access logging
+  ldap_attr:
+    server_uri: "ldap:///localhost"
+    bind_dn: "{{ rootdn }}"
+    bind_pw: "{{ rootdn_password }}"
+    dn: cn=config
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "nsslapd-accesslog-logging-enabled", value: "{{ 'on' if logging.access.enabled else 'off' }}" }
+  - { name: "nsslapd-accesslog-logrotationtimeunit", value: "{{ logging.access.logrotationtimeunit }}" }
+  - { name: "nsslapd-accesslog-logmaxdiskspace", value: "{{ logging.access.logmaxdiskspace }}" }
+  - { name: "nsslapd-accesslog-maxlogsize", value: "{{ logging.access.maxlogsize }}" }
+  - { name: "nsslapd-accesslog-maxlogsperdir", value: "{{ logging.access.maxlogsperdir }}" }
+  - { name: "nsslapd-accesslog-mode", value: "{{ logging.access.mode }}" }
