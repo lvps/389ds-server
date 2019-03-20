@@ -34,7 +34,7 @@
       when: not instance_dir_exists
 
     # This will install the Directory Server *only*.
-    # No Configuration Directory Server: it's documented but it doesn't really exist.
+    # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).
     # No Administration Server: it isn't worth the effort.
     - name: Run installation script setup-ds.pl
       shell: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
@@ -48,6 +48,7 @@
 
 # The setup script starts the server itself, but
 # the service/target still needs to be enabled
+# in my tests I've found that enabling dirsrv@serverid is not enough, it still doesn't start automatically...
 - name: start and enable 389DS
   become: true
   service:
