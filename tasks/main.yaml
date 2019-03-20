@@ -2,6 +2,8 @@
 - include: install_389ds.yaml
   when: not skip_config
 
+  # TODO: https://docs.ansible.com/ansible/latest/modules/ldap_attr_module.html
+  # Use the "params" thing to pass auth data
 - include: configure_logging.yaml
   when: not skip_config
 

@@ -1,6 +1,7 @@
 ---
 # Configuration type
 # if it is set - preparation and 389-ds configuration activities will be skipped (usually to add a new replication agreement)
+# TODO: remove this, make a separate role for replication agreements
 skip_config: false
 
 # Instance settings
@@ -51,11 +52,15 @@ logging:
     maxlogsperdir: 7
     mode: 600
 
-# Plugin configuration
-gid_min: 2000
-gid_max: 2999
-uid_min: 2000
-uid_max: 2999
+plugins:
+  memberof:
+    enabled: true
+  dna:
+    enabled: false
+    gid_min: 2000
+    gid_max: 2999
+    uid_min: 2000
+    uid_max: 2999
 
 tls_key: |
   -----BEGIN RSA PRIVATE KEY-----
