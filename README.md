@@ -1,44 +1,37 @@
 # 389ds-server
+
 This role installs the 389DS server (LDAP server) on the target machine(s).
 
 This is a fork of a fork, still **work in progress**, not production ready.
 
 ## Features
-- Configuring single LDAP server
-- Configuring logging
-- Configuring MemberOf and DNA plugin
-- Configuring TLS
+- Install a single LDAP server
+- Configure logging
+- Enable/disable any plugin
+- Configure DNA plugin for UID/GID numbers
+- Configure TLS
 
 Also: replication. I Will move it to another role, probably.
 
-## TODO
-- Support for other plugins
-- Support for CentOS 8
-
-### Could be done but not planned for the short term
-- Administration Server (and Configuration Directory Server)
-- Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
-
 ## Requirements
 - Ansible version: 2.5 or higher
-- OS: RHEL 7.x, CentOS 7.x
+- OS: CentOS 7
 - Valid FQDN (hostname) is in place
 
 ## Role Variables
+
 The variables that can be passed to this role and a brief description about them are as follows:
 ```
 # TODO: rewrite this section
 ```
 
-## Installation (CentOS 7.x or RHEL 7.x)
-```
-# yum install -y git ansible
-# mkdir -p /etc/ansible/roles
-# cd /etc/ansible/roles
-# git clone https://github.com/lvps/389ds-server.git
-# vi /etc/ansible/hosts
-```
+## Dependencies
+
+None.
+
 ## Usage and Examples
+
+This section still needs to be reviewed...
 
 ### Configure a single 389-server on the targed machine(s):
 If variables are not set in the yaml file, default values will be used.
@@ -48,14 +41,14 @@ defaults: `suffix` and `rootdn_password`. The server will start on port 389,
 with root DN `cn=Directory Manager`.
 
 ```yaml
-	- hosts: all
-    become: true
-    roles:
-      - {
-          role: 389ds-server,
-          suffix: "dc=example,dc=local",
-          rootdn_password: secret
-        }
+- hosts: all
+	become: true
+	roles:
+		- {
+			role: 389ds-server,
+			suffix: "dc=example,dc=local",
+			rootdn_password: secret
+		}
 ```
 
 Variables can also be passed via CLI:
@@ -149,6 +142,21 @@ nsds5BeginReplicaRefresh: start
      - { role: 389ds-server, rwmaster: true, replica_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
      - { role: 389ds-server, rwmaster: true, replica_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
 ```
+
+## TODO
+
+### Probably will be done
+- Support for CentOS 8 when it comes out
+
+### Could be done not planned for the short term
+- Administration Server (and Configuration Directory Server)
+- Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
+- Support for other plugins that need more than enabled/disabled
+- Support for other DNA attributes
+
+## License
+
+Apache 2.0
 
 ## Author Information
 

@@ -1,28 +1,16 @@
 ---
-- name: Configure MemberOf plugin
+- name: Enable/disable plugins
   ldap_attr:
     server_uri: "ldap:///localhost"
     bind_dn: "{{ rootdn }}"
     bind_pw: "{{ rootdn_password }}"
-    dn: "cn=MemberOf Plugin,cn=plugins,cn=config"
+    dn: "cn={{ item.key }},cn=plugins,cn=config"
     name: nsslapd-pluginEnabled
-    values: "{{ 'on' if plugins.memberof.enabled else 'off' }}"
+    values: "{{ 'on' if item.value.enabled else 'off' }}"
     state: exact
+  loop: "{{ plugins|dict2items }}"
 
-- name: Configure DNA plugin
-  ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
-    dn: "cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
-    state: exact
-  loop:
-  - { name: "nsslapd-pluginEnabled", value: "{{ 'on' if plugins.dna.enabled else 'off' }}" }
-  notify: dirsrv restart # TODO: is this really needed? Check the manual
-
-# TODO: make this "UID numbers/GID numbers" generic (if possible at all)
+# TODO: make this "UID numbers/GID numbers" generic
 - name: Remove DNA plugin configuration (if disabled)
   ldap_entry:
     server_uri: "ldap:///localhost"
@@ -33,8 +21,8 @@
   loop:
   - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: not plugins.dna.enabled
-  notify: dirsrv restart # TODO: is this really needed? Check the manual
+  when: not plugins["Distributed Numeric Assignment Plugin"].enabled
+  notify: dirsrv restart
 
 - name: Create DNA plugin configuration (if enabled)
   ldap_entry:
@@ -49,8 +37,8 @@
   loop:
   - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: plugins.dna.enabled
-  notify: dirsrv restart # TODO: is this really needed? Check the manual
+  when: plugins["Distributed Numeric Assignment Plugin"].enabled
+  notify: dirsrv restart
 
 - name: Configure DNA plugin parameters (UID)
   ldap_attr:
@@ -64,13 +52,13 @@
   loop:
   - { name: "cn", value: "UID numbers" }
   - { name: "dnatype", value: "uidNumber" }
-  - { name: "dnamagicregen", value: "99999" } # TODO: what does this mean? Check the manual
+  - { name: "dnamagicregen", value: "magic" } # doesn't have to be a number
   - { name: "dnafilter", value: "(objectclass=posixAccount)" }
   - { name: "dnascope", value: "{{ suffix }}" }
-  - { name: "dnanextvalue", value: "{{ plugins.dna.uid_min }}" }
-  - { name: "dnamaxvalue", value: "{{ plugins.dna.uid_max }}" }
-  when: plugins.dna.enabled
-  notify: dirsrv restart # TODO: is this really needed? Check the manual
+  - { name: "dnanextvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].uid_min }}" }
+  - { name: "dnamaxvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].uid_max }}" }
+  when: plugins["Distributed Numeric Assignment Plugin"].enabled
+  notify: dirsrv restart
 
 - name: Configure DNA plugin parameters (GID)
   ldap_attr:
@@ -84,10 +72,10 @@
   loop:
   - { name: "cn", value: "GID numbers" }
   - { name: "dnatype", value: "gidNumber" }
-  - { name: "dnamagicregen", value: "99999" } # TODO: what does this mean? Check the manual
+  - { name: "dnamagicregen", value: "magic" }
   - { name: "dnafilter", value: "(objectclass=posixAccount)" }
   - { name: "dnascope", value: "{{ suffix }}" }
-  - { name: "dnanextvalue", value: "{{ plugins.dna.gid_min }}" }
-  - { name: "dnamaxvalue", value: "{{ plugins.dna.gid_max }}" }
-  when: plugins.dna.enabled
-  notify: dirsrv restart # TODO: is this really needed? Check the manual
+  - { name: "dnanextvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].gid_min }}" }
+  - { name: "dnamaxvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].gid_max }}" }
+  when: plugins["Distributed Numeric Assignment Plugin"].enabled
+  notify: dirsrv restart
