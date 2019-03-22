@@ -32,6 +32,7 @@
         dest: /tmp/install.inf
         mode: 0600
       when: not instance_dir_exists
+      # TODO: change mode to '600' (as a string)
 
     # This will install the Directory Server *only*.
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).

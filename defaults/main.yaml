@@ -77,17 +77,9 @@ plugins:
     uid_min: 2000
     uid_max: 2999
 
-# TLS
+# Security
 
-tls_key: |
-  -----BEGIN RSA PRIVATE KEY-----
-  -----END RSA PRIVATE KEY-----
-
-# full cert chain
-tls_cert: |
-  -----BEGIN CERTIFICATE-----
-  -----END CERTIFICATE-----
-  -----BEGIN CERTIFICATE-----
-  -----END CERTIFICATE-----
-  -----BEGIN CERTIFICATE-----
-  -----END CERTIFICATE-----
+security:
+  tls_enabled: false
+  simple_auth_enabled: false
+  sasl_enabled: true

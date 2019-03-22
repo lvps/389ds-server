@@ -13,5 +13,3 @@
    - /root/nsssl3.ldif
    - /root/nsssl2.ldif
    - /root/rsa-encryption.ldif
-   - /root/{{ tls_cn }}.p12
-   - /root/{{ tls_cn }}.key

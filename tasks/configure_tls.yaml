@@ -1,71 +1,130 @@
 ---
-- name: copy private cert
-  copy:
-    content: "{{ tls_key }}"
-    dest: "/root/{{ tls_cn }}.key"
+- name: Check that security.tls_key[_file] is defined
+  assert:
+    that:
+      - "security.tls_key is defined or security.tls_key_file is defined"
+    msg: "security.tls_key or security.tls_key_file must be defined"
 
-- name: copy public cert chain
-  copy:
-    content: "{{ tls_cert }}"
-    dest: "/root/{{ tls_cn }}.crt"
+- name: Check that security.tls_cert[_file] is defined
+  assert:
+    that:
+      - "security.tls_cert is defined or security.tls_cert_file is defined"
+    msg: "security.tls_cert or security.tls_cert_file must be defined"
 
-- name: copy public cert chain to ca-trust
-  copy:
-    content: "{{ tls_cert }}"
-    dest: "/etc/pki/ca-trust/source/anchors/{{ tls_cn }}.crt"
+- block:
+  - name: Copy private cert (from variable)
+    copy:
+      content: "{{ security.tls_key }}"
+      dest: "/root/{{ security.tls_cn }}.key"
+      mode: '400'
+    when: security.tls_key is defined
 
-- name: Add public cert to ca trust
-  shell: "/bin/update-ca-trust"
+  - name: Copy private cert (from file)
+    copy:
+      src: "{{ security.tls_key_file }}"
+      dest: "/root/{{ security.tls_cn }}.key"
+      remote_src: "{{ security.tls_files_remote }}"
+      mode: '400'
+    when: security.tls_key_file is defined
 
-- name: Create pkcs12
-  openssl_pkcs12:
-    action: export
-    path: "/root/{{ tls_cn }}.p12"
-    friendly_name: "{{ tls_cn }}"
-    privatekey_path: "/root/{{ tls_cn }}.key"
-    certificate_path: "/root/{{ tls_cn }}.crt"
-    state: present
+  - name: Copy public cert chain (from variable)
+    copy:
+      content: "{{ security.tls_cert }}"
+      dest: "/root/{{ security.tls_cn }}.crt"
+      mode: '400'
+    when: security.tls_cert is defined
 
-- name: Add pkcs12 to certutil
-  shell: "/bin/pk12util -i /root/{{ tls_cn }}.p12 -d /etc/dirsrv/slapd-{{ serverid }} -K '' -W ''"
+  - name: Copy public cert chain (from file)
+    copy:
+      src: "{{ security.tls_cert_file }}"
+      dest: "/root/{{ security.tls_cn }}.crt"
+      remote_src: "{{ security.tls_files_remote }}"
+      mode: '400'
+    when: security.tls_cert_file is defined
 
-- name: Copy ldif templates for tls
-  template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
-  with_items:
-   - nsslapd_security.ldif
-   - nssslclientauth.ldif
-   - nsssl3.ldif
-   - nsssl2.ldif
-   - rsa-encryption.ldif
+  - name: Create pkcs12
+    openssl_pkcs12:
+      action: export
+      path: "/root/{{ security.tls_cn }}.p12"
+      friendly_name: "{{ security.tls_cn }}"
+      privatekey_path: "/root/{{ security.tls_cn }}.key"
+      certificate_path: "/root/{{ security.tls_cn }}.crt"
+      state: present
 
-# ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
-- name: Set nsslapd-security
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsslapd_security.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+  always:
+  - name: Remove temporary files
+    file:
+      state: absent
+      path: "{{ item }}"
+    loop:
+    - "/tmp/{{ security.tls_cn }}.crt"
+    - "/tmp/{{ security.tls_cn }}.key"
+    - "/tmp/{{ security.tls_cn }}.p12"
+  # TODO: Why? The manual says to add CA to the instance NSS db,
+  # why are we adding it to system-wide trusted CAs?
+  # Is this even needed for a public and already trusted CA?
+  #
+  #- name: copy public cert chain to ca-trust
+  #  copy:
+  #    content: "{{ security.tls_cert }}"
+  #    dest: "/etc/pki/ca-trust/source/anchors/{{ security.tls_cn }}.crt"
 
-- name: Set nssslclientauth
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nssslclientauth.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+  #- name: Add public cert to ca trust
+  #  shell: "/bin/update-ca-trust"
 
-- name: Set nsssl3
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl3.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+  - name: Add pkcs12 to certutil
+    shell: "/bin/pk12util -i /root/{{ security.tls_cn }}.p12 -d /etc/dirsrv/slapd-{{ serverid }} -K '' -W ''"
 
-- name: Set nsssl2
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl2.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
+  # TODO: try to parse certutil output and check if certificate needs to be added/replaced/updated/whatever
+  # TODO: -t
+  # TODO: does -a actually change anything? It's in the manual
+  - name: Install certificate into {{ serverid }} NSS db
+    command: >
+      certutil -A
+      -d '/etc/dirsrv/slapd-{{ serverid }}'
+      -n 'ansible_managed_{{ serverid }}'
+      -t 'CT,,'
+      -a
+      -i '/path/to/stuff'
+    changed_when: false
 
-- name: Set rsa-encryption
-  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/rsa-encryption.ldif
-  register: results
-  failed_when: not((results.rc == 0)or(results.rc == 68))
-  changed_when: results.rc == 0
-  notify: dirsrv restart
+  - name: Copy ldif templates for tls
+    template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
+    with_items:
+    - nsslapd_security.ldif
+    - nssslclientauth.ldif
+    - nsssl3.ldif
+    - nsssl2.ldif
+    - rsa-encryption.ldif
+
+  # ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
+  - name: Set nsslapd-security
+    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsslapd_security.ldif
+    register: results
+    failed_when: not((results.rc == 0)or(results.rc == 68))
+    changed_when: results.rc == 0
+
+  - name: Set nssslclientauth
+    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nssslclientauth.ldif
+    register: results
+    failed_when: not((results.rc == 0)or(results.rc == 68))
+    changed_when: results.rc == 0
+
+  - name: Set nsssl3
+    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl3.ldif
+    register: results
+    failed_when: not((results.rc == 0)or(results.rc == 68))
+    changed_when: results.rc == 0
+
+  - name: Set nsssl2
+    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl2.ldif
+    register: results
+    failed_when: not((results.rc == 0)or(results.rc == 68))
+    changed_when: results.rc == 0
+
+  - name: Set rsa-encryption
+    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/rsa-encryption.ldif
+    register: results
+    failed_when: not((results.rc == 0)or(results.rc == 68))
+    changed_when: results.rc == 0
+    notify: dirsrv restart

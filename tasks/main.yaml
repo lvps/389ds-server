@@ -1,25 +1,25 @@
 ---
 - include: install_389ds.yaml
-  when: not skip_config
+  when: false # TODO: remove this (for quick and dirty testing)
 
   # TODO: https://docs.ansible.com/ansible/latest/modules/ldap_attr_module.html
   # Use the "params" thing to pass auth data
 - include: configure_logging.yaml
-  when: not skip_config
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_plugins.yaml
-  when: not skip_config
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls.yaml
-  when: not skip_config
+  when: security.tls_enabled
 
 - include: configure_replication_replica.yaml
-  when: roreplica
+  when: false # roreplica
 
 - include: configure_replication_master.yaml
-  when: rwmaster
+  when: false # rwmaster
 
-- include: cleanup.yaml
+#- include: cleanup.yaml
 
 - include: configure_firewall.yaml
-  when: not skip_config
+  when: false
