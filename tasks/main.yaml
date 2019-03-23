@@ -2,8 +2,13 @@
 - include: install_389ds.yaml
   when: false # TODO: remove this (for quick and dirty testing)
 
-  # TODO: https://docs.ansible.com/ansible/latest/modules/ldap_attr_module.html
-  # Use the "params" thing to pass auth data
+- name: Prepare LDAP auth data
+  set_fact:
+    ldap_auth:
+      server_uri: "ldap:///localhost" # TODO: by /// instead of /?
+      bind_dn: "{{ rootdn }}"
+      bind_pw: "{{ rootdn_password }}"
+
 - include: configure_logging.yaml
   when: false # TODO: remove this (for quick and dirty testing)
 

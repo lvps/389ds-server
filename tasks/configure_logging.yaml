@@ -3,9 +3,7 @@
 # this excludes state=present and state=absent, but state=exact still works (only does a ldapsearch)
 - name: Configure Audit logging
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: cn=config
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -20,9 +18,7 @@
 
 - name: Configure Error logging
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: cn=config
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -37,9 +33,7 @@
 
 - name: Configure Access logging
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: cn=config
     name: "{{ item.name }}"
     values: "{{ item.value }}"

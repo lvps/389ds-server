@@ -1,9 +1,7 @@
 ---
-- name: Configure Access logging
+- name: Configure stuff
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: cn=config
     name: "{{ item.name }}"
     values: "{{ item.value }}"

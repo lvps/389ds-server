@@ -1,9 +1,7 @@
 ---
 - name: Enable/disable plugins
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: "cn={{ item.key }},cn=plugins,cn=config"
     name: nsslapd-pluginEnabled
     values: "{{ 'on' if item.value.enabled else 'off' }}"
@@ -13,9 +11,7 @@
 # TODO: make this "UID numbers/GID numbers" generic
 - name: Remove DNA plugin configuration (if disabled)
   ldap_entry:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: "{{ item }}"
     state: absent
   loop:
@@ -26,9 +22,7 @@
 
 - name: Create DNA plugin configuration (if enabled)
   ldap_entry:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: "{{ item }}"
     objectClass:
       - top
@@ -42,9 +36,7 @@
 
 - name: Configure DNA plugin parameters (UID)
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -62,9 +54,7 @@
 
 - name: Configure DNA plugin parameters (GID)
   ldap_attr:
-    server_uri: "ldap:///localhost"
-    bind_dn: "{{ rootdn }}"
-    bind_pw: "{{ rootdn_password }}"
+    params: "{{ ldap_auth }}"
     dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
