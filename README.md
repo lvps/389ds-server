@@ -14,7 +14,7 @@ This is a fork of a fork, still **work in progress**, not production ready.
 Also: replication. I Will move it to another role, probably.
 
 ## Requirements
-- Ansible version: 2.5 or higher
+- Ansible version: 2.7 or higher
 - OS: CentOS 7
 - Valid FQDN (hostname) is in place
 

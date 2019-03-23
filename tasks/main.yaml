@@ -13,6 +13,8 @@
 - include: configure_tls.yaml
   when: security.tls_enabled
 
+- include: configure_security.yaml
+
 - include: configure_replication_replica.yaml
   when: false # roreplica
 

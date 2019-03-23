@@ -1,0 +1,44 @@
+---
+- name: Configure Access logging
+  ldap_attr:
+    server_uri: "ldap:///localhost"
+    bind_dn: "{{ rootdn }}"
+    bind_pw: "{{ rootdn_password }}"
+    dn: cn=config
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "nsslapd-", value: "{{ 'on' if ... else 'off' }}" }
+
+
+- name: Set nsslapd-security
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsslapd_security.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+
+- name: Set nssslclientauth
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nssslclientauth.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+
+- name: Set nsssl3
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl3.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+
+- name: Set nsssl2
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl2.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+
+- name: Set rsa-encryption
+  shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/rsa-encryption.ldif
+  register: results
+  failed_when: not((results.rc == 0)or(results.rc == 68))
+  changed_when: results.rc == 0
+  notify: dirsrv restart

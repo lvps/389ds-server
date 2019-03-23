@@ -12,54 +12,67 @@
     msg: "security.tls_cert or security.tls_cert_file must be defined"
 
 - block:
-  - name: Copy private cert (from variable)
-    copy:
-      content: "{{ security.tls_key }}"
-      dest: "/root/{{ security.tls_cn }}.key"
-      mode: '400'
-    when: security.tls_key is defined
-
-  - name: Copy private cert (from file)
-    copy:
-      src: "{{ security.tls_key_file }}"
-      dest: "/root/{{ security.tls_cn }}.key"
-      remote_src: "{{ security.tls_files_remote }}"
-      mode: '400'
-    when: security.tls_key_file is defined
-
-  - name: Copy public cert chain (from variable)
+  - name: Copy cert (from variable)
     copy:
       content: "{{ security.tls_cert }}"
-      dest: "/root/{{ security.tls_cn }}.crt"
+      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
       mode: '400'
+      setype: cert_t
     when: security.tls_cert is defined
 
-  - name: Copy public cert chain (from file)
+  # TODO: if the file is already on the remote machine, copying it to /tmp is a pointless waste of time...
+  - name: Copy cert (from file)
     copy:
       src: "{{ security.tls_cert_file }}"
-      dest: "/root/{{ security.tls_cn }}.crt"
+      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
       remote_src: "{{ security.tls_files_remote }}"
       mode: '400'
+      setype: cert_t
     when: security.tls_cert_file is defined
+
+  # TODO: this should be a nice way to avoid re-adding certificates to the NSS db, but too complicated to implement
+  #- name: Check {{ serverid }} certificate serial number
+  #  shell: certutil -L -d /etc/dirsrv/slapd-{{ serverid }} -n disrsrv-ldap_ansible_managed
+  #  register: certutil_tls
+  #  failed_when: not( (certutil_tls.rc == 0) or ('stderr' in certutil_tls and 'PR_FILE_NOT_FOUND_ERROR' in certutil_tls.stderr) )
+
+  - name: Copy private key (from variable)
+    copy:
+      content: "{{ security.tls_key }}"
+      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
+      mode: '400'
+      setype: cert_t
+    when: security.tls_key is defined
+
+  - name: Copy private key (from file)
+    copy:
+      src: "{{ security.tls_key_file }}"
+      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
+      remote_src: "{{ security.tls_files_remote }}"
+      mode: '400'
+      setype: cert_t
+    when: security.tls_key_file is defined
+
+  - name: Install pyOpenSSL for openssl_pkcs12 module
+    package:
+      name: pyOpenSSL
+      state: present
 
   - name: Create pkcs12
     openssl_pkcs12:
       action: export
-      path: "/root/{{ security.tls_cn }}.p12"
-      friendly_name: "{{ security.tls_cn }}"
-      privatekey_path: "/root/{{ security.tls_cn }}.key"
-      certificate_path: "/root/{{ security.tls_cn }}.crt"
+      path: "/tmp/disrsrv-{{ serverid }}_ansible_managed.p12"
+      # Mandatory parameter, but apparently a bug
+      # https://github.com/ansible/ansible/issues/46047
+      friendly_name: "disrsrv-{{ serverid }}_ansible_managed"
+      privatekey_path: "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
+      certificate_path: "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
+      setype: cert_t
       state: present
 
-  always:
-  - name: Remove temporary files
-    file:
-      state: absent
-      path: "{{ item }}"
-    loop:
-    - "/tmp/{{ security.tls_cn }}.crt"
-    - "/tmp/{{ security.tls_cn }}.key"
-    - "/tmp/{{ security.tls_cn }}.p12"
+  - name: Add pkcs12 to {{ serverid }} NSS db
+    shell: "/bin/pk12util -i /tmp/disrsrv-{{ serverid }}_ansible_managed.p12 -d /etc/dirsrv/slapd-{{ serverid }} -K '' -W ''"
+
   # TODO: Why? The manual says to add CA to the instance NSS db,
   # why are we adding it to system-wide trusted CAs?
   # Is this even needed for a public and already trusted CA?
@@ -72,59 +85,24 @@
   #- name: Add public cert to ca trust
   #  shell: "/bin/update-ca-trust"
 
-  - name: Add pkcs12 to certutil
-    shell: "/bin/pk12util -i /root/{{ security.tls_cn }}.p12 -d /etc/dirsrv/slapd-{{ serverid }} -K '' -W ''"
-
-  # TODO: try to parse certutil output and check if certificate needs to be added/replaced/updated/whatever
   # TODO: -t
-  # TODO: does -a actually change anything? It's in the manual
-  - name: Install certificate into {{ serverid }} NSS db
-    command: >
-      certutil -A
-      -d '/etc/dirsrv/slapd-{{ serverid }}'
-      -n 'ansible_managed_{{ serverid }}'
-      -t 'CT,,'
-      -a
-      -i '/path/to/stuff'
-    changed_when: false
+  # TODO: add -a if the p12 thing is ASCII encoded (openssl_pkcs12 outputs it in binary format so it's not needed)
+  #- name: Install certificate into {{ serverid }} NSS db
+  #  command: >
+  #    certutil -A
+  #    -d '/etc/dirsrv/slapd-{{ serverid }}'
+  #    -n 'ansible_managed_{{ serverid }}'
+  #    -t 'C,,'
+  #    -a
+  #    -i '/tmp/disrsrv-{{ serverid }}_ca_ansible_managed.crt'
+  #  changed_when: false
 
-  - name: Copy ldif templates for tls
-    template: src=templates/{{ item }}.j2 dest=/root/{{ item }}
-    with_items:
-    - nsslapd_security.ldif
-    - nssslclientauth.ldif
-    - nsssl3.ldif
-    - nsssl2.ldif
-    - rsa-encryption.ldif
-
-  # ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
-  - name: Set nsslapd-security
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsslapd_security.ldif
-    register: results
-    failed_when: not((results.rc == 0)or(results.rc == 68))
-    changed_when: results.rc == 0
-
-  - name: Set nssslclientauth
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nssslclientauth.ldif
-    register: results
-    failed_when: not((results.rc == 0)or(results.rc == 68))
-    changed_when: results.rc == 0
-
-  - name: Set nsssl3
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl3.ldif
-    register: results
-    failed_when: not((results.rc == 0)or(results.rc == 68))
-    changed_when: results.rc == 0
-
-  - name: Set nsssl2
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/nsssl2.ldif
-    register: results
-    failed_when: not((results.rc == 0)or(results.rc == 68))
-    changed_when: results.rc == 0
-
-  - name: Set rsa-encryption
-    shell: ldapmodify -D {{ rootdn }} -w {{ password }} -h localhost -v < /root/rsa-encryption.ldif
-    register: results
-    failed_when: not((results.rc == 0)or(results.rc == 68))
-    changed_when: results.rc == 0
-    notify: dirsrv restart
+  always:
+  - name: Remove temporary files
+    file:
+      state: absent
+      path: "{{ item }}"
+    loop:
+    - "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
+    - "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
+    - "/tmp/disrsrv-{{ serverid }}_ansible_managed.p12"
