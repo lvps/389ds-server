@@ -5,7 +5,7 @@
 - name: Prepare LDAP auth data
   set_fact:
     ldap_auth:
-      server_uri: "ldap:///localhost" # TODO: by /// instead of /?
+      server_uri: "ldap://localhost"
       bind_dn: "{{ rootdn }}"
       bind_pw: "{{ rootdn_password }}"
 
@@ -16,9 +16,6 @@
   when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls.yaml
-  when: security.tls_enabled
-
-- include: configure_security.yaml
 
 - include: configure_replication_replica.yaml
   when: false # roreplica

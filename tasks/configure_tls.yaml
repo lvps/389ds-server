@@ -1,21 +1,29 @@
 ---
+# TODO: Section 9.4.1.5, “Creating a Password File for Directory Server”.
+# TODO: 9.4.1.4, “Starting Directory Server Without a Password File”.
+
+
+# TODO: remove certificate if TLS is disabled?
+
 - name: Check that security.tls_key[_file] is defined
   assert:
     that:
       - "security.tls_key is defined or security.tls_key_file is defined"
     msg: "security.tls_key or security.tls_key_file must be defined"
+  when: security.tls_enabled
 
 - name: Check that security.tls_cert[_file] is defined
   assert:
     that:
       - "security.tls_cert is defined or security.tls_cert_file is defined"
     msg: "security.tls_cert or security.tls_cert_file must be defined"
+  when: security.tls_enabled
 
 - block:
   - name: Copy cert (from variable)
     copy:
       content: "{{ security.tls_cert }}"
-      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
+      dest: "/tmp/server-cert-ansible-managed.crt"
       mode: '400'
       setype: cert_t
     when: security.tls_cert is defined
@@ -24,22 +32,16 @@
   - name: Copy cert (from file)
     copy:
       src: "{{ security.tls_cert_file }}"
-      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
+      dest: "/tmp/server-cert-ansible-managed.crt"
       remote_src: "{{ security.tls_files_remote }}"
       mode: '400'
       setype: cert_t
     when: security.tls_cert_file is defined
 
-  # TODO: this should be a nice way to avoid re-adding certificates to the NSS db, but too complicated to implement
-  #- name: Check {{ serverid }} certificate serial number
-  #  shell: certutil -L -d /etc/dirsrv/slapd-{{ serverid }} -n disrsrv-ldap_ansible_managed
-  #  register: certutil_tls
-  #  failed_when: not( (certutil_tls.rc == 0) or ('stderr' in certutil_tls and 'PR_FILE_NOT_FOUND_ERROR' in certutil_tls.stderr) )
-
   - name: Copy private key (from variable)
     copy:
       content: "{{ security.tls_key }}"
-      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
+      dest: "/tmp/server-cert-ansible-managed.key"
       mode: '400'
       setype: cert_t
     when: security.tls_key is defined
@@ -47,7 +49,7 @@
   - name: Copy private key (from file)
     copy:
       src: "{{ security.tls_key_file }}"
-      dest: "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
+      dest: "/tmp/server-cert-ansible-managed.key"
       remote_src: "{{ security.tls_files_remote }}"
       mode: '400'
       setype: cert_t
@@ -61,17 +63,78 @@
   - name: Create pkcs12
     openssl_pkcs12:
       action: export
-      path: "/tmp/disrsrv-{{ serverid }}_ansible_managed.p12"
+      path: "/tmp/server-cert-ansible-managed.p12"
       # Mandatory parameter, but apparently a bug
       # https://github.com/ansible/ansible/issues/46047
-      friendly_name: "disrsrv-{{ serverid }}_ansible_managed"
-      privatekey_path: "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
-      certificate_path: "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
+      friendly_name: "server-cert-ansible-managed"
+      privatekey_path: "/tmp/server-cert-ansible-managed.key"
+      certificate_path: "/tmp/server-cert-ansible-managed.crt"
       setype: cert_t
       state: present
 
-  - name: Add pkcs12 to {{ serverid }} NSS db
-    shell: "/bin/pk12util -i /tmp/disrsrv-{{ serverid }}_ansible_managed.p12 -d /etc/dirsrv/slapd-{{ serverid }} -K '' -W ''"
+  - name: Add pkcs12 to NSS database
+    shell: >
+      pk12util
+      -i /tmp/server-cert-ansible-managed.p12
+      -n server-cert-ansible-managed
+      -d /etc/dirsrv/slapd-{{ serverid }}
+      -K ''
+      -W ''
+    changed_when: false
+
+  # pk12util will happily add another certificate with the same
+  # nickname to the NSS database, if the key or something in the
+  # certificate is different. If they are identical, the operation
+  # succeeds but there's only one certificate in the database so
+  # it's all good.
+  # I still haven't figured out how to *actually* set the nickname,
+  # since it's neither the filename nor the friendly_name from the
+  # openssl_pkcs12 module.
+  # Either way, we need to check the NSS database and remove the old
+  # key/cert. Or at least we should, I don't know what happens if
+  # 389DS finds such duplicate certificates.
+  #
+  # Let's start by counting what we have there
+  - name: Count Ansible managed keys in NSS database
+    shell: >
+      certutil -K
+      -d /etc/dirsrv/slapd-ldap/
+      |
+      grep
+      -c "server-cert-ansible-managed"
+    register: nss_key_count_389ds
+    changed_when: false
+
+  # This is needed because Jinja2 templates are not allowed in "when"
+  # and Ansible casts everything to string or boolean, so no integer
+  # variables for us...
+  - set_fact:
+      nss_key_count_389ds_too_many: "{{ nss_key_count_389ds.stdout | int > 1 }}"
+
+  # This is the correct way to remove a private keys (section 9.3.8.1
+  # from the Administration Guide), however it removes a "random"
+  # key, so we have to remove all of them and add the correct one
+  # again...
+  - name: Remove old key from NSS database
+    shell: >
+      certutil -F
+      -d /etc/dirsrv/slapd-{{ serverid }}
+      -n "server-cert-ansible-managed"
+    when: nss_key_count_389ds_too_many
+    # I'm still wondering if this loop is horrible or clever...
+    loop: "{{ range(0, nss_key_count_389ds.stdout|int) | list }}"
+
+  - name: Add pkcs12 to NSS database (again)
+    shell: >
+      pk12util
+      -i /tmp/server-cert-ansible-managed.p12
+      -n server-cert-ansible-managed
+      -d /etc/dirsrv/slapd-{{ serverid }}
+      -K ''
+      -W ''
+    changed_when: false
+
+  # --- CA certificates stuff ---------------------------------------
 
   # TODO: Why? The manual says to add CA to the instance NSS db,
   # why are we adding it to system-wide trusted CAs?
@@ -86,7 +149,7 @@
   #  shell: "/bin/update-ca-trust"
 
   # TODO: -t
-  # TODO: add -a if the p12 thing is ASCII encoded (openssl_pkcs12 outputs it in binary format so it's not needed)
+  # TODO: add -a if the certificate is ASCII encoded
   #- name: Install certificate into {{ serverid }} NSS db
   #  command: >
   #    certutil -A
@@ -94,15 +157,113 @@
   #    -n 'ansible_managed_{{ serverid }}'
   #    -t 'C,,'
   #    -a
-  #    -i '/tmp/disrsrv-{{ serverid }}_ca_ansible_managed.crt'
+  #    -i '/tmp/dirsrv_{{ serverid }}_ca_ansible_managed.crt'
   #  changed_when: false
 
+  # --- end CA certificates stuff -----------------------------------
+
+  when: security.tls_enabled
   always:
   - name: Remove temporary files
     file:
       state: absent
       path: "{{ item }}"
     loop:
-    - "/tmp/disrsrv-{{ serverid }}_ansible_managed.crt"
-    - "/tmp/disrsrv-{{ serverid }}_ansible_managed.key"
-    - "/tmp/disrsrv-{{ serverid }}_ansible_managed.p12"
+    - "/tmp/server-cert-ansible-managed.crt"
+    - "/tmp/server-cert-ansible-managed.key"
+    - "/tmp/server-cert-ansible-managed.p12"
+
+- name: Remove RSA configuration for TLS (if disabled)
+  ldap_entry:
+    params: "{{ ldap_auth }}"
+    dn: "cn=RSA,cn=encryption,cn=config"
+    state: absent
+  when: not security.tls_enabled
+  notify: dirsrv restart
+
+- name: Create RSA configuration for TLS (if enabled)
+  ldap_entry:
+    params: "{{ ldap_auth }}"
+    dn: "cn=RSA,cn=encryption,cn=config"
+    objectClass:
+      - top
+      - extensibleObject
+    state: present
+  when: security.tls_enabled
+  notify: dirsrv restart
+
+- name: Configure RSA parameters
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: "cn=RSA,cn=encryption,cn=config"
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "cn", value: "RSA" }
+  - { name: "nsSSLToken", value: "internal (software)" }
+  - { name: "nsSSLPersonalitySSL", value: "server-cert-ansible-managed" }
+  - { name: "nsSSLActivation", value: "on" }
+  when: security.tls_enabled
+  notify: dirsrv restart
+
+  # TODO: Section 9.4.1.3.1, “Displaying and Setting the Ciphers Used by Directory Server Using the Command Line”. (move this to configure_security.yaml?)
+  # TODO: Section 9.8, “Using Certificate-based Client Authentication”.
+  # TODO: e. Select the Check host name against name in certificate for outbound SSL connections option to verify that the host name matches the cn attribute in the subject name of the certificate the client presents to the server for authentication., how 2 do dat from terminal?
+
+  # TODO: SSF
+  # TODO: nsslapd-allow-anonymous-access has nothing to do with TLS but is a good idea...
+
+- set_fact:
+    must_use_tls_for_389ds: true
+    when:
+
+- name: Configure TLS authentication
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: "cn=config"
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "nsslapd-allow-anonymous-access", value: "rootdse" }
+  - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if security.tls_enabled else 'off' }}" }
+  - { name: "nsslapd-minssf", value: "{{ '56' if security.tls_enabled else '0' }}" }
+  when: security.tls_enabled
+  notify: dirsrv restart
+
+- name: Configure TLS minimum version (disable SSL)
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: cn=encryption,cn=config
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "nsssl2", value: "off" }
+  - { name: "nsssl3", value: "off" }
+  notify: dirsrv restart
+  when: security.tls_enabled
+
+# TODO: support it?
+- name: Disable TLS client authentication
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: cn=encryption,cn=config
+    name: "nssslclientauth"
+    values: "off"
+    state: exact
+
+- name: Configure authentication mechanisms
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: cn=encryption,cn=config
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "", value: "{{ 'on' if ... else 'off' }}" }
+  - { name: "", value: "{{  }}" }
+  # TODO: en/disable simple auth
+  # TODO: en/disable SASL
+

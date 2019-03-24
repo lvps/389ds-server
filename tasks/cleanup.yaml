@@ -8,8 +8,5 @@
    - /root/master_replica.ldif
    - /root/master_replication_agreement.ldif
    - /root/master_init_replica.ldif
-   - /root/nsslapd_security.ldif
    - /root/nssslclientauth.ldif
-   - /root/nsssl3.ldif
-   - /root/nsssl2.ldif
    - /root/rsa-encryption.ldif
