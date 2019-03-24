@@ -214,21 +214,62 @@
   # TODO: SSF
   # TODO: nsslapd-allow-anonymous-access has nothing to do with TLS but is a good idea...
 
+# TODO: this contraption
 - set_fact:
     must_use_tls_for_389ds: true
-    when:
+    when: false
 
-- name: Configure TLS authentication
+#Display all:
+#ldapsearch -xLLL -H ldap://server.example.com:389 -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLSupportedCiphers -o ldif-wrap=no dn: cn=encryption,cn=config
+
+#Display enabled:
+#ldapsearch -xLLL -H ldap://localhost -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLEnabledCiphers -o ldif-wrap=no
+# WHY IS THIS EMPTY? WHY? WHY? WHY?
+
+#Display other stuff:
+#ldapsearch -xLLL -H ldap://localhost -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSL3Ciphers -o ldif-wrap=no
+
+#I don't even know anymore
+#ldapmodify -D "cn=Directory Manager" -W -p 389 -h localhost -x
+
+# Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
+# that other settings will not activate if nsslapd-security is off.
+# This doesn't seem to be true, all options activate randomly and
+# possibly immediately.
+# Also: for this reason, the order is relevant.
+#
+# nsslapd-security => will accept STARTTLS
+# nsSSL3Ciphers => will accept at least one cipher suite (defaults to NONE for no reason)
+# nsslapd-security keeps resetting to off on each restart, there's something wrong, the supported ciphers list is empty, nothing works
+- name: Configure TLS support
   ldap_attr:
     params: "{{ ldap_auth }}"
     dn: "cn=config"
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
+    name: "nsslapd-security"
+    values: "{{ 'on' if security.tls_enabled else 'off' }}"
     state: exact
-  loop:
-  - { name: "nsslapd-allow-anonymous-access", value: "rootdse" }
-  - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if security.tls_enabled else 'off' }}" }
-  - { name: "nsslapd-minssf", value: "{{ '56' if security.tls_enabled else '0' }}" }
+
+- name: Configure allowed TLS ciphers
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: "cn=encryption,cn=config"
+    name: "nsSSL3Ciphers"
+    values: "+all"
+    state: exact
+  when: security.tls_enabled
+
+#- name: Configure TLS authentication
+#  ldap_attr:
+#    params: "{{ ldap_auth }}"
+#    dn: "cn=config"
+#    name: "{{ item.name }}"
+#    values: "{{ item.value }}"
+#    state: exact
+#  loop:
+  #- { name: "nsslapd-allow-anonymous-access", value: "rootdse" }
+  #- { name: "nsslapd-security", value: "{{ 'on' if security.tls_enabled else 'off' }}" }
+  #- { name: "nsslapd-require-secure-binds", value: "{{ 'on' if security.tls_enabled else 'off' }}" }
+  #- { name: "nsslapd-minssf", value: "{{ '0' if security.tls_enabled else '0' }}" }
   when: security.tls_enabled
   notify: dirsrv restart
 

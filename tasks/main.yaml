@@ -1,10 +1,17 @@
 ---
+# TODO: cn=config contains nsslapd-requiresrestart, a list of things that need a restart. Check that all of them have "notify: dirsrv restart"...
+
+# TODO: are nsCertFile and nsKeyFile still allowed, instead of the NSS database which is nearly impossible to handle correctly?
+# https://www.port389.org/docs/389ds/howto/howto-ssl.html
+
 - include: install_389ds.yaml
   when: false # TODO: remove this (for quick and dirty testing)
 
 - name: Prepare LDAP auth data
   set_fact:
     ldap_auth:
+     # start_tls: true # TODO: remove/make it a variable
+     # validate_certs: false # TODO: disable
       server_uri: "ldap://localhost"
       bind_dn: "{{ rootdn }}"
       bind_pw: "{{ rootdn_password }}"
