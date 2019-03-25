@@ -47,10 +47,18 @@
         state: absent
         path: /tmp/install.inf
 
-# The setup script starts the server itself, but
-# the service/target still needs to be enabled
-# in my tests I've found that enabling dirsrv@serverid is not enough, it still doesn't start automatically...
-- name: start and enable 389DS
+
+- name: Start and enable {{ serverid }} instance
+  become: true
+  service:
+    name: "dirsrv@{{ serverid }}"
+    state: started
+    enabled: yes
+
+# The setup script starts the server itself, but the service/target
+# still needs to be enabled. In my tests I've found that enabling
+# dirsrv@serverid is not enough, it still doesn't start automatically...
+- name: Enable systemd target
   become: true
   service:
     name: dirsrv.target

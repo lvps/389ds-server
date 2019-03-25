@@ -3,55 +3,55 @@
 # TODO: 9.4.1.4, “Starting Directory Server Without a Password File”.
 # TODO: remove certificate if TLS is disabled?
 
-- name: Check that security.tls_key[_file] is defined
+- name: Check that tls_key[_file] is defined
   assert:
     that:
-      - "security.tls_key is defined or security.tls_key_file is defined"
-    msg: "security.tls_key or security.tls_key_file must be defined"
-  when: security.tls_enabled
+      - "(tls_key is defined) != (tls_key_file is defined)" # This is a XOR
+    msg: "only one of tls_key or tls_key_file must be defined"
+  when: tls_enabled
 
-- name: Check that security.tls_cert[_file] is defined
+- name: Check that tls_cert[_file] is defined
   assert:
     that:
-      - "security.tls_cert is defined or security.tls_cert_file is defined"
-    msg: "security.tls_cert or security.tls_cert_file must be defined"
-  when: security.tls_enabled
+      - "(tls_cert is defined) != (tls_cert_file is defined)" # This is a XOR, again
+    msg: "only one of tls_cert or tls_cert_file must be defined"
+  when: tls_enabled
 
 - block:
   - name: Copy cert (from variable)
     copy:
-      content: "{{ security.tls_cert }}"
+      content: "{{ tls_cert }}"
       dest: "/tmp/server-cert-ansible-managed.crt"
       mode: '400'
       setype: cert_t
-    when: security.tls_cert is defined
+    when: tls_cert is defined
 
   # TODO: if the file is already on the remote machine, copying it to /tmp is a pointless waste of time...
   - name: Copy cert (from file)
     copy:
-      src: "{{ security.tls_cert_file }}"
+      src: "{{ tls_cert_file }}"
       dest: "/tmp/server-cert-ansible-managed.crt"
-      remote_src: "{{ security.tls_files_remote }}"
+      remote_src: "{{ tls_files_remote }}"
       mode: '400'
       setype: cert_t
-    when: security.tls_cert_file is defined
+    when: tls_cert_file is defined
 
   - name: Copy private key (from variable)
     copy:
-      content: "{{ security.tls_key }}"
+      content: "{{ tls_key }}"
       dest: "/tmp/server-cert-ansible-managed.key"
       mode: '400'
       setype: cert_t
-    when: security.tls_key is defined
+    when: tls_key is defined
 
   - name: Copy private key (from file)
     copy:
-      src: "{{ security.tls_key_file }}"
+      src: "{{ tls_key_file }}"
       dest: "/tmp/server-cert-ansible-managed.key"
-      remote_src: "{{ security.tls_files_remote }}"
+      remote_src: "{{ tls_files_remote }}"
       mode: '400'
       setype: cert_t
-    when: security.tls_key_file is defined
+    when: tls_key_file is defined
 
   - name: Install pyOpenSSL for openssl_pkcs12 module
     package:
@@ -132,32 +132,33 @@
       -d /etc/dirsrv/slapd-{{ serverid }}
       -K ''
       -W ''
-    changed_when: false
+    when: nss_key_count_389ds_too_many
 
-  # TODO: CT is for client auth + this certificate is a CA + other stuff, is it *really* needed?
   - name: Set certificate parameters for self-signed
     shell: >
       certutil -M
       -d /etc/dirsrv/slapd-ldap/
       -n server-cert-ansible-managed
-      -t "CTu,u,u"
+      -t "u,u,u"
+    when: nss_key_count_389ds_too_many
 
   # --- CA certificates stuff ---------------------------------------
 
-  # TODO: Why? The manual says to add CA to the instance NSS db,
-  # why are we adding it to system-wide trusted CAs?
-  # Is this even needed for a public and already trusted CA?
+  # The role that I forked added CA certificates to system-wide
+  # trusted CAs.
+  # The manual says to add CA to the instance NSS db. Anyway,
+  # Here's the relevant parts.
   #
   #- name: copy public cert chain to ca-trust
   #  copy:
-  #    content: "{{ security.tls_cert }}"
-  #    dest: "/etc/pki/ca-trust/source/anchors/{{ security.tls_cn }}.crt"
+  #    content: "{{ tls_cert }}"
+  #    dest: "/etc/pki/ca-trust/source/anchors/{{ tls_cn }}.crt"
 
   #- name: Add public cert to ca trust
   #  shell: "/bin/update-ca-trust"
 
-  # TODO: -t
-  # TODO: add -a if the certificate is ASCII encoded
+  # -t C,, or -t T,, or -t CT,,?
+  # add -a if the certificate is ASCII encoded
   #- name: Install certificate into {{ serverid }} NSS db
   #  command: >
   #    certutil -A
@@ -170,7 +171,7 @@
 
   # --- end CA certificates stuff -----------------------------------
 
-  when: security.tls_enabled
+  when: tls_enabled
   always:
   - name: Remove temporary files
     file:
@@ -186,7 +187,7 @@
     params: "{{ ldap_auth }}"
     dn: "cn=RSA,cn=encryption,cn=config"
     state: absent
-  when: not security.tls_enabled
+  when: not tls_enabled
   notify: dirsrv restart
 
 - name: Create RSA configuration for TLS (if enabled)
@@ -197,7 +198,7 @@
       - top
       - nsEncryptionModule
     state: present
-  when: security.tls_enabled
+  when: tls_enabled
   notify: dirsrv restart
 
 - name: Configure RSA parameters
@@ -212,49 +213,26 @@
   - { name: "nsSSLToken", value: "internal (software)" }
   - { name: "nsSSLPersonalitySSL", value: "server-cert-ansible-managed" }
   - { name: "nsSSLActivation", value: "on" }
-  when: security.tls_enabled
+  when: tls_enabled
   notify: dirsrv restart
 
-  # TODO: Section 9.4.1.3.1, “Displaying and Setting the Ciphers Used by Directory Server Using the Command Line”. (move this to configure_security.yaml?)
-  # TODO: Section 9.8, “Using Certificate-based Client Authentication”.
-  # TODO: e. Select the Check host name against name in certificate for outbound SSL connections option to verify that the host name matches the cn attribute in the subject name of the certificate the client presents to the server for authentication., how 2 do dat from terminal?
-
-  # TODO: SSF
-  # TODO: nsslapd-allow-anonymous-access has nothing to do with TLS but is a good idea...
-
 # TODO: this contraption
+# ldapwhoami -D "cn=Directory Manager" -w secret -H ldap://localhost is a good command to check, but even -Z fails if the certificate is self-signed... Well, it should just check if the port is reachable or not, but stil...
 - set_fact:
     must_use_tls_for_389ds: true
     when: false
-
-#Display all:
-#ldapsearch -xLLL -H ldap://server.example.com:389 -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLSupportedCiphers -o ldif-wrap=no dn: cn=encryption,cn=config
-
-#Display enabled:
-#ldapsearch -xLLL -H ldap://localhost -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLEnabledCiphers -o ldif-wrap=no
-# WHY IS THIS EMPTY? WHY? WHY? WHY?
-
-#Display other stuff:
-#ldapsearch -xLLL -H ldap://localhost -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSL3Ciphers -o ldif-wrap=no
-
-#I don't even know anymore
-#ldapmodify -D "cn=Directory Manager" -W -p 389 -h localhost -x
 
 # Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
 # that other settings will not activate if nsslapd-security is off.
 # This doesn't seem to be true, all options activate randomly and
 # possibly immediately.
 # Also: for this reason, the order is relevant.
-#
-# nsslapd-security => will accept STARTTLS
-# nsSSL3Ciphers => will accept at least one cipher suite (defaults to NONE for no reason)
-# nsslapd-security keeps resetting to off on each restart, there's something wrong, the supported ciphers list is empty, nothing works
 - name: Configure TLS support
   ldap_attr:
     params: "{{ ldap_auth }}"
     dn: "cn=config"
     name: "nsslapd-security"
-    values: "{{ 'on' if security.tls_enabled else 'off' }}"
+    values: "{{ 'on' if tls_enabled else 'off' }}"
     state: exact
 
 # Doesn't work:
@@ -266,29 +244,8 @@
 #    values: "0"
 #    state: exact
 
-#- name: Configure allowed TLS ciphers
-#  ldap_attr:
-#    params: "{{ ldap_auth }}"
-#    dn: "cn=encryption,cn=config"
-#    name: "nsSSL3Ciphers"
-#    values: "+all"
-#    state: exact
-#  when: security.tls_enabled
-
-#- name: Configure TLS authentication
-#  ldap_attr:
-#    params: "{{ ldap_auth }}"
-#    dn: "cn=config"
-#    name: "{{ item.name }}"
-#    values: "{{ item.value }}"
-#    state: exact
-#  loop:
-  #- { name: "nsslapd-allow-anonymous-access", value: "rootdse" }
-  #- { name: "nsslapd-security", value: "{{ 'on' if security.tls_enabled else 'off' }}" }
-  #- { name: "nsslapd-require-secure-binds", value: "{{ 'on' if security.tls_enabled else 'off' }}" }
-  #- { name: "nsslapd-minssf", value: "{{ '0' if security.tls_enabled else '0' }}" }
-  when: security.tls_enabled
-  notify: dirsrv restart
+  #TODO: - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if tls_enabled else 'off' }}" }
+  #TODO: - { name: "nsslapd-minssf", value: "{{ '0' if tls_enabled else '0' }}" }
 
 - name: Configure TLS minimum version (disable SSL)
   ldap_attr:
@@ -300,17 +257,31 @@
   loop:
   - { name: "nsssl2", value: "off" }
   - { name: "nsssl3", value: "off" }
+  - { name: "sslVersionMin", value: "TLS{{ tls_min_version }}" }
   notify: dirsrv restart
-  when: security.tls_enabled
+  when: tls_enabled
 
 # TODO: support it?
 - name: Disable TLS client authentication
   ldap_attr:
     params: "{{ ldap_auth }}"
     dn: cn=encryption,cn=config
-    name: "nssslclientauth"
+    name: "nsSSLClientAuth"
     values: "off"
     state: exact
+
+- name: Configure anonymous and unauthenticated binds
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: "cn=config"
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+  - { name: "nsslapd-allow-anonymous-access", value: "{{ 'rootdse' if allow_anonymous_binds == 'rootdse' else 'on' if allow_anonymous_binds else 'off' }}" }
+  # This defaults to "off" and it's better left alone
+  #- { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
+  when: tls_enabled
 
 - name: Configure authentication mechanisms
   ldap_attr:

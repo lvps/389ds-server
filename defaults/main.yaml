@@ -61,6 +61,7 @@ logging:
 
 # Plugins
 
+# TODO: split into a list of plugins to enable, one to disable, plut the DNA plugin configuration
 plugins:
   # If you want to enable or disable
   # cn=MemberOf Plugin,cn=plugins,cn=config
@@ -79,7 +80,17 @@ plugins:
 
 # Security
 
-security:
-  tls_enabled: false
-  simple_auth_enabled: false
-  sasl_enabled: true
+tls_enabled: false
+tls_min_version: '1.2'
+allow_anonymous_binds: 'rootdse'
+simple_auth_enabled: true
+sasl_enabled: false
+# It's already off by default
+#allow_unauthenticated_binds: false
+
+
+# Display supported cipher suites:
+# ldapsearch -xLLL -H ldap://server.example.com:389 -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLSupportedCiphers -o ldif-wrap=no dn: cn=encryption,cn=config
+
+# Display enabled cipher suites:
+#ldapsearch -xLLL -H ldap://localhost -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLEnabledCiphers -o ldif-wrap=no
