@@ -1,8 +1,6 @@
 ---
 # TODO: Section 9.4.1.5, “Creating a Password File for Directory Server”.
 # TODO: 9.4.1.4, “Starting Directory Server Without a Password File”.
-
-
 # TODO: remove certificate if TLS is disabled?
 
 - name: Check that security.tls_key[_file] is defined
@@ -60,6 +58,8 @@
       name: pyOpenSSL
       state: present
 
+  # TODO: count certs before, count them after, if they increased but the grep thing still finds one, then pk12util choose another nickname. Throw an error and die. Or check pk12util output
+
   - name: Create pkcs12
     openssl_pkcs12:
       action: export
@@ -111,11 +111,11 @@
   - set_fact:
       nss_key_count_389ds_too_many: "{{ nss_key_count_389ds.stdout | int > 1 }}"
 
-  # This is the correct way to remove a private keys (section 9.3.8.1
+  # This is the correct way to remove private keys (section 9.3.8.1
   # from the Administration Guide), however it removes a "random"
   # key, so we have to remove all of them and add the correct one
   # again...
-  - name: Remove old key from NSS database
+  - name: Remove old keys from NSS database
     shell: >
       certutil -F
       -d /etc/dirsrv/slapd-{{ serverid }}
@@ -133,6 +133,14 @@
       -K ''
       -W ''
     changed_when: false
+
+  # TODO: CT is for client auth + this certificate is a CA + other stuff, is it *really* needed?
+  - name: Set certificate parameters for self-signed
+    shell: >
+      certutil -M
+      -d /etc/dirsrv/slapd-ldap/
+      -n server-cert-ansible-managed
+      -t "CTu,u,u"
 
   # --- CA certificates stuff ---------------------------------------
 
@@ -187,7 +195,7 @@
     dn: "cn=RSA,cn=encryption,cn=config"
     objectClass:
       - top
-      - extensibleObject
+      - nsEncryptionModule
     state: present
   when: security.tls_enabled
   notify: dirsrv restart
@@ -249,14 +257,23 @@
     values: "{{ 'on' if security.tls_enabled else 'off' }}"
     state: exact
 
-- name: Configure allowed TLS ciphers
-  ldap_attr:
-    params: "{{ ldap_auth }}"
-    dn: "cn=encryption,cn=config"
-    name: "nsSSL3Ciphers"
-    values: "+all"
-    state: exact
-  when: security.tls_enabled
+# Doesn't work:
+#- name: Disable TLS-only port (636)
+#  ldap_attr:
+#    params: "{{ ldap_auth }}"
+#    dn: "cn=config"
+#    name: "nsslapd-securePort"
+#    values: "0"
+#    state: exact
+
+#- name: Configure allowed TLS ciphers
+#  ldap_attr:
+#    params: "{{ ldap_auth }}"
+#    dn: "cn=encryption,cn=config"
+#    name: "nsSSL3Ciphers"
+#    values: "+all"
+#    state: exact
+#  when: security.tls_enabled
 
 #- name: Configure TLS authentication
 #  ldap_attr:
