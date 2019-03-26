@@ -257,6 +257,14 @@
     values: "{{ 'on' if tls_enabled else 'off' }}"
     state: exact
 
+- name: Configure TLS support 2
+  ldap_attr:
+    params: "{{ ldap_auth }}"
+    dn: "cn=config"
+    name: "nsslapd-require-secure-binds"
+    values: "{{ 'on' if tls_enabled else 'off' }}"
+    state: exact
+
 # Doesn't work:
 #- name: Disable TLS-only port (636)
 #  ldap_attr:
