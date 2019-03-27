@@ -1,12 +1,12 @@
 ---
-- name: Enable/disable plugins
+- name: Enable plugins
   ldap_attr:
     params: "{{ ldap_auth }}"
     dn: "cn={{ item.key }},cn=plugins,cn=config"
     name: nsslapd-pluginEnabled
-    values: "{{ 'on' if item.value.enabled else 'off' }}"
+    values: "{{ 'on' if item.value else 'off' }}"
     state: exact
-  loop: "{{ plugins|dict2items }}"
+  loop: "{{ plugins_enabled | dict2items }}"
 
 # TODO: make this "UID numbers/GID numbers" generic
 - name: Remove DNA plugin configuration (if disabled)
@@ -17,7 +17,7 @@
   loop:
   - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: not plugins["Distributed Numeric Assignment Plugin"].enabled
+  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and not plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
 - name: Create DNA plugin configuration (if enabled)
@@ -31,7 +31,7 @@
   loop:
   - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: plugins["Distributed Numeric Assignment Plugin"].enabled
+  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
 - name: Configure DNA plugin parameters (UID)
@@ -47,9 +47,9 @@
   - { name: "dnamagicregen", value: "magic" } # doesn't have to be a number
   - { name: "dnafilter", value: "(objectclass=posixAccount)" }
   - { name: "dnascope", value: "{{ suffix }}" }
-  - { name: "dnanextvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].uid_min }}" }
-  - { name: "dnamaxvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].uid_max }}" }
-  when: plugins["Distributed Numeric Assignment Plugin"].enabled
+  - { name: "dnanextvalue", value: "{{ dna_plugin.uid_min }}" }
+  - { name: "dnamaxvalue", value: "{{ dna_plugin.uid_max }}" }
+  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
 - name: Configure DNA plugin parameters (GID)
@@ -65,7 +65,7 @@
   - { name: "dnamagicregen", value: "magic" }
   - { name: "dnafilter", value: "(objectclass=posixAccount)" }
   - { name: "dnascope", value: "{{ suffix }}" }
-  - { name: "dnanextvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].gid_min }}" }
-  - { name: "dnamaxvalue", value: "{{ plugins['Distributed Numeric Assignment Plugin'].gid_max }}" }
-  when: plugins["Distributed Numeric Assignment Plugin"].enabled
+  - { name: "dnanextvalue", value: "{{ dna_plugin.gid_min }}" }
+  - { name: "dnamaxvalue", value: "{{ dna_plugin.gid_max }}" }
+  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart

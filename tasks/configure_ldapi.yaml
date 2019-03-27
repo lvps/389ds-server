@@ -10,9 +10,7 @@
     - set_fact:
         ldapi_389ds_config:
           - { name: "nsslapd-ldapilisten", value: "off" }
-          - { name: "nsslapd-ldapifilepath", value: [] }
           - { name: "nsslapd-ldapiautobind", value: "off" }
-          - { name: "nsslapd-ldapimaptoentries", value: "off" }
       when: not ldapi_enabled
 
     - name: Configure LDAPI

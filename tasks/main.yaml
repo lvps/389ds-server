@@ -22,9 +22,10 @@
   when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_plugins.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
+  #when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls.yaml
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_replication_replica.yaml
   when: false # roreplica

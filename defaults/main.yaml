@@ -61,22 +61,25 @@ logging:
 
 # Plugins
 
-# TODO: split into a list of plugins to enable, one to disable, plut the DNA plugin configuration
-plugins:
-  # If you want to enable or disable
-  # cn=MemberOf Plugin,cn=plugins,cn=config
-  # take the cn part, like so:
-  MemberOf Plugin:
-    # and use enabled: true (or false). This will set
-    # nsslapd-pluginEnabled to the correct value.
-    enabled: true
-  # DNA plugin has additional options
-  Distributed Numeric Assignment Plugin:
-    enabled: false
-    gid_min: 2000
-    gid_max: 2999
-    uid_min: 2000
-    uid_max: 2999
+# If you want to enable or disable
+# cn=MemberOf Plugin,cn=plugins,cn=config
+# add the cn part to the list, like so:
+# MemberOf Plugin: true
+# true for enabled, false for disabled.
+plugins_enabled:
+  MemberOf Plugin: true
+  #Distributed Numeric Assignment Plugin: false
+
+# Ansible doesn't merge dicts by default, i.e. if you want to
+# change only uid_max and gid_max you have to define the _min
+# variables too. When you define dna_plugin, it replaces this
+# default dict entirely.
+# This configuration is only applied if "Distributed Numeric Assignment Plugin" is true in plugins_enabled, and is removed when it is false. If it's not mentioned, nothing is done.
+dna_plugin:
+  gid_min: 2000
+  gid_max: 2999
+  uid_min: 2000
+  uid_max: 2999
 
 # Security
 
