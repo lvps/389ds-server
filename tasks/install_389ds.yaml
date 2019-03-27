@@ -61,5 +61,4 @@
   become: true
   service:
     name: dirsrv.target
-    state: started
     enabled: yes
