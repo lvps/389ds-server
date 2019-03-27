@@ -7,25 +7,62 @@
 - include: install_389ds.yaml
   when: false # TODO: remove this (for quick and dirty testing)
 
+- name: Check that tls_enforced makes sense
+  assert:
+    that:
+      - tls_enabled
+    msg: "tls_enforced: true doesn't make sense when tls_enabled: false, enable TLS or disable enforcing"
+  when: tls_enforced
+
+- name: Check if TLS is enforced (secure binds)
+  command: "grep \"nsslapd-require-secure-binds: on\" /etc/dirsrv/slapd-{{ serverid }}/dse.ldif"
+  register: tls_enforced_initially_binds
+  changed_when: false
+  failed_when: tls_enforced_initially_binds.rc != 0 and tls_enforced_initially_binds.rc != 1
+
+- name: Check if TLS is enforced (minimum SSF)
+  command: "grep \"nsslapd-minssf: 0\" /etc/dirsrv/slapd-{{ serverid }}/dse.ldif"
+  register: tls_enforced_initially_ssf
+  changed_when: false
+  failed_when: tls_enforced_initially_ssf.rc != 0 and tls_enforced_initially_ssf.rc != 1
+
 - name: Prepare LDAP auth data
   set_fact:
     ldap_auth:
       server_uri: "ldap://localhost"
-      validate_certs: false
-      start_tls: true
+      validate_certs: "{{ tls_certificate_trusted }}"
+      # LDAPI or binding port 389 without STARTTLS will fail, if TLS
+      # is enforced. But we can't just bind on port 636 or use STARTTLS
+      # without checking: when the server has been just installed, no
+      # certificates and not TLS are available.
+      # The condition checks "secure-binds is on (found) OR minssf is not 0 (not found)"
+      start_tls: "{{ tls_enforced_initially_binds.rc == 0 or tls_enforced_initially_ssf.rc == 1 }}"
+      bind_dn: "{{ rootdn }}"
+      bind_pw: "{{ rootdn_password }}"
+    # Cannot override a single parameter, so if the TLS enforcing
+    # state changes during the play, we need another set of auth
+    # parameters just to switch a boolean...
+    ldap_auth_later:
+      server_uri: "ldap://localhost"
+      validate_certs: "{{ tls_certificate_trusted }}"
+      start_tls: "{{ tls_enforced }}"
       bind_dn: "{{ rootdn }}"
       bind_pw: "{{ rootdn_password }}"
 
 - include: configure_ldapi.yaml
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_logging.yaml
   when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_plugins.yaml
-  #when: false # TODO: remove this (for quick and dirty testing)
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
+  #when: false # TODO: remove this (for quick and dirty testing)
+
+- include: configure_tls_enforcing.yaml
+  #when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_replication_replica.yaml
   when: false # roreplica

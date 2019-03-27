@@ -58,7 +58,7 @@
       name: pyOpenSSL
       state: present
 
-  # TODO: count certs before, count them after, if they increased but the grep thing still finds one, then pk12util choose another nickname. Throw an error and die. Or check pk12util output
+  # TODO: count certs before, count them after, if they increased but the grep thing still finds one, then pk12util chose another nickname. Throw an error and die. Or check pk12util output
 
   - name: Create pkcs12
     openssl_pkcs12:
@@ -257,14 +257,6 @@
     values: "{{ 'on' if tls_enabled else 'off' }}"
     state: exact
 
-- name: Configure TLS support 2
-  ldap_attr:
-    params: "{{ ldap_auth }}"
-    dn: "cn=config"
-    name: "nsslapd-require-secure-binds"
-    values: "{{ 'on' if tls_enabled else 'off' }}"
-    state: exact
-
 # Doesn't work:
 #- name: Disable TLS-only port (636)
 #  ldap_attr:
@@ -273,9 +265,6 @@
 #    name: "nsslapd-securePort"
 #    values: "0"
 #    state: exact
-
-  #TODO: - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if tls_enabled else 'off' }}" }
-  #TODO: - { name: "nsslapd-minssf", value: "{{ '0' if tls_enabled else '0' }}" }
 
 - name: Configure TLS minimum version (disable SSL)
   ldap_attr:
@@ -313,16 +302,15 @@
   #- { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: tls_enabled
 
-- name: Configure authentication mechanisms
-  ldap_attr:
-    params: "{{ ldap_auth }}"
-    dn: cn=encryption,cn=config
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
-    state: exact
-  loop:
-  - { name: "", value: "{{ 'on' if ... else 'off' }}" }
-  - { name: "", value: "{{  }}" }
+#- name: TODO: Configure authentication mechanisms
+  #ldap_attr:
+    #params: "{{ ldap_auth }}"
+    #dn: cn=encryption,cn=config
+    #name: "{{ item.name }}"
+    #values: "{{ item.value }}"
+    #state: exact
+  #loop:
+  #- { name: "", value: "{{ 'on' if ... else 'off' }}" }
+  #- { name: "", value: "{{  }}" }
   # TODO: en/disable simple auth
   # TODO: en/disable SASL
-

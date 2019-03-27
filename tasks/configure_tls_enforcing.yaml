@@ -1,0 +1,25 @@
+---
+- block:
+    - name: Configure enforcing of TLS
+      ldap_attr:
+        params: "{{ ldap_auth }}"
+        dn: "cn=config"
+        name: "{{ item.name }}"
+        values: "{{ item.value }}"
+        state: exact
+      loop:
+      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if tls_enabled and tls_enforced else 'off' }}" }
+      - { name: "nsslapd-minssf", value: "{{ tls_minssf if tls_enabled and tls_enforced else '0' }}" }
+      failed_when: false
+
+  rescue:
+    - name: Configure enforcing of TLS, over TLS
+      ldap_attr:
+        params: "{{ ldap_auth_later }}"
+        dn: "cn=config"
+        name: "{{ item.name }}"
+        values: "{{ item.value }}"
+        state: exact
+      loop:
+      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if tls_enabled and tls_enforced else 'off' }}" }
+      - { name: "nsslapd-minssf", value: "{{ tls_minssf if tls_enabled and tls_enforced else '0' }}" }

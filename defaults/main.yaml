@@ -85,6 +85,9 @@ dna_plugin:
 
 tls_enabled: false
 tls_min_version: '1.2'
+tls_certificate_trusted: true
+tls_enforced: false
+tls_minssf: 128
 allow_anonymous_binds: 'rootdse'
 simple_auth_enabled: true
 sasl_enabled: false
