@@ -47,39 +47,6 @@
         state: absent
         path: /tmp/install.inf
 
-- block:
-    - set_fact:
-      ldapi_389ds_config:
-      - { name: "nsslapd-ldapilisten", value: "on" }
-      - { name: "nsslapd-ldapifilepath", value: "/var/run/slapd-{{ serverid }}.socket" }
-      - { name: "nsslapd-ldapiautobind", value: "on" }
-      - { name: "nsslapd-ldapimaptoentries", value: "off" }
-
-    - name: Enable LDAPI
-      ldap_attr:
-        server_uri: "ldap://localhost"
-        bind_dn: "{{ rootdn }}"
-        bind_pw: "{{ rootdn_password }}"
-        dn: "cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
-        state: exact
-      loop: ldapi_389ds_config
-      notify: dirsrv restart
-
-  rescue:
-    - name: Configure LDAPI over LDAPI
-      ldap_attr:
-        server_uri: "ldapi:///var/run/slapd-{{ serverid }}.socket"
-        bind_dn: "{{ rootdn }}"
-        bind_pw: "{{ rootdn_password }}"
-        dn: "cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
-        state: exact
-      loop: ldapi_389ds_config
-      notify: dirsrv restart
-
 - name: Start and enable {{ serverid }} instance
   become: true
   service:

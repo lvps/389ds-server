@@ -10,6 +10,7 @@ This is a fork of a fork, still **work in progress**, not production ready.
 - Enable/disable any plugin
 - Configure DNA plugin for UID/GID numbers
 - Configure TLS
+- Enable/disable LDAPI
 
 Also: replication. I Will move it to another role, probably.
 
