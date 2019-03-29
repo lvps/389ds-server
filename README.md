@@ -7,6 +7,7 @@ This is a fork of a fork, still **work in progress**, not production ready.
 ## Features
 - Install a single LDAP server
 - Configure logging
+- Add custom schema files
 - Enable/disable any plugin
 - Configure DNA plugin for UID/GID numbers
 - Configure TLS

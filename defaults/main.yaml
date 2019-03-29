@@ -87,6 +87,9 @@ dna_plugin:
   uid_min: 2000
   uid_max: 2999
 
+# Schema
+custom_schema: []
+
 # Security
 
 tls_enabled: false

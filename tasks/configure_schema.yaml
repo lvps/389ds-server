@@ -1,0 +1,11 @@
+---
+- name: Copy schema files
+  template:
+    src: "{{ item }}"
+    dest: /etc/dirsrv/slapd-ldap/schema
+    mode: '440' # 99user.ldif is 660, but these ones should be read only
+    seuser: unconfined_u # Same as 99user.ldif
+    owner: dirsrv
+    group: dirsrv
+  loop: "{{ custom_schema }}"
+  register: schema reload # TODO: why is this not happening at all?
