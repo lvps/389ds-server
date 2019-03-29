@@ -35,3 +35,24 @@
         state: exact
       loop: "{{ ldapi_389ds_config }}"
       notify: dirsrv restart
+
+# Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
+- block:
+  - name: Configure SASL
+    ldap_attr:
+      params: "{{ ldap_auth }}"
+      dn: "cn=config"
+      name: "nsslapd-allowed-sasl-mechanisms"
+      values: "{{ 'PLAIN' if sasl_plain_enabled else [] }}"
+      state: exact
+    register: sasl_result
+
+  rescue:
+    # Deleting an attribute fails if the the attribute doesn't exist,
+    # yay for idempotence...
+    - name: Assert that task failed successfully
+      assert:
+        that:
+          - not sasl_result.changed
+          - "'desc' in sasl_result.details"
+          - "{{sasl_result.details}}.desc == 'No such attribute'"

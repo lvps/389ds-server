@@ -49,8 +49,8 @@
       bind_dn: "{{ rootdn }}"
       bind_pw: "{{ rootdn_password }}"
 
-- include: configure_ldapi.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
+- include: configure_authentication.yaml
+  #when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_logging.yaml
   when: false # TODO: remove this (for quick and dirty testing)
@@ -59,10 +59,10 @@
   when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls.yaml
-  #when: false # TODO: remove this (for quick and dirty testing)
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls_enforcing.yaml
-  #when: false # TODO: remove this (for quick and dirty testing)
+  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_replication_replica.yaml
   when: false # roreplica

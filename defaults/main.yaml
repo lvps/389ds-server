@@ -97,6 +97,7 @@ sasl_enabled: false
 # Other
 
 ldapi_enabled: false
+sasl_plain_enabled: true
 
 
 # Display supported cipher suites:
