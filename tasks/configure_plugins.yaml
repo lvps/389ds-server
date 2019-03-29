@@ -69,3 +69,47 @@
   - { name: "dnamaxvalue", value: "{{ dna_plugin.gid_max }}" }
   when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
+
+# This is a valid alternative, fort the DNA stuff with 2 tasks
+# instead of 3:
+#
+#- name: Configure DNA plugin parameters (UID)
+  #ldap_entry:
+    #params: "{{ ldap_auth }}"
+    #dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
+    #objectClass:
+      #- top
+      #- extensibleObject
+    #state: present
+    #attributes:
+      #cn: UID numbers
+      #dnatype: uidNumber
+      #dnamagicregen: magic # doesn't have to be a number
+      #dnafilter: "(objectclass=posixAccount)"
+      #dnascope: "{{ suffix }}"
+      #dnanextvalue: "{{ dna_plugin.uid_min }}"
+      #dnamaxvalue: "{{ dna_plugin.uid_max }}"
+  #when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
+  #notify: dirsrv restart
+
+#- name: Configure DNA plugin parameters (GID)
+  #ldap_entry:
+    #params: "{{ ldap_auth }}"
+    #dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
+    #objectClass:
+      #- top
+      #- extensibleObject
+    #state: present
+    #attributes:
+      #cn: GID numbers
+      #dnatype: gidNumber
+      #dnamagicregen: magic
+      #dnafilter: "(objectclass=posixAccount)"
+      #dnascope: "{{ suffix }}"
+      #dnanextvalue: "{{ dna_plugin.gid_min }}"
+      #dnamaxvalue: "{{ dna_plugin.gid_max }}"
+  #when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
+  #notify: dirsrv restart
+#
+# However, it does not replace changed attributes, so it's
+# completely useless.

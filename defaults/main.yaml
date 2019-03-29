@@ -66,9 +66,15 @@ logging:
 # add the cn part to the list, like so:
 # MemberOf Plugin: true
 # true for enabled, false for disabled.
-plugins_enabled:
-  MemberOf Plugin: true
-  #Distributed Numeric Assignment Plugin: false
+#
+# This is a valid example:
+#plugins_enabled:
+#  MemberOf Plugin: true
+#  Distributed Numeric Assignment Plugin: false
+#
+# And this is just the empty array syntax, override it as above
+# if you need to enable or disable plugins:
+plugins_enabled: []
 
 # Ansible doesn't merge dicts by default, i.e. if you want to
 # change only uid_max and gid_max you have to define the _min

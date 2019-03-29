@@ -37,6 +37,7 @@
       notify: dirsrv restart
 
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
+# TODO: none means "everything is allowed"... how to allow none (or just EXTERNAL that is always enabled but not always allowed or whatever?)
 - block:
   - name: Configure SASL
     ldap_attr:
