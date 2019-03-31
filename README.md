@@ -61,6 +61,15 @@ Variables can also be passed via CLI:
 ansible-playbook -e 'password:secret' ldap.yaml
 ```
 
+### Configure firewall
+
+Not part of this role, but still quite easy:
+
+```yaml
+- name: Allow ldap port on firewalld
+  firewalld: service=ldap permanent=true state=enabled
+```
+
 ### Configuring single replication master
 ```yaml
 ---
@@ -153,7 +162,6 @@ nsds5BeginReplicaRefresh: start
 - Support for CentOS 8 when it comes out
 
 ### Could be done not planned for the short term
-- Administration Server (and Configuration Directory Server)
 - Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
 - Support for other plugins that need more than enabled/disabled
 - Support for other DNA attributes

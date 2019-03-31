@@ -5,7 +5,6 @@
 # https://www.port389.org/docs/389ds/howto/howto-ssl.html
 
 - include: install_389ds.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
 
 - name: Check that tls_enforced makes sense
   assert:
@@ -50,22 +49,16 @@
       bind_pw: "{{ rootdn_password }}"
 
 - include: configure_authentication.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_logging.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_plugins.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_schema.yaml
-  #when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_tls_enforcing.yaml
-  when: false # TODO: remove this (for quick and dirty testing)
 
 - include: configure_replication_replica.yaml
   when: false # roreplica
@@ -74,6 +67,3 @@
   when: false # rwmaster
 
 #- include: cleanup.yaml
-
-- include: configure_firewall.yaml
-  when: false

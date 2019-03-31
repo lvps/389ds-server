@@ -3,7 +3,6 @@
   yum:
     name: 389-ds-base
     state: latest
-  #register: ds389_install_state
 
 # as suggested by Red Hat Directory Server manual
 - name: Add user 'dirsrv'
@@ -30,9 +29,8 @@
       template:
         src: templates/install.inf.j2
         dest: /tmp/install.inf
-        mode: 0600
+        mode: '600'
       when: not instance_dir_exists
-      # TODO: change mode to '600' (as a string)
 
     # This will install the Directory Server *only*.
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).

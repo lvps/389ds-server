@@ -25,6 +25,7 @@
       mode: '400'
       setype: cert_t
     when: tls_cert is defined
+    changed_when: false
 
   # TODO: if the file is already on the remote machine, copying it to /tmp is a pointless waste of time...
   - name: Copy cert (from file)
@@ -35,6 +36,7 @@
       mode: '400'
       setype: cert_t
     when: tls_cert_file is defined
+    changed_when: false
 
   - name: Copy private key (from variable)
     copy:
@@ -43,6 +45,7 @@
       mode: '400'
       setype: cert_t
     when: tls_key is defined
+    changed_when: false
 
   - name: Copy private key (from file)
     copy:
@@ -52,6 +55,7 @@
       mode: '400'
       setype: cert_t
     when: tls_key_file is defined
+    changed_when: false
 
   - name: Install pyOpenSSL for openssl_pkcs12 module
     package:
@@ -71,6 +75,7 @@
       certificate_path: "/tmp/server-cert-ansible-managed.crt"
       setype: cert_t
       state: present
+    changed_when: false
 
   - name: Add pkcs12 to NSS database
     shell: >
@@ -181,6 +186,7 @@
     - "/tmp/server-cert-ansible-managed.crt"
     - "/tmp/server-cert-ansible-managed.key"
     - "/tmp/server-cert-ansible-managed.p12"
+    changed_when: false
 
 - name: Remove RSA configuration for TLS (if disabled)
   ldap_entry:
@@ -301,16 +307,3 @@
   # This defaults to "off" and it's better left alone
   #- { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: tls_enabled
-
-#- name: TODO: Configure authentication mechanisms
-  #ldap_attr:
-    #params: "{{ ldap_auth }}"
-    #dn: cn=encryption,cn=config
-    #name: "{{ item.name }}"
-    #values: "{{ item.value }}"
-    #state: exact
-  #loop:
-  #- { name: "", value: "{{ 'on' if ... else 'off' }}" }
-  #- { name: "", value: "{{  }}" }
-  # TODO: en/disable simple auth
-  # TODO: en/disable SASL

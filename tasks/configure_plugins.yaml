@@ -8,7 +8,6 @@
     state: exact
   loop: "{{ plugins_enabled | dict2items }}"
 
-# TODO: make this "UID numbers/GID numbers" generic
 - name: Remove DNA plugin configuration (if disabled)
   ldap_entry:
     params: "{{ ldap_auth }}"
@@ -70,7 +69,7 @@
   when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
-# This is a valid alternative, fort the DNA stuff with 2 tasks
+# This is a valid alternative, for the DNA stuff with 2 tasks
 # instead of 3:
 #
 #- name: Configure DNA plugin parameters (UID)
