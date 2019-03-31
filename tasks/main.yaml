@@ -59,11 +59,3 @@
 - include: configure_tls.yaml
 
 - include: configure_tls_enforcing.yaml
-
-- include: configure_replication_replica.yaml
-  when: false # roreplica
-
-- include: configure_replication_master.yaml
-  when: false # rwmaster
-
-#- include: cleanup.yaml
