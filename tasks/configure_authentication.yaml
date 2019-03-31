@@ -57,3 +57,22 @@
           - not sasl_result.changed
           - "'desc' in sasl_result.details"
           - "{{sasl_result.details}}.desc == 'No such attribute'"
+
+- block:
+  - name: Configure password storage scheme
+    ldap_attr:
+      params: "{{ ldap_auth }}"
+      dn: "cn=config"
+      name: "passwordStorageScheme"
+      values: "{{ password_storage_scheme }}"
+      state: exact
+    register: pwdstorage_result
+
+  rescue:
+    # Same as above
+    - name: Assert that task failed successfully
+      assert:
+        that:
+          - not pwdstorage_result.changed
+          - "'desc' in pwdstorage_result.details"
+          - "{{pwdstorage_result.details}}.desc == 'No such attribute'"

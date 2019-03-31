@@ -67,6 +67,7 @@ dna_plugin:
   uid_max: 2999
 
 # Schema
+
 custom_schema: []
 ignore_other_schema_files: false
 
@@ -76,10 +77,12 @@ tls_enabled: false
 tls_min_version: '1.2'
 tls_certificate_trusted: true
 tls_enforced: false
-tls_minssf: 128
+tls_minssf: 256
 allow_anonymous_binds: 'rootdse'
 simple_auth_enabled: true
 sasl_enabled: false
+password_storage_scheme: []
+
 # It's already off by default
 #allow_unauthenticated_binds: false
 
