@@ -1,25 +1,4 @@
 ---
-# Configuration type
-# if it is set - preparation and 389-ds configuration activities will be skipped (usually to add a new replication agreement)
-# TODO: remove this, make a separate role for replication agreements
-skip_config: false
-
-# Replication master settings
-
-rwmaster: false
-replication_nsds5replicaid: 7
-agreement_name: ExampleAgreement
-replica_host: replica.example.com
-init_replica: false
-
-# Replication replica settings
-
-roreplica: false
-# this will create LDAP user cn=replmanager,cn=config
-replication_user: replmanager
-replication_user_password: Admin123
-
-# --- TODO: Remove part above this line -------------------------------
 
 # Instance settings
 

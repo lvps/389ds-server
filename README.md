@@ -15,8 +15,6 @@ This is a fork of a fork, still **work in progress**, not production ready.
 - Enable/disable LDAPI
 - Enable/disable SASL PLAIN
 
-Also: replication. I Will move it to another role, probably.
-
 ## Requirements
 - Ansible version: 2.7 or higher
 - OS: CentOS 7
