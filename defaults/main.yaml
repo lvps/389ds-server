@@ -89,6 +89,7 @@ dna_plugin:
 
 # Schema
 custom_schema: []
+ignore_other_schema_files: false
 
 # Security
 

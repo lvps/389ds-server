@@ -2,10 +2,26 @@
 - name: Copy schema files
   template:
     src: "{{ item }}"
-    dest: /etc/dirsrv/slapd-ldap/schema
+    dest: "/etc/dirsrv/slapd-{{ serverid }}/schema"
     mode: '440' # 99user.ldif is 660, but these ones should be read only
     seuser: unconfined_u # Same as 99user.ldif
     owner: dirsrv
     group: dirsrv
   loop: "{{ custom_schema }}"
-  register: schema reload # TODO: why is this not happening at all?
+  notify: schema reload
+
+- name: Search other schema files
+  find:
+    paths: "/etc/dirsrv/slapd-{{ serverid }}/schema"
+    file_type: file
+    # https://stackoverflow.com/a/53758369
+    excludes: "{{ custom_schema | map('basename') | list  + ['99user.ldif'] }}"
+  register: found_files
+  when: not ignore_other_schema_files
+
+- name: Delete other schema files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ found_files['files'] }}"
+  when: not ignore_other_schema_files
