@@ -6,7 +6,7 @@ suffix: dc=example,dc=com
 rootdn: cn=Directory Manager
 #rootdn_password: secret
 ldap_fqdn: "{{ ansible_nodename }}"
-serverid: ldap
+serverid: default
 
 # Admin Server
 
