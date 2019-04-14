@@ -19,6 +19,15 @@
   changed_when: false
   failed_when: tls_enforced_initially_binds.rc != 0 and tls_enforced_initially_binds.rc != 1
 
+# If nsslapd-minssf isn't set at all, it defaults to 0.
+# So we have to check if it's defined...
+- name: Check if TLS is enforced (minimum SSF is set)
+  command: "grep \"nsslapd-minssf:\" /etc/dirsrv/slapd-{{ serverid }}/dse.ldif"
+  register: tls_enforced_initially_ssf_set
+  changed_when: false
+  failed_when: tls_enforced_initially_ssf_set.rc != 0 and tls_enforced_initially_ssf_set.rc != 1
+
+# ...and if it's 0 or something else.
 - name: Check if TLS is enforced (minimum SSF)
   command: "grep \"nsslapd-minssf: 0\" /etc/dirsrv/slapd-{{ serverid }}/dse.ldif"
   register: tls_enforced_initially_ssf
@@ -34,8 +43,8 @@
       # is enforced. But we can't bind on port 636 or use STARTTLS
       # without checking: when the server has been just installed, no
       # certificates and no TLS are available.
-      # The condition checks "secure-binds is on (found) OR minssf is not 0 (not found)"
-      start_tls: "{{ tls_enforced_initially_binds.rc == 0 or tls_enforced_initially_ssf.rc == 1 }}"
+      # The condition checks "secure-binds is on (found) OR minssf is not 0 (is set and is not 0)"
+      start_tls: "{{ tls_enforced_initially_binds.rc == 0 or (tls_enforced_initially_ssf_set.rc == 0 and tls_enforced_initially_ssf.rc == 1) }}"
       bind_dn: "{{ rootdn }}"
       bind_pw: "{{ rootdn_password }}"
     # Cannot override a single parameter, so if the TLS enforcing
