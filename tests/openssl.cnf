@@ -9,7 +9,7 @@ distinguished_name = req_distinguished_name
 subjectAltName = @alt_names
 
 [alt_names]
-DNS = ldaptest.local
+DNS = ${ENV::SAN}
 
 [eku]
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment, keyAgreement

@@ -1,2 +1,3 @@
-tests/test_cert.pem
-tests/test_key.pem
+tests/*.pem
+tests/*.key
+tests/*.bin
