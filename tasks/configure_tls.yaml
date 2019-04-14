@@ -103,7 +103,7 @@
   - name: Count Ansible managed keys in NSS database
     shell: >
       certutil -K
-      -d /etc/dirsrv/slapd-ldap/
+      -d /etc/dirsrv/slapd-{{ serverid }}/
       |
       grep
       -c "server-cert-ansible-managed"

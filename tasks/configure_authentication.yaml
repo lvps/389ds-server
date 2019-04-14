@@ -1,13 +1,16 @@
 ---
 - block:
-    - set_fact:
+    - name: Set configuration to enable LDAPI
+      set_fact:
         ldapi_389ds_config:
           - { name: "nsslapd-ldapilisten", value: "on" }
           - { name: "nsslapd-ldapifilepath", value: "/var/run/slapd-{{ serverid }}.socket" }
           - { name: "nsslapd-ldapiautobind", value: "on" }
           - { name: "nsslapd-ldapimaptoentries", value: "off" }
       when: ldapi_enabled
-    - set_fact:
+
+    - name: Set configuration to disable LDAPI
+      set_fact:
         ldapi_389ds_config:
           - { name: "nsslapd-ldapilisten", value: "off" }
           - { name: "nsslapd-ldapiautobind", value: "off" }
