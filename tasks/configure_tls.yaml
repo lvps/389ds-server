@@ -139,7 +139,8 @@
       -W ''
     when: nss_key_count_389ds_too_many
 
-  - name: Set certificate parameters for self-signed
+  # TODO: is this for self-signed certificates only?
+  - name: Set certificate parameters
     shell: >
       certutil -M
       -d /etc/dirsrv/slapd-ldap/
@@ -222,34 +223,6 @@
   when: tls_enabled
   notify: dirsrv restart
 
-# TODO: this contraption
-# ldapwhoami -D "cn=Directory Manager" -w secret -H ldap://localhost is a good command to check, but even -Z fails if the certificate is self-signed... Well, it should just check if the port is reachable or not, but stil...
-# Possible responses:
-#
-# Wrong password:
-# ldap_bind: Invalid credentials (49)
-#
-# Self-signed certificate:
-# ldap_start_tls: Connect error (-11)
-#        additional info: error:14090086:SSL routines:ssl3_get_server_certificate:certificate verify failed (unable to get local issuer certificate)
-#ldap_result: Can't contact LDAP server (-1)
-#
-# Connecting to ldaps:// URL even though the server is listening on port 636:
-# ldap_sasl_bind(SIMPLE): Can't contact LDAP server (-1)
-#
-# minssf enforced:
-# ldap_bind: Server is unwilling to perform (53)
-#        additional info: Minimum SSF not met.
-#
-# Success:
-# dn: cn=directory manager
-# Best course of action: determine if "no security" can be used, then use that.
-# If not, determine if the certificate is accepted. If it is, enable (START)TLS.
-# If not, throw an error, halt and catch fire.
-- set_fact:
-    must_use_tls_for_389ds: true
-    when: false
-
 # Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
 # that other settings will not activate if nsslapd-security is off.
 # This doesn't seem to be true, all options activate randomly and
@@ -295,7 +268,7 @@
     values: "off"
     state: exact
 
-- name: Configure anonymous and unauthenticated binds
+- name: Configure anonymous binds
   ldap_attr:
     params: "{{ ldap_auth }}"
     dn: "cn=config"

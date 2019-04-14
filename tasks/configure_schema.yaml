@@ -15,7 +15,7 @@
     paths: "/etc/dirsrv/slapd-{{ serverid }}/schema"
     file_type: file
     # https://stackoverflow.com/a/53758369
-    excludes: "{{ custom_schema | map('basename') | list  + ['99user.ldif'] }}"
+    excludes: "{{ custom_schema | map('basename') | list + ['99user.ldif'] }}"
   register: found_files
   when: not ignore_other_schema_files
 
