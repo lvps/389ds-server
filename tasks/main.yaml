@@ -68,3 +68,6 @@
 - include: configure_tls.yaml
 
 - include: configure_tls_enforcing.yaml
+
+# Restart server to enable TLS
+- meta: flush_handlers
