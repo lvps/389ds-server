@@ -113,7 +113,8 @@
   # This is needed because Jinja2 templates are not allowed in "when"
   # and Ansible casts everything to string or boolean, so no integer
   # variables for us...
-  - set_fact:
+  - name: Count keys
+    set_fact:
       nss_key_count_389ds_too_many: "{{ nss_key_count_389ds.stdout | int > 1 }}"
 
   # This is the correct way to remove private keys (section 9.3.8.1
