@@ -4,7 +4,7 @@
 # TODO: are nsCertFile and nsKeyFile still allowed, instead of the NSS database which is nearly impossible to handle correctly?
 # https://www.port389.org/docs/389ds/howto/howto-ssl.html
 
-- include: install_389ds.yaml
+- include: install_389ds.yml
 
 - name: Check that tls_enforced makes sense
   assert:
@@ -57,17 +57,17 @@
       bind_dn: "{{ rootdn }}"
       bind_pw: "{{ rootdn_password }}"
 
-- include: configure_authentication.yaml
+- include: configure_authentication.yml
 
-- include: configure_logging.yaml
+- include: configure_logging.yml
 
-- include: configure_plugins.yaml
+- include: configure_plugins.yml
 
-- include: configure_schema.yaml
+- include: configure_schema.yml
 
-- include: configure_tls.yaml
+- include: configure_tls.yml
 
-- include: configure_tls_enforcing.yaml
+- include: configure_tls_enforcing.yml
 
 # Restart server to enable TLS
 - meta: flush_handlers
