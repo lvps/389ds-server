@@ -20,19 +20,10 @@ RootDN = {{ rootdn }}
 RootDNPwd = {{ rootdn_password }}
 AddOrgEntries = No
 AddSampleEntries = No
-# TODO: this creates "common container entries (like ou=People)". Make it optional.
+{% if install_suggest %}
+# This creates "common container entries (like ou=People)".
 InstallLdifFile = suggest
-# TODO: SchemaFile may be useful
-# TODO: ConfigFile may be useful (adds entries to dse.ldif)
-
-
-# This part is only used by the admin server. Which is not installed or configured in any way by this role.
-# [admin]
-# SysUser = nobody? That's the default, but "This should be changed for most deployments."
-# Port = 9830
-# TODO: default to 127.0.0.1?
-# ServerIpAddress = 0.0.0.0
-# TODO: this is another account. Defaults to the same as ConfigDirectoryAdminID anyway.
-#ServerAdminID = admin
-#ServerAdminPwd = admin_password
-
+{% endif %}
+{% for file in install_import %}
+InstallLdifFile = /tmp/{{ file }}
+{% endfor %}

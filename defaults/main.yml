@@ -8,6 +8,9 @@ rootdn: cn=Directory Manager
 ldap_fqdn: "{{ ansible_nodename }}"
 serverid: default
 
+install_suggest: true
+install_additional_ldif: []
+
 # Admin Server
 
 # admin_password: "{{ password }}"
@@ -90,7 +93,6 @@ password_storage_scheme: []
 
 ldapi_enabled: false
 sasl_plain_enabled: true
-
 
 # Display supported cipher suites:
 # ldapsearch -xLLL -H ldap://server.example.com:389 -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLSupportedCiphers -o ldif-wrap=no dn: cn=encryption,cn=config

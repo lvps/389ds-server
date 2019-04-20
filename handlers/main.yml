@@ -4,15 +4,3 @@
     name: "dirsrv@{{ serverid }}"
     state: restarted
 
-# TODO: section 12.7.3 of the Administration Guide says to stop
-# replication before schema reload (if schema has changed): do it?
-- name: schema reload
-  ldap_entry:
-    params: "{{ ldap_auth_later }}"
-    dn: "cn=ansible-managed schema reload,cn=schema reload task,cn=tasks,cn=config"
-    objectClass:
-      - extensibleObject
-    attributes:
-      cn: ansible-managed schema reload
-      schemadir: "/etc/dirsrv/slapd-{{ serverid }}/schema/"
-    state: present

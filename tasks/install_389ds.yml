@@ -32,6 +32,14 @@
         mode: '600'
       when: not instance_dir_exists
 
+    - name: Copy additional ldif files
+      copy:
+        src: "{{ item }}"
+        dest: "/tmp/{{ item | basename }}"
+        mode: '400'
+      when: not instance_dir_exists
+      loop: "{{ install_additional_ldif }}"
+
     # This will install the Directory Server *only*.
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).
     # No Administration Server: it isn't worth the effort.
