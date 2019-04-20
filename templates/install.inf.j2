@@ -24,6 +24,6 @@ AddSampleEntries = No
 # This creates "common container entries (like ou=People)".
 InstallLdifFile = suggest
 {% endif %}
-{% for file in install_import %}
+{% for file in install_additional_ldif %}
 InstallLdifFile = /tmp/{{ file }}
 {% endfor %}
