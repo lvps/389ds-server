@@ -8,7 +8,7 @@
     owner: dirsrv
     group: dirsrv
   loop: "{{ custom_schema }}"
-  register: schema_changed_1
+  register: schema_result_1
 
 - name: Search other schema files
   find:
@@ -25,7 +25,7 @@
     state: absent
   loop: "{{ found_files['files'] }}"
   when: not ignore_other_schema_files
-  register: schema_changed_2
+  register: schema_result_2
 
 - name: schema reload
   ldap_entry:
@@ -37,4 +37,4 @@
       cn: ansible-managed schema reload
       schemadir: "/etc/dirsrv/slapd-{{ serverid }}/schema/"
     state: present
-  when: schema_changed_1 or schema_changed_2
+  when: schema_result_1.changed or (not ignore_other_schema_files and schema_result_2.changed)

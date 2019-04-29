@@ -22,6 +22,7 @@ AddOrgEntries = No
 AddSampleEntries = No
 {% if install_suggest %}
 # This creates "common container entries (like ou=People)".
+# TODO: set to "No" explicitly or it still creates entries...
 InstallLdifFile = suggest
 {% endif %}
 {% for file in install_additional_ldif %}
