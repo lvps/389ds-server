@@ -1,6 +1,6 @@
 ---
 - name: dirsrv restart
   service:
-    name: "dirsrv@{{ serverid }}"
+    name: "dirsrv@{{ dirsrv_serverid }}"
     state: restarted
 

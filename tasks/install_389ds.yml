@@ -16,36 +16,35 @@
 
 - name: Check if instance directory exists
   stat:
-    path: "/var/lib/dirsrv/slapd-{{ serverid }}"
-  register: instance_dir
+    path: "/var/lib/dirsrv/slapd-{{ dirsrv_serverid }}"
+  register: dirsrv_instance_dir
 
 - set_fact:
-    instance_dir_exists: "{{ instance_dir.stat.exists and instance_dir.stat.isdir }}"
+    dirsrv_instance_dir_exists: "{{ dirsrv_instance_dir.stat.exists and dirsrv_instance_dir.stat.isdir }}"
 
-# TODO: also repeat as many operations as possible with ldapmodify commands, so if something changed (e.g. Directory Manager password) it gets picked up and applied, rather being silently skipped because the server has already been installed 4 years ago or whatever
-# TODO: also, how do we change the Directory Manager password if we need it to change the password?
+# TODO: How do we change the Directory Manager password if we need it to change the password?
 - block:
     - name: Copy installation template
       template:
         src: templates/install.inf.j2
         dest: /tmp/install.inf
         mode: '600'
-      when: not instance_dir_exists
+      when: not dirsrv_instance_dir_exists
 
     - name: Copy additional ldif files
       copy:
         src: "{{ item }}"
         dest: "/tmp/{{ item | basename }}"
         mode: '400'
-      when: not instance_dir_exists
-      loop: "{{ install_additional_ldif }}"
+      when: not dirsrv_instance_dir_exists
+      loop: "{{ dirsrv_install_additional_ldif }}"
 
     # This will install the Directory Server *only*.
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).
     # No Administration Server: it isn't worth the effort.
     - name: Run installation script setup-ds.pl
       shell: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
-      when: not instance_dir_exists
+      when: not dirsrv_instance_dir_exists
 
   always:
     - name: Remove installation template
@@ -53,10 +52,10 @@
         state: absent
         path: /tmp/install.inf
 
-- name: Start and enable {{ serverid }} instance
+- name: Start and enable 389DS {{ dirsrv_serverid }} instance
   become: true
   service:
-    name: "dirsrv@{{ serverid }}"
+    name: "dirsrv@{{ dirsrv_serverid }}"
     state: started
     enabled: yes
 

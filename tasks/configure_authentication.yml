@@ -2,41 +2,41 @@
 - block:
     - name: Set configuration to enable LDAPI
       set_fact:
-        ldapi_389ds_config:
+        dirsrv_ldapi_config:
           - { name: "nsslapd-ldapilisten", value: "on" }
           - { name: "nsslapd-ldapifilepath", value: "/var/run/slapd-{{ serverid }}.socket" }
           - { name: "nsslapd-ldapiautobind", value: "on" }
           - { name: "nsslapd-ldapimaptoentries", value: "off" }
-      when: ldapi_enabled
+      when: dirsrv_ldapi_enabled
 
     - name: Set configuration to disable LDAPI
       set_fact:
-        ldapi_389ds_config:
+        dirsrv_ldapi_config:
           - { name: "nsslapd-ldapilisten", value: "off" }
           - { name: "nsslapd-ldapiautobind", value: "off" }
-      when: not ldapi_enabled
+      when: not dirsrv_ldapi_enabled
 
     - name: Configure LDAPI
       ldap_attr:
-        params: "{{ ldap_auth }}"
+        params: "{{ dirsrv_ldap_auth }}"
         dn: "cn=config"
         name: "{{ item.name }}"
         values: "{{ item.value }}"
         state: exact
-      loop: "{{ ldapi_389ds_config }}"
+      loop: "{{ dirsrv_ldapi_config }}"
       notify: dirsrv restart
 
   rescue:
     - name: Configure LDAPI over LDAPI
       ldap_attr:
-        server_uri: "ldapi:///var/run/slapd-{{ serverid }}.socket"
-        bind_dn: "{{ rootdn }}"
-        bind_pw: "{{ rootdn_password }}"
+        server_uri: "ldapi:///var/run/slapd-{{ dirsrv_serverid }}.socket"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
         name: "{{ item.name }}"
         values: "{{ item.value }}"
         state: exact
-      loop: "{{ ldapi_389ds_config }}"
+      loop: "{{ dirsrv_ldapi_config }}"
       notify: dirsrv restart
 
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
@@ -44,12 +44,12 @@
 - block:
   - name: Configure SASL
     ldap_attr:
-      params: "{{ ldap_auth }}"
+      params: "{{ dirsrv_ldap_auth }}"
       dn: "cn=config"
       name: "nsslapd-allowed-sasl-mechanisms"
-      values: "{{ 'PLAIN' if sasl_plain_enabled else [] }}"
+      values: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
       state: exact
-    register: sasl_result
+    register: dirsrv_sasl_result
 
   rescue:
     # Deleting an attribute fails if the the attribute doesn't exist,
@@ -57,25 +57,25 @@
     - name: Assert that task failed successfully
       assert:
         that:
-          - not sasl_result.changed
-          - "'desc' in sasl_result.details"
-          - "{{sasl_result.details}}.desc == 'No such attribute'"
+          - not dirsrv_sasl_result.changed
+          - "'desc' in dirsrv_sasl_result.details"
+          - "{{ dirsrv_sasl_result.details }}.desc == 'No such attribute'"
 
 - block:
   - name: Configure password storage scheme
     ldap_attr:
-      params: "{{ ldap_auth }}"
+      params: "{{ dirsrv_ldap_auth }}"
       dn: "cn=config"
       name: "passwordStorageScheme"
-      values: "{{ password_storage_scheme }}"
+      values: "{{ dirsrv_password_storage_scheme }}"
       state: exact
-    register: pwdstorage_result
+    register: dirsrv_pwdstorage_result
 
   rescue:
     # Same as above
     - name: Assert that task failed successfully
       assert:
         that:
-          - not pwdstorage_result.changed
-          - "'desc' in pwdstorage_result.details"
-          - "{{pwdstorage_result.details}}.desc == 'No such attribute'"
+          - not dirsrv_pwdstorage_result.changed
+          - "'desc' in dirsrv_pwdstorage_result.details"
+          - "{{ dirsrv_pwdstorage_result.details }}.desc == 'No such attribute'"

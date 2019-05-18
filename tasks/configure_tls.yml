@@ -1,60 +1,59 @@
 ---
 # TODO: Section 9.4.1.5, “Creating a Password File for Directory Server”.
-# TODO: 9.4.1.4, “Starting Directory Server Without a Password File”.
 # TODO: remove certificate if TLS is disabled?
 
 - name: Check that tls_key[_file] is defined
   assert:
     that:
-      - "(tls_key is defined) != (tls_key_file is defined)" # This is a XOR
-    msg: "only one of tls_key or tls_key_file must be defined"
+      - "(dirsrv_tls_key is defined) != (dirsrv_tls_key_file is defined)" # This is a XOR
+    msg: "only one of dirsrv_tls_key or dirsrv_tls_key_file must be defined"
   when: tls_enabled
 
 - name: Check that tls_cert[_file] is defined
   assert:
     that:
-      - "(tls_cert is defined) != (tls_cert_file is defined)" # This is a XOR, again
-    msg: "only one of tls_cert or tls_cert_file must be defined"
+      - "(dirsrv_tls_cert is defined) != (dirsrv_tls_cert_file is defined)" # This is a XOR, again
+    msg: "only one of dirsrv_tls_cert or dirsrv_tls_cert_file must be defined"
   when: tls_enabled
 
 - block:
   - name: Copy cert (from variable)
     copy:
-      content: "{{ tls_cert }}"
+      content: "{{ dirsrv_tls_cert }}"
       dest: "/tmp/server-cert-ansible-managed.crt"
       mode: '400'
       setype: cert_t
-    when: tls_cert is defined
+    when: dirsrv_tls_cert is defined
     changed_when: false
 
   # TODO: if the file is already on the remote machine, copying it to /tmp is a pointless waste of time...
   - name: Copy cert (from file)
     copy:
-      src: "{{ tls_cert_file }}"
+      src: "{{ dirsrv_tls_cert_file }}"
       dest: "/tmp/server-cert-ansible-managed.crt"
-      remote_src: "{{ tls_files_remote }}"
+      remote_src: "{{ dirsrv_tls_files_remote }}"
       mode: '400'
       setype: cert_t
-    when: tls_cert_file is defined
+    when: dirsrv_tls_cert_file is defined
     changed_when: false
 
   - name: Copy private key (from variable)
     copy:
-      content: "{{ tls_key }}"
+      content: "{{ dirsrv_tls_key }}"
       dest: "/tmp/server-cert-ansible-managed.key"
       mode: '400'
       setype: cert_t
-    when: tls_key is defined
+    when: dirsrv_tls_key is defined
     changed_when: false
 
   - name: Copy private key (from file)
     copy:
-      src: "{{ tls_key_file }}"
+      src: "{{ dirsrv_tls_key_file }}"
       dest: "/tmp/server-cert-ansible-managed.key"
-      remote_src: "{{ tls_files_remote }}"
+      remote_src: "{{ dirsrv_tls_files_remote }}"
       mode: '400'
       setype: cert_t
-    when: tls_key_file is defined
+    when: dirsrv_tls_key_file is defined
     changed_when: false
 
   - name: Install pyOpenSSL for openssl_pkcs12 module
@@ -82,7 +81,7 @@
       pk12util
       -i /tmp/server-cert-ansible-managed.p12
       -n server-cert-ansible-managed
-      -d /etc/dirsrv/slapd-{{ serverid }}
+      -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
       -K ''
       -W ''
     changed_when: false
@@ -103,11 +102,11 @@
   - name: Count Ansible managed keys in NSS database
     shell: >
       certutil -K
-      -d /etc/dirsrv/slapd-{{ serverid }}/
+      -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
       |
       grep
       -c "server-cert-ansible-managed"
-    register: nss_key_count_389ds
+    register: dirsrv_nss_key_count
     changed_when: false
 
   # This is needed because Jinja2 templates are not allowed in "when"
@@ -115,7 +114,7 @@
   # variables for us...
   - name: Count keys
     set_fact:
-      nss_key_count_389ds_too_many: "{{ nss_key_count_389ds.stdout | int > 1 }}"
+      dirsrv_nss_key_count_too_many: "{{ dirsrv_nss_key_count.stdout | int > 1 }}"
 
   # This is the correct way to remove private keys (section 9.3.8.1
   # from the Administration Guide), however it removes a "random"
@@ -124,30 +123,30 @@
   - name: Remove old keys from NSS database
     shell: >
       certutil -F
-      -d /etc/dirsrv/slapd-{{ serverid }}
+      -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
       -n "server-cert-ansible-managed"
-    when: nss_key_count_389ds_too_many
+    when: dirsrv_nss_key_count_too_many
     # I'm still wondering if this loop is horrible or clever...
-    loop: "{{ range(0, nss_key_count_389ds.stdout|int) | list }}"
+    loop: "{{ range(0, dirsrv_nss_key_count.stdout|int) | list }}"
 
   - name: Add pkcs12 to NSS database (again)
     shell: >
       pk12util
       -i /tmp/server-cert-ansible-managed.p12
       -n server-cert-ansible-managed
-      -d /etc/dirsrv/slapd-{{ serverid }}
+      -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
       -K ''
       -W ''
-    when: nss_key_count_389ds_too_many
+    when: dirsrv_nss_key_count_too_many
 
-  # TODO: is this for self-signed certificates only?
+  # I *think* this is only for self-signed certificates, but not entirely sure...
   - name: Set certificate parameters
     shell: >
       certutil -M
       -d /etc/dirsrv/slapd-ldap/
       -n server-cert-ansible-managed
       -t "u,u,u"
-    when: nss_key_count_389ds_too_many
+    when: not dirsrv_tls_certificate_trusted
 
   # --- CA certificates stuff ---------------------------------------
 
@@ -192,26 +191,26 @@
 
 - name: Remove RSA configuration for TLS (if disabled)
   ldap_entry:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=RSA,cn=encryption,cn=config"
     state: absent
-  when: not tls_enabled
+  when: not dirsrv_tls_enabled
   notify: dirsrv restart
 
 - name: Create RSA configuration for TLS (if enabled)
   ldap_entry:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=RSA,cn=encryption,cn=config"
     objectClass:
       - top
       - nsEncryptionModule
     state: present
-  when: tls_enabled
+  when: dirsrv_tls_enabled
   notify: dirsrv restart
 
 - name: Configure RSA parameters
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=RSA,cn=encryption,cn=config"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -221,7 +220,7 @@
   - { name: "nsSSLToken", value: "internal (software)" }
   - { name: "nsSSLPersonalitySSL", value: "server-cert-ansible-managed" }
   - { name: "nsSSLActivation", value: "on" }
-  when: tls_enabled
+  when: dirsrv_tls_enabled
   notify: dirsrv restart
 
 # Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
@@ -231,10 +230,10 @@
 # Also: for this reason, the order is relevant.
 - name: Configure TLS support
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=config"
     name: "nsslapd-security"
-    values: "{{ 'on' if tls_enabled else 'off' }}"
+    values: "{{ 'on' if dirsrv_tls_enabled else 'off' }}"
     state: exact
 
 # Doesn't work:
@@ -248,7 +247,7 @@
 
 - name: Configure TLS minimum version (disable SSL)
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: cn=encryption,cn=config
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -258,12 +257,12 @@
   - { name: "nsssl3", value: "off" }
   - { name: "sslVersionMin", value: "TLS{{ tls_min_version }}" }
   notify: dirsrv restart
-  when: tls_enabled
+  when: dirsrv_tls_enabled
 
 # TODO: support it?
 - name: Disable TLS client authentication
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: cn=encryption,cn=config
     name: "nsSSLClientAuth"
     values: "off"
@@ -271,13 +270,13 @@
 
 - name: Configure anonymous binds
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=config"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
     state: exact
   loop:
-  - { name: "nsslapd-allow-anonymous-access", value: "{{ 'rootdse' if allow_anonymous_binds == 'rootdse' else 'on' if allow_anonymous_binds else 'off' }}" }
+  - { name: "nsslapd-allow-anonymous-access", value: "{{ 'rootdse' if dirsrv_allow_anonymous_binds == 'rootdse' else 'on' if dirsrv_allow_anonymous_binds else 'off' }}" }
   # This defaults to "off" and it's better left alone
   #- { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: tls_enabled

@@ -2,39 +2,39 @@
 - name: Copy schema files
   copy:
     src: "{{ item }}"
-    dest: "/etc/dirsrv/slapd-{{ serverid }}/schema"
+    dest: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema"
     mode: '440' # 99user.ldif is 660, but these ones should be read only
     seuser: unconfined_u # Same as 99user.ldif
     owner: dirsrv
     group: dirsrv
-  loop: "{{ custom_schema }}"
-  register: schema_result_1
+  loop: "{{ dirsrv_custom_schema }}"
+  register: dirsrv_schema_result_1
 
 - name: Search other schema files
   find:
-    paths: "/etc/dirsrv/slapd-{{ serverid }}/schema"
+    paths: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema"
     file_type: file
     # https://stackoverflow.com/a/53758369
-    excludes: "{{ custom_schema | map('basename') | list + ['99user.ldif'] }}"
-  register: found_files
-  when: not ignore_other_schema_files
+    excludes: "{{ dirsrv_custom_schema | map('basename') | list + ['99user.ldif'] }}"
+  register: dirsrv_found_files
+  when: not dirsrv_ignore_other_schema_files
 
 - name: Delete other schema files
   file:
     path: "{{ item.path }}"
     state: absent
-  loop: "{{ found_files['files'] }}"
-  when: not ignore_other_schema_files
-  register: schema_result_2
+  loop: "{{ dirsrv_found_files['files'] }}"
+  when: not dirsrv_ignore_other_schema_files
+  register: dirsrv_schema_result_2
 
-- name: schema reload
+- name: Reload schema
   ldap_entry:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=ansible-managed schema reload,cn=schema reload task,cn=tasks,cn=config"
     objectClass:
       - extensibleObject
     attributes:
       cn: ansible-managed schema reload
-      schemadir: "/etc/dirsrv/slapd-{{ serverid }}/schema/"
+      schemadir: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema/"
     state: present
-  when: schema_result_1.changed or (not ignore_other_schema_files and schema_result_2.changed)
+  when: dirsrv_schema_result_1.changed or (not dirsrv_ignore_other_schema_files and dirsrv_schema_result_2.changed)

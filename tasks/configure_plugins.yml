@@ -1,27 +1,27 @@
 ---
 - name: Enable plugins
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn={{ item.key }},cn=plugins,cn=config"
     name: nsslapd-pluginEnabled
     values: "{{ 'on' if item.value else 'off' }}"
     state: exact
-  loop: "{{ plugins_enabled | dict2items }}"
+  loop: "{{ dirsrv_plugins_enabled | dict2items }}"
 
 - name: Remove DNA plugin configuration (if disabled)
   ldap_entry:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "{{ item }}"
     state: absent
   loop:
   - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and not plugins_enabled['Distributed Numeric Assignment Plugin']"
+  when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and not dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
 - name: Create DNA plugin configuration (if enabled)
   ldap_entry:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "{{ item }}"
     objectClass:
       - top
@@ -30,12 +30,12 @@
   loop:
   - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
+  when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
 - name: Configure DNA plugin parameters (UID)
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -45,15 +45,15 @@
   - { name: "dnatype", value: "uidNumber" }
   - { name: "dnamagicregen", value: "magic" } # doesn't have to be a number
   - { name: "dnafilter", value: "(objectclass=posixAccount)" }
-  - { name: "dnascope", value: "{{ suffix }}" }
-  - { name: "dnanextvalue", value: "{{ dna_plugin.uid_min }}" }
-  - { name: "dnamaxvalue", value: "{{ dna_plugin.uid_max }}" }
-  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
+  - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
+  - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.uid_min }}" }
+  - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.uid_max }}" }
+  when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
 - name: Configure DNA plugin parameters (GID)
   ldap_attr:
-    params: "{{ ldap_auth }}"
+    params: "{{ dirsrv_ldap_auth }}"
     dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
@@ -64,12 +64,12 @@
   - { name: "dnamagicregen", value: "magic" }
   - { name: "dnafilter", value: "(objectclass=posixAccount)" }
   - { name: "dnascope", value: "{{ suffix }}" }
-  - { name: "dnanextvalue", value: "{{ dna_plugin.gid_min }}" }
-  - { name: "dnamaxvalue", value: "{{ dna_plugin.gid_max }}" }
-  when: "'Distributed Numeric Assignment Plugin' in plugins_enabled and plugins_enabled['Distributed Numeric Assignment Plugin']"
+  - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
+  - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
+  when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
-# This is a valid alternative, for the DNA stuff with 2 tasks
+# This was a potentially valid alternative, for the DNA stuff with 2 tasks
 # instead of 3:
 #
 #- name: Configure DNA plugin parameters (UID)

@@ -2,24 +2,24 @@
 - block:
     - name: Configure enforcing of TLS
       ldap_attr:
-        params: "{{ ldap_auth }}"
+        params: "{{ dirsrv_ldap_auth }}"
         dn: "cn=config"
         name: "{{ item.name }}"
         values: "{{ item.value }}"
         state: exact
       loop:
-      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if tls_enabled and tls_enforced else 'off' }}" }
-      - { name: "nsslapd-minssf", value: "{{ tls_minssf if tls_enabled and tls_enforced else '0' }}" }
+      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
+      - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
       failed_when: false
 
   rescue:
     - name: Configure enforcing of TLS, over TLS
       ldap_attr:
-        params: "{{ ldap_auth_later }}"
+        params: "{{ dirsrv_ldap_auth_later }}"
         dn: "cn=config"
         name: "{{ item.name }}"
         values: "{{ item.value }}"
         state: exact
       loop:
-      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if tls_enabled and tls_enforced else 'off' }}" }
-      - { name: "nsslapd-minssf", value: "{{ tls_minssf if tls_enabled and tls_enforced else '0' }}" }
+      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
+      - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
