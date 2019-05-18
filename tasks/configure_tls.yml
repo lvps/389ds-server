@@ -177,7 +177,7 @@
 
       # --- end CA certificates stuff -----------------------------------
 
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool
   always:
     - name: Remove temporary files
       file:
@@ -205,7 +205,7 @@
       - top
       - nsEncryptionModule
     state: present
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool
   notify: dirsrv restart
 
 - name: Configure RSA parameters
@@ -220,7 +220,7 @@
     - { name: "nsSSLToken", value: "internal (software)" }
     - { name: "nsSSLPersonalitySSL", value: "server-cert-ansible-managed" }
     - { name: "nsSSLActivation", value: "on" }
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool
   notify: dirsrv restart
 
 # Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
@@ -257,7 +257,7 @@
     - { name: "nsssl3", value: "off" }
     - { name: "sslVersionMin", value: "TLS{{ dirsrv_tls_min_version }}" }
   notify: dirsrv restart
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool
 
 # TODO: support it?
 - name: Disable TLS client authentication
@@ -281,4 +281,4 @@
       value: "{{ 'rootdse' if dirsrv_allow_anonymous_binds == 'rootdse' else 'on' if dirsrv_allow_anonymous_binds else 'off' }}"
   # This defaults to "off" and it's better left alone
   # - { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool

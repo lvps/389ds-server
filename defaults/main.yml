@@ -51,7 +51,7 @@ dirsrv_logging:
 #
 # And this is just the empty array syntax, override it as above
 # if you need to enable or disable plugins:
-dirsrv_plugins_enabled: []
+dirsrv_plugins_enabled: {}
 
 # Ansible doesn't merge dicts by default, i.e. if you want to
 # change only uid_max and gid_max you have to define the _min

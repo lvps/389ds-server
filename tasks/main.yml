@@ -11,7 +11,7 @@
     that:
       - dirsrv_tls_enabled
     msg: "dirsrv_tls_enforced: true doesn't make sense when dirsrv_tls_enabled: false, enable TLS or disable enforcing"
-  when: dirsrv_tls_enforced
+  when: dirsrv_tls_enforced | bool
 
 - name: Check if TLS is enforced (secure binds)
   command: "grep \"nsslapd-require-secure-binds: on\" /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif"

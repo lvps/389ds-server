@@ -7,7 +7,7 @@
           - { name: "nsslapd-ldapifilepath", value: "/var/run/slapd-{{ serverid }}.socket" }
           - { name: "nsslapd-ldapiautobind", value: "on" }
           - { name: "nsslapd-ldapimaptoentries", value: "off" }
-      when: dirsrv_ldapi_enabled
+      when: dirsrv_ldapi_enabled|bool
 
     - name: Set configuration to disable LDAPI
       set_fact:
