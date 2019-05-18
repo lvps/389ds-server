@@ -16,6 +16,7 @@
     file_type: file
     # https://stackoverflow.com/a/53758369
     excludes: "{{ dirsrv_custom_schema | map('basename') | list + ['99user.ldif'] }}"
+  register: dirsrv_found_files
   notify: dirsrv schema reload
 
 - name: Delete other schema files

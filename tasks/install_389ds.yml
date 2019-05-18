@@ -45,6 +45,7 @@
     # No Administration Server: it isn't worth the effort.
     - name: Run installation script setup-ds.pl
       command: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
+      become: true
       when: not dirsrv_instance_dir_exists
 
   always:

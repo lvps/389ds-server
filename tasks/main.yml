@@ -29,7 +29,7 @@
 
 # ...and if it's 0 or something else.
 - name: Check if TLS is enforced (minimum SSF)
-  command: "grep \"nsslapd-minssf: 0\" /etc/dirsrv/slapd-{{ serverid }}/dse.ldif"
+  command: "grep \"nsslapd-minssf: 0\" /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif"
   register: dirsrv_tls_enforced_initially_ssf
   changed_when: false
   failed_when: dirsrv_tls_enforced_initially_ssf.rc != 0 and dirsrv_tls_enforced_initially_ssf.rc != 1
@@ -56,7 +56,7 @@
       validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
       start_tls: "{{ dirsrv_tls_enforced }}"
       bind_dn: "{{ dirsrv_rootdn }}"
-      bind_pw: "{{ dirsrv_ rootdn_password }}"
+      bind_pw: "{{ dirsrv_rootdn_password }}"
 
 - include: configure_authentication.yml
 

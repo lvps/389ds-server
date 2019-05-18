@@ -7,14 +7,14 @@
     that:
       - "(dirsrv_tls_key is defined) != (dirsrv_tls_key_file is defined)"  # This is a XOR
     msg: "only one of dirsrv_tls_key or dirsrv_tls_key_file must be defined"
-  when: tls_enabled
+  when: dirsrv_tls_enabled
 
 - name: Check that tls_cert[_file] is defined
   assert:
     that:
       - "(dirsrv_tls_cert is defined) != (dirsrv_tls_cert_file is defined)"  # This is a XOR, again
     msg: "only one of dirsrv_tls_cert or dirsrv_tls_cert_file must be defined"
-  when: tls_enabled
+  when: dirsrv_tls_enabled
 
 - block:
     - name: Copy cert (from variable)
@@ -143,7 +143,7 @@
     - name: Set certificate parameters
       shell: >
         certutil -M
-        -d /etc/dirsrv/slapd-ldap/
+        -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
         -n server-cert-ansible-managed
         -t "u,u,u"
       when: not dirsrv_tls_certificate_trusted
@@ -177,7 +177,7 @@
 
       # --- end CA certificates stuff -----------------------------------
 
-  when: tls_enabled
+  when: dirsrv_tls_enabled
   always:
     - name: Remove temporary files
       file:
@@ -255,7 +255,7 @@
   loop:
     - { name: "nsssl2", value: "off" }
     - { name: "nsssl3", value: "off" }
-    - { name: "sslVersionMin", value: "TLS{{ tls_min_version }}" }
+    - { name: "sslVersionMin", value: "TLS{{ dirsrv_tls_min_version }}" }
   notify: dirsrv restart
   when: dirsrv_tls_enabled
 
@@ -281,4 +281,4 @@
       value: "{{ 'rootdse' if dirsrv_allow_anonymous_binds == 'rootdse' else 'on' if dirsrv_allow_anonymous_binds else 'off' }}"
   # This defaults to "off" and it's better left alone
   # - { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
-  when: tls_enabled
+  when: dirsrv_tls_enabled
