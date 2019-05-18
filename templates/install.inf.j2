@@ -6,9 +6,13 @@
 
 [General]
 FullMachineName = {{ dirsrv_fqdn }}
+# StrictHostCheck = false is needed when installing behind a load balancer.
+# If true, FullMachineName must be the hostname, and the hostname must be a valid FQDN.
+# I don't think this is needed anymore, possibly it was required for the administration
+# server, so it's always set to false.
+StrictHostCheck = false
 SuiteSpotUserID = dirsrv
 SuiteSpotGroup = dirsrv
-# TODO: StrictHostCheck = false when installing behind a load balancer
 
 [slapd]
 ServerPort = 389
@@ -23,11 +27,9 @@ RootDNPwd = {{ dirsrv_rootdn_password }}
 {% else %}
 	AddOrgEntries = No
 	AddSampleEntries = No
-	{% if len(dirsrv_install_additional_ldif) == 0 %}
-		InstallLdifFile = No
-	{% else %}
-		{% for file in dirsrv_install_additional_ldif %}
-		InstallLdifFile = /tmp/{{ file }}
-		{% endfor %}
+	{% if dirsrv_install_additional_ldif|length > 0 %}
+	{% for file in dirsrv_install_additional_ldif %}
+	InstallLdifFile = /tmp/{{ file }}
+	{% endfor %}
 	{% endif %}
 {% endif %}
