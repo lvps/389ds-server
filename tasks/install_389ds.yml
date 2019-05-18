@@ -2,7 +2,7 @@
 - name: Install 389DS
   yum:
     name: 389-ds-base
-    state: latest
+    state: present
 
 # as suggested by Red Hat Directory Server manual
 - name: Add user 'dirsrv'
@@ -19,7 +19,8 @@
     path: "/var/lib/dirsrv/slapd-{{ dirsrv_serverid }}"
   register: dirsrv_instance_dir
 
-- set_fact:
+- name: "Check if {{ dirsrv_serverid }} instance directory exists"
+  set_fact:
     dirsrv_instance_dir_exists: "{{ dirsrv_instance_dir.stat.exists and dirsrv_instance_dir.stat.isdir }}"
 
 # TODO: How do we change the Directory Manager password if we need it to change the password?
@@ -43,7 +44,7 @@
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).
     # No Administration Server: it isn't worth the effort.
     - name: Run installation script setup-ds.pl
-      shell: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
+      command: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
       when: not dirsrv_instance_dir_exists
 
   always:

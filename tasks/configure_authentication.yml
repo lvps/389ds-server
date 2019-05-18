@@ -42,14 +42,14 @@
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
 # TODO: "none" means "everything is allowed"... how to allow none (or just EXTERNAL that is always enabled but not always allowed or whatever?)
 - block:
-  - name: Configure SASL
-    ldap_attr:
-      params: "{{ dirsrv_ldap_auth }}"
-      dn: "cn=config"
-      name: "nsslapd-allowed-sasl-mechanisms"
-      values: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
-      state: exact
-    register: dirsrv_sasl_result
+    - name: Configure SASL
+      ldap_attr:
+        params: "{{ dirsrv_ldap_auth }}"
+        dn: "cn=config"
+        name: "nsslapd-allowed-sasl-mechanisms"
+        values: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
+        state: exact
+      register: dirsrv_sasl_result
 
   rescue:
     # Deleting an attribute fails if the the attribute doesn't exist,
@@ -62,14 +62,14 @@
           - "{{ dirsrv_sasl_result.details }}.desc == 'No such attribute'"
 
 - block:
-  - name: Configure password storage scheme
-    ldap_attr:
-      params: "{{ dirsrv_ldap_auth }}"
-      dn: "cn=config"
-      name: "passwordStorageScheme"
-      values: "{{ dirsrv_password_storage_scheme }}"
-      state: exact
-    register: dirsrv_pwdstorage_result
+    - name: Configure password storage scheme
+      ldap_attr:
+        params: "{{ dirsrv_ldap_auth }}"
+        dn: "cn=config"
+        name: "passwordStorageScheme"
+        values: "{{ dirsrv_password_storage_scheme }}"
+        state: exact
+      register: dirsrv_pwdstorage_result
 
   rescue:
     # Same as above

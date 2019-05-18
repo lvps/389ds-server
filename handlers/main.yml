@@ -4,3 +4,13 @@
     name: "dirsrv@{{ dirsrv_serverid }}"
     state: restarted
 
+- name: dirsrv schema reload
+  ldap_entry:
+    params: "{{ dirsrv_ldap_auth }}"
+    dn: "cn=ansible-managed schema reload,cn=schema reload task,cn=tasks,cn=config"
+    objectClass:
+      - extensibleObject
+    attributes:
+      cn: ansible-managed schema reload
+      schemadir: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema/"
+    state: present

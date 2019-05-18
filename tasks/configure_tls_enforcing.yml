@@ -8,8 +8,8 @@
         values: "{{ item.value }}"
         state: exact
       loop:
-      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
-      - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
+        - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
+        - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
       failed_when: false
 
   rescue:
@@ -21,5 +21,5 @@
         values: "{{ item.value }}"
         state: exact
       loop:
-      - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
-      - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
+        - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
+        - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
