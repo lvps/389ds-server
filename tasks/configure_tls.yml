@@ -7,14 +7,14 @@
     that:
       - "(dirsrv_tls_key is defined) != (dirsrv_tls_key_file is defined)"  # This is a XOR
     msg: "only one of dirsrv_tls_key or dirsrv_tls_key_file must be defined"
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool
 
 - name: Check that tls_cert[_file] is defined
   assert:
     that:
       - "(dirsrv_tls_cert is defined) != (dirsrv_tls_cert_file is defined)"  # This is a XOR, again
     msg: "only one of dirsrv_tls_cert or dirsrv_tls_cert_file must be defined"
-  when: dirsrv_tls_enabled
+  when: dirsrv_tls_enabled | bool
 
 - block:
     - name: Copy cert (from variable)
