@@ -1,0 +1,16 @@
+---
+- name: Converge
+  hosts: all
+
+  roles:
+    -
+      role: 389ds-server
+      dirsrv_suffix: "dc=example,dc=local"
+      dirsrv_serverid: test
+      dirsrv_rootdn_password: secret
+      dirsrv_tls_enabled: false
+      # ./cert.sh test.example.local
+      # dirsrv_tls_cert_file: ca/test_example_local_cert.pem
+      # dirsrv_tls_key_file: ca/test_example_local.key
+      # dirsrv_tls_files_remote: false
+      # dirsrv_tls_certificate_trusted: false
