@@ -8,12 +8,6 @@ install:
   - pip install pipenv
   - pipenv install
 
-#before_script:
-  # Use actual Ansible Galaxy role name for the project directory.
-  #- cd ../
-  #- mv 389ds-server lvps.389ds-server
-  #- cd lvps.389ds-server
-
 script:
   - molecule test --all
 
