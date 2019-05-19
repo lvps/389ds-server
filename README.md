@@ -154,6 +154,16 @@ nsds5BeginReplicaRefresh: start
      - { role: 389ds-server, rwmaster: true, replica_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
 ```
 
+## Tests
+
+This role uses molecule for its tests. Install it with pipenv (pip probably works, too) and test all the scenarios:
+
+```shell
+pipenv install
+pipenv shell
+molecule test --all
+```
+
 ## TODO
 
 ### Probably will be done
