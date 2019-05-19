@@ -139,14 +139,14 @@
         -W ''
       when: dirsrv_nss_key_count_too_many
 
-    # I *think* this is only for self-signed certificates, but not entirely sure...
-    - name: Set certificate parameters
-      command: >
-        certutil -M
-        -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
-        -n server-cert-ansible-managed
-        -t "u,u,u"
-      when: not dirsrv_tls_certificate_trusted
+      # I *think* this may be needed for self-signed certificates, but not entirely sure...
+      # - name: Set certificate parameters
+      #   command: >
+      #     certutil -M
+      #     -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
+      #     -n server-cert-ansible-managed
+      #     -t "u,u,u"
+      #   when: not dirsrv_tls_certificate_trusted
 
       # --- CA certificates stuff ---------------------------------------
 

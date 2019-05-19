@@ -4,7 +4,7 @@
       set_fact:
         dirsrv_ldapi_config:
           - { name: "nsslapd-ldapilisten", value: "on" }
-          - { name: "nsslapd-ldapifilepath", value: "/var/run/slapd-{{ serverid }}.socket" }
+          - { name: "nsslapd-ldapifilepath", value: "/var/run/slapd-{{ dirsrv_serverid }}.socket" }
           - { name: "nsslapd-ldapiautobind", value: "on" }
           - { name: "nsslapd-ldapimaptoentries", value: "off" }
       when: dirsrv_ldapi_enabled|bool
