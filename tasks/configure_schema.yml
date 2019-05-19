@@ -17,7 +17,6 @@
     # https://stackoverflow.com/a/53758369
     excludes: "{{ dirsrv_custom_schema | map('basename') | list + ['99user.ldif'] }}"
   register: dirsrv_found_files
-  notify: dirsrv schema reload
 
 - name: Delete other schema files
   file:
@@ -25,3 +24,4 @@
     state: absent
   loop: "{{ dirsrv_found_files['files'] }}"
   notify: dirsrv schema reload
+  when: not dirsrv_allow_other_schema_files

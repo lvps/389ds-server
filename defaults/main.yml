@@ -67,7 +67,7 @@ dirsrv_dna_plugin:
 # Schema
 
 dirsrv_custom_schema: []
-dirsrv_ignore_other_schema_files: false
+dirsrv_allow_other_schema_files: false
 
 # Security
 
