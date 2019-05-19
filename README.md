@@ -4,8 +4,6 @@
 
 This role installs the 389DS server (LDAP server) on the target machine(s).
 
-This is a fork of a fork, still **work in progress**, not production ready.
-
 ## Features
 
 - Install a single LDAP server
