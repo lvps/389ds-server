@@ -6,7 +6,7 @@ driver:
 lint:
   name: yamllint
 platforms:
-  - name: instance
+  - name: default
     image: centos/systemd:latest
     command: /sbin/init
     capabilities:

@@ -25,7 +25,7 @@ def test_389ds_listening_389(host):
     assert socket.is_listening
 
 
-# def test_389ds_listening_636(host):
-#    socket = host.socket('tcp://0.0.0.0:636')
-#
-#    assert socket.is_listening
+def test_389ds_not_listening_636(host):
+    socket = host.socket('tcp://0.0.0.0:636')
+
+    assert not socket.is_listening
