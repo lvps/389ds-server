@@ -22,10 +22,112 @@ This is a fork of a fork, still **work in progress**, not production ready.
 
 ## Role Variables
 
-The variables that can be passed to this role and a brief description about them are as follows:
+The variables that can be passed to this role and a brief description about them are as follows.
+
+| Variable      | Default           | Description   | Can be changed |
+|---------------|-------------------|---------------|----------------|
+| dirsrv_suffix | dc=example,dc=com | Suffix of the DIT. All entries in the server will be placed under this suffix. Normally it's made from the domain components (*dc*) of your company main domain. E.g. if you're from example.co.uk and the server will be at ldap-server.example.co.uk, set the suffix to `dc=example,dc=co,dc=uk`, leaving out the subdomain part (`ldap-server`) since it's irrelevant. | **No**             |
+| dirsrv_rootdn | cn=Directory Manager | Root DN, or "administrator" account username. Bind with this DN to bypass all authorization controls. | **No** |
+| dirsrv_rootdn_password | | Password for root DN, you *must* define this variable or the role will fail. | **No** |
+| dirsrv_fqdn | {{ansible_nodename}} | Server FQDN, e.g. `ldap.example.com`. If the server hostname is already an FQDN, the default should pick it up. | **No** |
+| dirsrv_serverid | default | Server ID or instance ID. All the data related to the instance configured by this role will end up in /etc/dirsrv/slapd-*default*, /var/log/dirsrv/slapd-*default*, etc... You could use your company name, e.g. for Foo Bar, Inc set the variable to `foobar` and the directories will be named slapd-foobar. | **No** |
+| dirsrv_install_examples | false | Create example entries under the suffix during installation | **No** |
+| dirsrv_install_additional_ldif | [] | Install these additional LDIF files, by default none (empty array). This corresponds to the `InstallLdifFile` directive in the inf installation file. | **No** |
+| dirsrv_logging | see below | see below | Yes |
+| dirsrv_plugins_enabled | {} | Enable or disable plugins, see below for details. By default not plugins are enabled or disabled. | Yes |
+| dirsrv_dna_plugin | see below | Configuration for the DNA (Distributed Numeric Assignment) plugin. | Yes |
+| dirsrv_custom_schema | [] | Paths to custom schema files. They will be dropped into `/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema` and a schema reload will be request when anything chages. | Yes |
+| dirsrv_allow_other_schema_files | false | If false (default value), this role will add the specified schema files to `/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema`, then delete all other schema files there except `99user.ldif`. If your schema files are managed only by this role or dynamically (i.e. from `cn=schema`, which writes to `99user.ldif`), you can leave this variable to its default of false. If you have more schema files in that directory (added manually or by other tasks), set this to true to leave them there. The downside is that if you deploy e.g. `50example.ldif`, then you rename it to `50my_example.ldif`, when the role runs again it considers it a new file and leaves the previous one there, wreaking havoc on your directory. | Yes |
+dirsrv_tls_enabled | false | Enable TLS (LDAPS and StartTTLS). All "dirsrv_tls" only take effect if this is enabled. | Yes |
+dirsrv_tls_min_version | '1.2' | Minimum TLS version: 1.0, 1.1 or 1.2. Possibly even 1.3, when support is added to 389DS. SSLv2 and SSLv3 are always disabled by this role. | Yes |
+dirsrv_tls_certificate_trusted | true | The server certificate is publicly trusted. Set to false if it's self-signed or from a private CA. | Yes |
+dirsrv_tls_enforced | false | Enforce TLS by requiring secure binds and minimum SSF | Yes |
+dirsrv_tls_minssf | 256 | Minimum SSF, used only when dirsrv_tls_enforced is true. 128 seems reasonable, 256 should be very secure. Set this to 0 to enforce TLS only with secure binds. | Yes |
+dirsrv_allow_anonymous_binds | 'rootdse' | Allow anonymous binds: boolean true for Yes, boolean false for No, or 'rootdse'. The Administration Guide suggests to use rootdse instead of No, because it allows anonymous binds to search some data that clients may require before doing a bind. Allowing anonymous binds basically makes your directory public, unless you restrict access with ACIs. | Yes |
+dirsrv_simple_auth_enabled | true | Enable SIMPLE authentication, probably true unless you want to use SASL PLAIN only or configure other methods manually. | Yes |
+dirsrv_sasl_enabled | false | Enable SASL authentication. | Yes |
+dirsrv_password_storage_scheme | [] | A single value, possibly the string "PBKDF2_SHA256". Or leave the default, which will delete any custom value and use 389DS default, which should be pretty secure. | Yes |
+dirsrv_ldapi_enabled | false | Enable LDAPI (connect to the server via a UNIX socket at `ldapi:///var/run/slapd-{{ dirsrv_serverid }}.socket`). Note that this is subject to TLS enforcing and TLS is not supported, so it's useless if you set dirsrv_tls_enforced to true. | Yes |
+dirsrv_sasl_plain_enabled | true | Enable SASL PLAIN authentication: if a client tries to authenticate without TLS and TLS is enforced, this kind of authentication should stop it before it sends the plaintext password, while a SIMPLE bind will send the password and then fail because SSF is too low. | Yes |
+
+Some variables cannot be changed by this role (or at all) after creating an instance of 389DS. If one of them is changed and the role is applied again, undefined behaviour ranging from "nothing" to "the role fails" to "another instance is created" may happen. Some of them, e.g. the root DN password, can be changed manually: please refer to the [Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/index) for details.
+
+All variables are prefixed with dirsrv because starting a variable with a number ("389ds") doesn't work, usually.
+
+### dirsrv_logging
+
+This is the default variable:
+
+```yaml
+dirsrv_logging:
+  audit:
+    enabled: false
+    logrotationtimeunit: day
+    logmaxdiskspace: 400
+    maxlogsize: 200
+    maxlogsperdir: 7
+    mode: 600
+  access:
+    enabled: true
+    logrotationtimeunit: day
+    logmaxdiskspace: 400
+    maxlogsize: 200
+    maxlogsperdir: 7
+    mode: 600
+  error:
+    enabled: true
+    logrotationtimeunit: day
+    logmaxdiskspace: 400
+    maxlogsize: 200
+    maxlogsperdir: 7
+    mode: 600
 ```
-# TODO: rewrite this section
+
+Ansible doesn't merge dicts by default, i.e. if you want to change only audit > enabled to true you have to define all the other variables too. If you want to change the defaults, it's probably a good idea to copy this entire block into the variables and tweak what you need.
+
+### dirsrv_plugins_enabled
+
+If you want to enable the memberof plugin located at `cn=MemberOf Plugin,cn=plugins,cn=config`, set the variable to:
+
+```yaml
+plugins_enabled:
+  MemberOf Plugin: true
 ```
+
+If it's enabled and you want to disable it, set it to:
+
+```yaml
+plugins_enabled:
+  MemberOf Plugin: false
+```
+
+If you want to enable more plugins:
+
+```yaml
+plugins_enabled:
+  MemberOf Plugin: true
+  Distributed Numeric Assignment Plugin: true
+```
+
+If a plugin doesn't appear in the list, it's left in its current status.
+
+A plugin named Foo should have an entry under `cn=Foo,cn=plugins,cn=config`, you can look at the `cn=plugins,cn=config` tree to see which plugins are available and their status.
+
+### dirsrv_dna_plugin
+
+Default value:
+
+```yaml
+dirsrv_dna_plugin:
+  gid_min: 2000
+  gid_max: 2999
+  uid_min: 2000
+  uid_max: 2999
+```
+
+Ansible doesn't merge dicts by default, i.e. if you want to change only uid_max and gid_max you have to define the \_min variables too. When you define dna_plugin, it replaces this default dict entirely.
+
+This configuration is only applied if "Distributed Numeric Assignment Plugin" is true in plugins_enabled, and is removed when it is false. If it's not mentioned, nothing is done.
 
 ## Dependencies
 
