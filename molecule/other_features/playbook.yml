@@ -1,0 +1,34 @@
+---
+- name: Converge
+  hosts: all
+
+  roles:
+    -
+      role: 389ds-server
+      dirsrv_suffix: "dc=example,dc=local"
+      dirsrv_password_storage_scheme: "PBKDF2_SHA256"
+      dirsrv_serverid: test
+      dirsrv_rootdn_password: secret
+      dirsrv_tls_enabled: false
+      dirsrv_install_examples: true
+      dirsrv_ldapi_enabled: true
+      plugins_enabled:
+        MemberOf Plugin: true
+        Distributed Numeric Assignment Plugin: false
+      custom_schema:
+        - "98telegram.ldif"
+
+  tasks:
+    - name: Ensure container entries exist, for testing
+      ldap_entry:
+        server_uri: "ldap://localhost"
+        bind_dn: "cn=Directory Manager"
+        bind_pw: "secret"
+        dn: "{{ item.dn }}"
+        objectClass: "{{ item.objectClass }}"
+        state: present
+      loop:
+        - { dn: "ou=Groups,dc=example,dc=local", objectClass: ["organizationalunit", "top"] }
+        - { dn: "ou=People,dc=example,dc=local", objectClass: ["organizationalunit", "top"] }
+      register: dirsrv_test_containers
+      failed_when: dirsrv_test_containers.changed

@@ -1,0 +1,39 @@
+#---------------------------------------------------------------------
+#
+# This is a simplified version of a custom schema file.
+# For the latest version, see https://github.com/weee-open/schema
+#
+#---------------------------------------------------------------------
+#
+dn: cn=schema
+#
+#---------------------------------------------------------------------
+#
+objectClasses: (
+  2.25.100841824846419382782883384063386193490.2.731.1
+  NAME 'telegramAccount'
+  AUXILIARY
+  MAY ( telegramID $ telegramNickname )
+  X-ORIGIN 'WEEE Open'
+  )
+#
+#---------------------------------------------------------------------
+#
+attributeTypes: (
+  2.25.100841824846419382782883384063386193490.1.731.1
+  NAME 'telegramID'
+  DESC 'Telegram account ID number'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.36
+  SINGLE-VALUE
+  )
+#
+#---------------------------------------------------------------------
+#
+attributeTypes: (
+  2.25.100841824846419382782883384063386193490.1.731.2
+  NAME 'telegramNickname'
+  DESC 'Telegram nickname'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  )
