@@ -1,10 +1,13 @@
 # 389ds-server
 
+[![Build Status](https://travis-ci.com/lvps/389ds-server.svg?branch=master)](https://travis-ci.com/lvps/389ds-server)
+
 This role installs the 389DS server (LDAP server) on the target machine(s).
 
 This is a fork of a fork, still **work in progress**, not production ready.
 
 ## Features
+
 - Install a single LDAP server
 - Configure logging
 - Add custom schema files
@@ -15,44 +18,48 @@ This is a fork of a fork, still **work in progress**, not production ready.
 - Enable/disable LDAPI
 - Enable/disable SASL PLAIN
 
+Replication is managed with [another role](https://github.com/lvps/389ds-replication).
+
 ## Requirements
-- Ansible version: 2.7 or higher
-- OS: CentOS 7
-- Valid FQDN (hostname) is in place
+
+- Ansible 2.7 or newer
+- CentOS 7
 
 ## Role Variables
 
 The variables that can be passed to this role and a brief description about them are as follows.
 
-| Variable      | Default           | Description   | Can be changed |
-|---------------|-------------------|---------------|----------------|
-| dirsrv_suffix | dc=example,dc=com | Suffix of the DIT. All entries in the server will be placed under this suffix. Normally it's made from the domain components (*dc*) of your company main domain. E.g. if you're from example.co.uk and the server will be at ldap-server.example.co.uk, set the suffix to `dc=example,dc=co,dc=uk`, leaving out the subdomain part (`ldap-server`) since it's irrelevant. | **No**             |
-| dirsrv_rootdn | cn=Directory Manager | Root DN, or "administrator" account username. Bind with this DN to bypass all authorization controls. | **No** |
-| dirsrv_rootdn_password | | Password for root DN, you *must* define this variable or the role will fail. | **No** |
-| dirsrv_fqdn | {{ansible_nodename}} | Server FQDN, e.g. `ldap.example.com`. If the server hostname is already an FQDN, the default should pick it up. | **No** |
-| dirsrv_serverid | default | Server ID or instance ID. All the data related to the instance configured by this role will end up in /etc/dirsrv/slapd-*default*, /var/log/dirsrv/slapd-*default*, etc... You could use your company name, e.g. for Foo Bar, Inc set the variable to `foobar` and the directories will be named slapd-foobar. | **No** |
-| dirsrv_install_examples | false | Create example entries under the suffix during installation | **No** |
-| dirsrv_install_additional_ldif | [] | Install these additional LDIF files, by default none (empty array). This corresponds to the `InstallLdifFile` directive in the inf installation file. | **No** |
-| dirsrv_logging | see below | see below | Yes |
-| dirsrv_plugins_enabled | {} | Enable or disable plugins, see below for details. By default not plugins are enabled or disabled. | Yes |
-| dirsrv_dna_plugin | see below | Configuration for the DNA (Distributed Numeric Assignment) plugin. | Yes |
-| dirsrv_custom_schema | [] | Paths to custom schema files. They will be dropped into `/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema` and a schema reload will be request when anything chages. | Yes |
-| dirsrv_allow_other_schema_files | false | If false (default value), this role will add the specified schema files to `/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema`, then delete all other schema files there except `99user.ldif`. If your schema files are managed only by this role or dynamically (i.e. from `cn=schema`, which writes to `99user.ldif`), you can leave this variable to its default of false. If you have more schema files in that directory (added manually or by other tasks), set this to true to leave them there. The downside is that if you deploy e.g. `50example.ldif`, then you rename it to `50my_example.ldif`, when the role runs again it considers it a new file and leaves the previous one there, wreaking havoc on your directory. | Yes |
-dirsrv_tls_enabled | false | Enable TLS (LDAPS and StartTTLS). All "dirsrv_tls" only take effect if this is enabled. | Yes |
-dirsrv_tls_min_version | '1.2' | Minimum TLS version: 1.0, 1.1 or 1.2. Possibly even 1.3, when support is added to 389DS. SSLv2 and SSLv3 are always disabled by this role. | Yes |
-dirsrv_tls_certificate_trusted | true | The server certificate is publicly trusted. Set to false if it's self-signed or from a private CA. | Yes |
-dirsrv_tls_enforced | false | Enforce TLS by requiring secure binds and minimum SSF | Yes |
-dirsrv_tls_minssf | 256 | Minimum SSF, used only when dirsrv_tls_enforced is true. 128 seems reasonable, 256 should be very secure. Set this to 0 to enforce TLS only with secure binds. | Yes |
-dirsrv_allow_anonymous_binds | 'rootdse' | Allow anonymous binds: boolean true for Yes, boolean false for No, or 'rootdse'. The Administration Guide suggests to use rootdse instead of No, because it allows anonymous binds to search some data that clients may require before doing a bind. Allowing anonymous binds basically makes your directory public, unless you restrict access with ACIs. | Yes |
-dirsrv_simple_auth_enabled | true | Enable SIMPLE authentication, probably true unless you want to use SASL PLAIN only or configure other methods manually. | Yes |
-dirsrv_sasl_enabled | false | Enable SASL authentication. | Yes |
-dirsrv_password_storage_scheme | [] | A single value, possibly the string "PBKDF2_SHA256". Or leave the default, which will delete any custom value and use 389DS default, which should be pretty secure. | Yes |
-dirsrv_ldapi_enabled | false | Enable LDAPI (connect to the server via a UNIX socket at `ldapi:///var/run/slapd-{{ dirsrv_serverid }}.socket`). Note that this is subject to TLS enforcing and TLS is not supported, so it's useless if you set dirsrv_tls_enforced to true. | Yes |
-dirsrv_sasl_plain_enabled | true | Enable SASL PLAIN authentication: if a client tries to authenticate without TLS and TLS is enforced, this kind of authentication should stop it before it sends the plaintext password, while a SIMPLE bind will send the password and then fail because SSF is too low. | Yes |
+| Variable                        | Default              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Can be changed |
+|---------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| dirsrv_suffix                   | dc=example,dc=com    | Suffix of the DIT. All entries in the server will be placed under this suffix. Normally it's made from the domain components (*dc*) of your company main domain. E.g. if you're from example.co.uk and the server will be at ldap-server.example.co.uk, set the suffix to `dc=example,dc=co,dc=uk`, leaving out the subdomain part (`ldap-server`) since it's irrelevant.                                                                                                                                                                                                                                                                                                                                                          | **No**         |
+| dirsrv_rootdn                   | cn=Directory Manager | Root DN, or "administrator" account username. Bind with this DN to bypass all authorization controls.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | **No**         |
+| dirsrv_rootdn_password          |                      | Password for root DN, you *must* define this variable or the role will fail.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | **No**         |
+| dirsrv_fqdn                     | {{ansible_nodename}} | Server FQDN, e.g. `ldap.example.com`. If the server hostname is already an FQDN, the default should pick it up.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | **No**         |
+| dirsrv_serverid                 | default              | Server ID or instance ID. All the data related to the instance configured by this role will end up in /etc/dirsrv/slapd-*default*, /var/log/dirsrv/slapd-*default*, etc... You could use your company name, e.g. for Foo Bar, Inc set the variable to `foobar` and the directories will be named slapd-foobar.                                                                                                                                                                                                                                                                                                                                                                                                                     | ¹              |
+| dirsrv_install_examples         | false                | Create example entries under the suffix during installation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | **No**         |
+| dirsrv_install_additional_ldif  | []                   | Install these additional LDIF files, by default none (empty array). This corresponds to the `InstallLdifFile` directive in the inf installation file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | **No**         |
+| dirsrv_logging                  | see below            | see below                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Yes            |
+| dirsrv_plugins_enabled          | {}                   | Enable or disable plugins, see below for details. By default not plugins are enabled or disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Yes            |
+| dirsrv_dna_plugin               | see below            | Configuration for the DNA (Distributed Numeric Assignment) plugin.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Yes            |
+| dirsrv_custom_schema            | []                   | Paths to custom schema files. They will be dropped into `/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema` and a schema reload will be request when anything chages.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Yes            |
+| dirsrv_allow_other_schema_files | false                | If false (default value), this role will add the specified schema files to `/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema`, then delete all other schema files there except `99user.ldif`. If your schema files are managed only by this role or dynamically (i.e. from `cn=schema`, which writes to `99user.ldif`), you can leave this variable to its default of false. If you have more schema files in that directory (added manually or by other tasks), set this to true to leave them there. The downside is that if you deploy e.g. `50example.ldif`, then you rename it to `50my_example.ldif`, when the role runs again it considers it a new file and leaves the previous one there, wreaking havoc on your directory. | Yes            |
+| dirsrv_tls_enabled              | false                | Enable TLS (LDAPS and StartTTLS). All "dirsrv_tls" only take effect if this is enabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Yes            |
+| dirsrv_tls_min_version          | '1.2'                | Minimum TLS version: 1.0, 1.1 or 1.2. Possibly even 1.3, when support is added to 389DS. SSLv2 and SSLv3 are always disabled by this role.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Yes            |
+| dirsrv_tls_certificate_trusted  | true                 | The server certificate is publicly trusted. Set to false if it's self-signed or from a private CA.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Yes            |
+| dirsrv_tls_enforced             | false                | Enforce TLS by requiring secure binds and minimum SSF                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Yes            |
+| dirsrv_tls_minssf               | 256                  | Minimum SSF, used only when dirsrv_tls_enforced is true. 128 seems reasonable, 256 should be very secure. Set this to 0 to enforce TLS only with secure binds.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Yes            |
+| dirsrv_allow_anonymous_binds    | 'rootdse'            | Allow anonymous binds: boolean true for Yes, boolean false for No, or 'rootdse'. The Administration Guide suggests to use rootdse instead of No, because it allows anonymous binds to search some data that clients may require before doing a bind. Allowing anonymous binds basically makes your directory public, unless you restrict access with ACIs.                                                                                                                                                                                                                                                                                                                                                                         | Yes            |
+| dirsrv_simple_auth_enabled      | true                 | Enable SIMPLE authentication, probably true unless you want to use SASL PLAIN only or configure other methods manually.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Yes            |
+| dirsrv_sasl_enabled             | false                | Enable SASL authentication.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Yes            |
+| dirsrv_password_storage_scheme  | []                   | A single value, possibly the string "PBKDF2_SHA256". Or leave the default, which will delete any custom value and use 389DS default, which should be pretty secure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Yes            |
+| dirsrv_ldapi_enabled            | false                | Enable LDAPI (connect to the server via a UNIX socket at `ldapi:///var/run/slapd-{{ dirsrv_serverid }}.socket`). Note that this is subject to TLS enforcing and TLS is not supported, so it's useless if you set dirsrv_tls_enforced to true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Yes            |
+| dirsrv_sasl_plain_enabled       | true                 | Enable SASL PLAIN authentication: if a client tries to authenticate without TLS and TLS is enforced, this kind of authentication should stop it before it sends the plaintext password, while a SIMPLE bind will send the password and then fail because SSF is too low.                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Yes            |
 
-Some variables cannot be changed by this role (or at all) after creating an instance of 389DS. If one of them is changed and the role is applied again, undefined behaviour ranging from "nothing" to "the role fails" to "another instance is created" may happen. Some of them, e.g. the root DN password, can be changed manually: please refer to the [Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/index) for details.
+Some variables cannot be changed by this role (or at all) after creating an instance of 389DS. If one of them is changed and the role is applied again, undefined behaviour ranging from "nothing" to "the role fails" may happen. Some of them, e.g. the root DN password, can be changed manually: please refer to the [Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/index) for details.
 
-All variables are prefixed with dirsrv because starting a variable with a number ("389ds") doesn't work, usually.
+All variables are prefixed with dirsrv because starting a variable name with a number ("389ds") doesn't work that well.
+
+¹ Changing this variable from a previous run will lead to the creation of another instance, another directory completely separated from the previous one. This should work, but it hasn't been tested at all.
 
 ### dirsrv_logging
 
@@ -135,126 +142,119 @@ None.
 
 ## Usage and Examples
 
-This section still needs to be reviewed...
-
-### Configure a single 389-server on the targed machine(s):
-If variables are not set in the yaml file, default values will be used.
-
-For a base install only two variables must be specified since they have no
-defaults: `suffix` and `rootdn_password`. The server will start on port 389,
-with root DN `cn=Directory Manager`.
+### Minimum working example
 
 ```yaml
-- hosts: all
-	become: true
-	roles:
-		- {
-			role: 389ds-server,
-			suffix: "dc=example,dc=local",
-			rootdn_password: secret
-		}
+- name: An example playbook
+  hosts: example
+  roles:
+    -
+      role: 389ds-server
+      dirsrv_rootdn_password: secret
 ```
 
-Variables can also be passed via CLI:
+Bind with DN `cn=Directory Manager` and password `secret` on port 389, the suffix will be `dc=example,dc=local`, everything else is mostly like a clean 389DS install.
 
-```
-ansible-playbook -e 'password:secret' ldap.yaml
-```
+Ansible Vault would be a good idea to avoid exposing the root DN password as plaintext in production.
 
 ### Configure firewall
 
-Not part of this role, but still quite easy:
+Not part of this role, but you may need to open the LDAP port (389) to access the server remotely:
 
 ```yaml
 - name: Allow ldap port on firewalld
   firewalld: service=ldap permanent=true state=enabled
 ```
 
-### Configuring single replication master
+The same may be needed for the LDAPS port (636), if you enable TLS and want to use that instead of StartTLS.
+
+### Example entries and some customization
+
 ```yaml
----
-- hosts: ldapserver1
+- name: An example playbook
+  hosts: example
   roles:
-     - { role: 389ds-server, rwmaster: true, replica_host: ldap96.example.com }
+    -
+      role: 389ds-server
+      dirsrv_suffix: dc=custom,dc=example,dc=com
+      dirsrv_rootdn: cn=admin
+      dirsrv_rootdn_password: secret
+      dirsrv_serverid: customized
+      dirsrv_install_examples: true
+      dirsrv_logging:
+        audit:
+          enabled: true
+          logrotationtimeunit: day
+          logmaxdiskspace: 400
+          maxlogsize: 200
+          maxlogsperdir: 14
+          mode: 600
+        access:
+          enabled: true
+          logrotationtimeunit: day
+          logmaxdiskspace: 400
+          maxlogsize: 200
+          maxlogsperdir: 14
+          mode: 600
+        error:
+          enabled: true
+          logrotationtimeunit: day
+          logmaxdiskspace: 400
+          maxlogsize: 200
+          maxlogsperdir: 14
+          mode: 600
+      plugins_enabled:
+        MemberOf Plugin: true
+      custom_schema:
+        - "50example.ldif"
+        - "60foobar.ldif"
 ```
-It is assumed that replica hostname is known before configuring rwmaster.
 
-### Configuring master->slave replications
+Bind with DN `cn=admin` and password `secret` on port 389, look at the example entries provided by 389DS.
+
+Audit logs are also enabled, and all logs are kept for 14 days (or until they become too large).
+
+MemberOf Plugin is also enabled.
+
+Look into the `molecule` directory for a custom schema file that is known to work with 389DS, if you want to test that part but you don't have a valid schema file. Delete that part to remove all custom schema files. Schema reload is done automatically.
+
+### TLS
+
 ```yaml
----
-- hosts: ldapserver2
+- name: An example playbook
+  hosts: example
   roles:
-     - { role: 389ds-server, roreplica: true }
-
-- hosts: ldapserver1
-  roles:
-     - { role: 389ds-server, rwmaster: true, replica_host: ldap96.example.com }
-```
-Note! it is important to configure roreplica before rwmaster.
-If the order is wrong you can fix the problem by re-runing the syncronization process as shown below:
-- connect to rwmaster (master LDAP server)
-- Find agreement information in LDAP server configuration:
-```
-$ ldapsearch -x -D cn=root -wAdmin123 -b cn=config objectClass=nsds5replicationagreement'
-```
-you will have something like:
-```
-# ExampleAgreement, replica, dc\3Dexample\2Cdc\3Dcom, mapping tree, con
- fig
-dn: cn=ExampleAgreement,cn=replica,cn=dc\3Dexample\2Cdc\3Dcom,cn=mappi
- ng tree,cn=config
-objectClass: top
-objectClass: nsds5replicationagreement
-cn: ExampleAgreement
-nsDS5ReplicaHost: ldap96.example.com
-nsDS5ReplicaPort: 389
-nsDS5ReplicaBindDN: cn=replmanager,cn=config
-nsDS5ReplicaBindMethod: SIMPLE
-nsDS5ReplicaRoot: dc=example,dc=com
-description: Agreement between ldap95.example.com and ldap96.example.com
-nsDS5ReplicaUpdateSchedule: 0001-2359 0123456
-nsDS5ReplicatedAttributeList: (objectclass=*) $ EXCLUDE authorityRevocationLis
- t
-nsDS5ReplicaCredentials: {AES-TUhNR0NTcUdTSWIzRFFFRkRUQm1NRVVHQ1NxR1NJYjNEUUVG
- RERBNEJDUmhOR0kyWlRBMU9TMWpPRE5qTXpCaA0KTmkxaFptTXdNbU13TnkwellUQXpNRFZpTVFBQ
- 0FRSUNBU0F3Q2dZSUtvWklodmNOQWdjd0hRWUpZSVpJQVdVRA0KQkFFcUJCQllKMUZ5cVNUK25YSU
- tVRXVuR3FKbA==}bSvopZmv0sFDa11fJ03dKQ==
-nsds5replicareapactive: 0
-nsds5replicaLastUpdateStart: 19700101000000Z
-nsds5replicaLastUpdateEnd: 19700101000000Z
-nsds5replicaChangesSentSinceStartup:
-nsds5replicaLastUpdateStatus: 402 Replication error acquiring replica: unknown
-  error - Replica has different database generation ID, remote replica may nee
- d to be initialized
-nsds5replicaUpdateInProgress: FALSE
-nsds5replicaLastInitStart: 20160802124732Z
-nsds5replicaLastInitEnd: 19700101000000Z
-nsds5replicaLastInitStatus: -1  - LDAP error: Can't contact LDAP server
-```
-- Re-Start Sync proccess by
-```
-$ ldapmodify -D cn=root -w YOUR_PASSWORD
-dn: cn=ExampleAgreement,cn=replica,cn="dc=example,dc=com",cn=mapping tree,cn=config
-changetype: modify
-replace: nsds5BeginReplicaRefresh
-nsds5BeginReplicaRefresh: start
-<CTRL + D>
+    -
+      role: 389ds-server
+      dirsrv_suffix: "dc=example,dc=local"
+      dirsrv_serverid: example
+      dirsrv_rootdn_password: secret
+      dirsrv_tls_enabled: true
+      dirsrv_tls_cert_file: example_cert.pem
+      dirsrv_tls_key_file: example.key
+      dirsrv_tls_files_remote: false # True if the files are already on remote host (e.g. provided by certbot)
+      dirsrv_tls_certificate_trusted: true # Or false if self-signed
+      # If you want to avoid plain LDAP and enforce TLS, also consider these settings:
+      dirsrv_tls_enforced: true
+      dirsrv_tls_minssf: 256
+      # Nothing to do with TLS, but for improved security you may consider:
+      dirsrv_password_storage_scheme: "PBKDF2_SHA256"
+      # even though the default password storage scheme is already strong enough.
 ```
 
-### Configuring multi-slaves
-```yaml
----
+[Here](https://github.com/WEEE-Open/sso/tree/master/ca) you can find a script to generate self-signed certificates that have been repeatedly tested with 389DS. Or look into the `molecule` directory for an example certificate and key that is used for role testing.
 
-- hosts: ldapslaves
-  roles:
-     - { role: 389ds-server, roreplica: true }
+389DS is restarted automatically when needed to apply configuration.
 
-- hosts: ldapmaster
-  roles:
-     - { role: 389ds-server, rwmaster: true, replica_host: ldap96.example.com, agreement_name: agreement1 }
-     - { role: 389ds-server, rwmaster: true, replica_host: ldap97.example.com, agreement_name: agreement2, skip_config: true }
-     - { role: 389ds-server, rwmaster: true, replica_host: ldap98.example.com, agreement_name: agreement3, skip_config: true}
-```
+Both LDAPS (port 636) and StartTLS (port 389) are enabled.
+
+If you get tired of having a secure connection, set `dirsrv_tls_enabled: false` but the certificate will stay in 389DS NSS database. It can be removed manually.
+
+Certificate rollover (replacing certificate and key with a new one, e.g. because old ones are expired) has been tested a few times and seems to work, but the process is still very complicated and full of hacks and workarounds. If you want to use this in production, it is advisable that you read the relevant parts of [section 9.3 of the Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/managing_the_nss_database_used_by_directory_server) and the comments in `tasks/configure_tls.yml` to understand what's the rationale for all those tasks.
+
+### What about replication?
+
+There's [another role](https://github.com/lvps/389ds-replication) for that.
 
 ## Tests
 
@@ -266,12 +266,14 @@ pipenv shell
 molecule test --all
 ```
 
-## TODO
+Or to test a single scenario: `molecule test -s tls`
+
+## Future extensions
 
 ### Probably will be done
 - Support for CentOS 8 when it comes out
 
-### Could be done not planned for the short term
+### Could be done, but not planned for the short term
 - Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
 - Support for other plugins that need more than enabled/disabled
 - Support for other DNA attributes
@@ -282,6 +284,7 @@ Apache 2.0
 
 ## Author Information
 
-Modified by: lvps  
-Modified by: Colby Prior  
-Original author: Artemii Kropachev
+Maintainer: Ludovico Pavesi  
+Contributor/original author: Colby Prior  
+Contributor/original author: Artemii Kropachev  
+Thanks to Firstyear for the [comments](https://github.com/colbyprior/389-ldap-server/pull/1)
