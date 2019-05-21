@@ -1,8 +1,13 @@
 # 389ds-server
 
 [![Build Status](https://travis-ci.com/lvps/389ds-server.svg?branch=master)](https://travis-ci.com/lvps/389ds-server)
+[![Ansible Galaxy](https://img.shields.io/ansible/role/40529.svg)](https://galaxy.ansible.com/lvps/389ds-server)
 
 This role installs the 389DS server (LDAP server) on the target machine(s).
+
+```shell
+ansible-galaxy install lvps.389ds_server
+```
 
 ## Features
 
@@ -147,7 +152,7 @@ None.
   hosts: example
   roles:
     -
-      role: 389ds-server
+      role: lvps.389ds_server
       dirsrv_rootdn_password: secret
 ```
 
@@ -173,7 +178,7 @@ The same may be needed for the LDAPS port (636), if you enable TLS and want to u
   hosts: example
   roles:
     -
-      role: 389ds-server
+      role: lvps.389ds_server
       dirsrv_suffix: dc=custom,dc=example,dc=com
       dirsrv_rootdn: cn=admin
       dirsrv_rootdn_password: secret
@@ -223,7 +228,7 @@ Look into the `molecule` directory for a custom schema file that is known to wor
   hosts: example
   roles:
     -
-      role: 389ds-server
+      role: lvps.389ds_server
       dirsrv_suffix: "dc=example,dc=local"
       dirsrv_serverid: example
       dirsrv_rootdn_password: secret
