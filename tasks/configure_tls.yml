@@ -138,6 +138,7 @@
         -K ''
         -W ''
       when: dirsrv_nss_key_count_too_many
+      notify: dirsrv restart
 
       # I *think* this may be needed for self-signed certificates, but not entirely sure...
       # - name: Set certificate parameters
