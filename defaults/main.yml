@@ -78,7 +78,6 @@ dirsrv_tls_enforced: false
 dirsrv_tls_minssf: 256
 dirsrv_allow_anonymous_binds: 'rootdse'
 dirsrv_simple_auth_enabled: true
-dirsrv_sasl_enabled: false
 dirsrv_password_storage_scheme: []
 
 # It's already off by default
