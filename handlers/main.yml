@@ -6,7 +6,11 @@
 
 - name: dirsrv schema reload
   ldap_entry:
-    params: "{{ dirsrv_ldap_auth }}"
+    # This runs after dirsrv restart, if a restart is needed,
+    # so TLS status enforcing may have changed.
+    # Restarting the server also reloads the schema, but I see no easy way to
+    # avoid this task if the other handler has been executed...
+    params: "{{ dirsrv_ldap_auth_later }}"
     dn: "cn=ansible-managed schema reload,cn=schema reload task,cn=tasks,cn=config"
     objectClass:
       - extensibleObject
