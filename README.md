@@ -254,6 +254,134 @@ If you get tired of having a secure connection, set `dirsrv_tls_enabled: false` 
 
 Certificate rollover (replacing certificate and key with a new one, e.g. because old ones are expired) has been tested a few times and seems to work, but the process is still very complicated and full of hacks and workarounds. If you want to use this in production, it is advisable that you read the relevant parts of [section 9.3 of the Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/managing_the_nss_database_used_by_directory_server) and the comments in `tasks/configure_tls.yml` to understand what's the rationale for all those tasks.
 
+### TLS with Let's Encrypt (or other ACME providers)
+
+The key point is that you need to feed the "fullchain" (server certificate and all intermediate ones, no root certificate) into the 389ds-server role.
+Since I couldn't find many other examples on the http-01 challenge with `acme_certificate` I've added it here to give you a better idea of all the necessary steps.
+
+```yaml
+- name: An example playbook
+  hosts: example
+  pre_tasks:
+    - name: Ensure ACME account exists
+      acme_account:
+        # acme_directory: "http://..."  # Your provider. Leave this off to use the Let's Encrypt staging directory
+        account_key_content: "{{ acme_account_key }}"  # "openssl genrsa 2048" to generate it, but read https://docs.ansible.com/ansible/latest/modules/acme_account_module.html for more up to date information
+        acme_version: 2
+        state: present
+        terms_agreed: true
+        contact:
+          - mailto:example@example.com
+
+    # You need a CSR (certificate signing request). And a private key.
+    # Do *not* reuse the account key, make a new one!
+    # Generate them:
+    #
+    # openssl genrsa 2048 -out example.key
+    # openssl req -new -key example.key -out example.csr -subj "/C=/ST=/L=/O=/OU=/CN=your.domain.example.com"
+    #
+    # Only the domain is important. Both example.key and your account key should be kept secret,
+    # you could place them into Ansible Vault and use a template to create example.key from the variable.
+    - name: Copy CSR and private key
+      copy:
+        src: "{{ item }}"
+        dest: "/etc/some/secret/directory"
+        owner: root
+        group: root
+        mode: "400"  # The csr could be world-readable, actually, it's not secret
+        setype: cert_t
+      loop:
+        - "path/to/your/example.csr"
+        - "path/to/your/example.key"
+
+    - name: Create challenge
+      acme_certificate:
+        acme_directory: "http://..."
+        account_key_content: "{{ acme_account_key }}"
+        acme_version: 2
+        challenge: "http-01"
+        # You'll need the full chain (which contains your certificate and all
+        # intermediate ones, but no root certificate). This will be fed into
+        # NSS/389DS, which should hopefully serve all of them. At least, in my
+        # tests it did and it was recognized as valid and trusted by clients.
+        fullchain: "/etc/some/secret/directory/example.fullchain.pem"
+        csr: "/etc/some/secret/directory/example.csr"
+        # remaining_days: 10
+      register: acme_challenge
+
+    # You need an HTTP server running. Imagine there is a NGINX instance that
+    # serves pages on example.com from /var/www/html/example.com
+    # If you find that an always running HTTP server is annoying, "when: acme_challenge is changed"
+    # can be used to start it for the challenge and stop it at the end...
+    #
+    # You will also need a few directories, or the next task fails because they
+    # don't exist...
+    - name: Create HTTP directories for ACME http-01 challenge
+      file:
+        name: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        # These should not be secret (they're accessible from the Internet),
+        # just don't make them writeable by anyone
+        mode: "755"
+        setype: httpd_sys_content_t  # read-only
+      loop:
+        - "/var/www/html/example.com"
+        - "/var/www/html/example.com/.well-known"
+        - "/var/www/html/example.com/.well-known/acme-challenge"
+
+    - name: Fulfill the http-01 challenge
+      copy:
+        dest: "/var/www/html/example.com/{{ acme_challenge['challenge_data']['example.com']['http-01']['resource'] }}"
+        content: "{{ acme_challenge['challenge_data']['example.com']['http-01']['resource_value'] }}"
+      when: acme_challenge is changed
+
+    # Same as the previous acme_certificate task, just add "data"
+    - name: Do challenge
+      acme_certificate:
+        acme_directory: "http://..."
+        account_key_content: "{{ acme_account_key }}"
+        acme_version: 2
+        challenge: "http-01"
+        fullchain: "/etc/some/secret/directory/example.fullchain.pem"
+        csr: "/etc/some/secret/directory/example.csr"
+        data: "{{ acme_challenge }}"
+      when: acme_challenge is changed
+
+    # Not optimal (for a few moments before this happens the certificate has the
+    # wrong permissions)
+    # It may be possible to set this task to "state: touch" and place it before
+    # the previous one, though.
+    - name: Ensure permissions for example certificate
+      file:
+        state: file
+        path: "/etc/some/secret/directory/example.fullchain.pem"
+        owner: root
+        group: root
+        mode: "400"
+        setype: cert_t
+
+  # In this example I have used almost no variables for greater clarity
+  # (i.e. you see what these strings should look like, instead of an arbitrary
+  # name that I invented), but in a real playbook it may be better to use
+  # some variables.
+
+  roles:
+    - role: lvps.389ds_server
+      dirsrv_suffix: "dc=example,dc=local"
+      dirsrv_serverid: example
+      dirsrv_rootdn_password: secret
+      dirsrv_tls_enabled: true
+      dirsrv_tls_cert_file: /etc/some/secret/directory/example.fullchain.pem
+      dirsrv_tls_key_file: /etc/some/secret/directory/example.key
+      dirsrv_tls_files_remote: true  # Both files are on the server
+      dirsrv_tls_certificate_trusted: true  # No need to disable certificate checks, yay!
+```
+
+Since certificate rollovers are supported by this role, you just need to run this
+playbook periodically to update the certificate when it is about to expire.
+
 ### What about replication?
 
 There's [another role](https://github.com/lvps/389ds-replication) for that.
