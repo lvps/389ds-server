@@ -56,31 +56,38 @@
       when: dirsrv_tls_key_file is defined
       changed_when: false
 
-    - name: Install pyOpenSSL for openssl_pkcs12 module
-      package:
-        name: pyOpenSSL
-        state: present
-
     # TODO: count certs before, count them after, if they increased but the grep thing still finds one, then pk12util chose another nickname. Throw an error and die. Or check pk12util output
 
-    - name: Create pkcs12
-      openssl_pkcs12:
-        action: export
+    # This avoids exposing to every user a file that contains the private key.
+    # openssl pkcs12 overwrites the content without changing permissions.
+    - name: Create pkcs12 empty file with correct permissions
+      file:
         path: "/tmp/server-cert-ansible-managed.p12"
-        # Mandatory parameter, but apparently a bug
-        # https://github.com/ansible/ansible/issues/46047
-        friendly_name: "server-cert-ansible-managed"
-        privatekey_path: "/tmp/server-cert-ansible-managed.key"
-        certificate_path: "/tmp/server-cert-ansible-managed.crt"
         setype: cert_t
-        state: present
+        state: touch
+        mode: '400'
       changed_when: false
+
+    # openssl_pkcs12 does not support certificate chains.
+    # Only the first certificate is considered.
+    # If the chain is manually broken up into pieces, it may be imported,
+    # but that's just too complicated to automate.
+    - name: Create pkcs12
+      command: >
+        openssl pkcs12
+        -export
+        -in "/tmp/server-cert-ansible-managed.crt"
+        -inkey "/tmp/server-cert-ansible-managed.key"
+        -name "server-cert-ansible-managed"
+        -out "/tmp/server-cert-ansible-managed.p12"
+        -nodes -passout pass:
+      changed_when: false
+      when: dirsrv_tls_cert_chain is defined
 
     - name: Add pkcs12 to NSS database
       command: >
         pk12util
         -i /tmp/server-cert-ansible-managed.p12
-        -n server-cert-ansible-managed
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
         -K ''
         -W ''
@@ -91,9 +98,6 @@
     # certificate is different. If they are identical, the operation
     # succeeds but there's only one certificate in the database so
     # it's all good.
-    # I still haven't figured out how to *actually* set the nickname,
-    # since it's neither the filename nor the friendly_name from the
-    # openssl_pkcs12 module.
     # Either way, we need to check the NSS database and remove the old
     # key/cert. Or at least we should, I don't know what happens if
     # 389DS finds such duplicate certificates.
