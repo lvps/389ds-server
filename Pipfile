@@ -6,7 +6,6 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-ansible = ">=2.7,<2.8"
 molecule = "*"
 docker = "*"
 
