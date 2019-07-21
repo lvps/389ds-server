@@ -138,6 +138,27 @@ Ansible doesn't merge dicts by default, i.e. if you want to change only uid_max 
 
 This configuration is only applied if "Distributed Numeric Assignment Plugin" is true in plugins_enabled, and is removed when it is false. If it's not mentioned, nothing is done.
 
+## Tags
+
+There are some tags available, so can launch e.g.:
+
+```shell
+ansible-playbook some-playbook.yml --tags dirsrv_schema
+```
+
+and this will only update custom schema files, without changing anything else.
+`some-playbook.yml` should apply this role, obviously.
+
+The tags are:
+
+- **dirsrv_schema**: custom schema tasks
+- **dirsrv_tls**: all TLS configuration tasks, including certificates and enforcing
+- **dirsrv_cert**: TLS certificate tasks, a subset of dirsrv_tls
+
+All the tags also include a few checks at the beginning of the play and a "flush handlers" at the end, since 389DS may need to be restarted or a schema reload may be required.
+
+`dirsrv_cert` is particularly useful for automated certificate management with ACME: see the "TLS with Let's Encrypt (or other ACME providers)" example below. If the same tag is added to all the ACME related tasks, it will be possible to run `ansible-playbook some-playbook.yml --tags dirsrv_cert` periodically and automatically to update certificates.
+
 ## Dependencies
 
 None.
@@ -150,8 +171,7 @@ None.
 - name: An example playbook
   hosts: example
   roles:
-    -
-      role: lvps.389ds_server
+    - role: lvps.389ds_server
       dirsrv_rootdn_password: secret
 ```
 
@@ -176,8 +196,7 @@ The same may be needed for the LDAPS port (636), if you enable TLS and want to u
 - name: An example playbook
   hosts: example
   roles:
-    -
-      role: lvps.389ds_server
+    - role: lvps.389ds_server
       dirsrv_suffix: dc=custom,dc=example,dc=com
       dirsrv_rootdn: cn=admin
       dirsrv_rootdn_password: secret
@@ -226,8 +245,7 @@ Look into the `molecule` directory for a custom schema file that is known to wor
 - name: An example playbook
   hosts: example
   roles:
-    -
-      role: lvps.389ds_server
+    - role: lvps.389ds_server
       dirsrv_suffix: "dc=example,dc=local"
       dirsrv_serverid: example
       dirsrv_rootdn_password: secret
