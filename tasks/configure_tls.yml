@@ -8,6 +8,7 @@
       - "(dirsrv_tls_key is defined) != (dirsrv_tls_key_file is defined)"  # This is a XOR
     msg: "only one of dirsrv_tls_key or dirsrv_tls_key_file must be defined"
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_cert, dirsrv_tls ]
 
 - name: Check that tls_cert[_file] is defined
   assert:
@@ -15,6 +16,7 @@
       - "(dirsrv_tls_cert is defined) != (dirsrv_tls_cert_file is defined)"  # This is a XOR, again
     msg: "only one of dirsrv_tls_cert or dirsrv_tls_cert_file must be defined"
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_cert, dirsrv_tls ]
 
 - block:
     - name: Copy cert (from variable)
@@ -67,6 +69,11 @@
         state: touch
         mode: '400'
       changed_when: false
+
+    - name: Install openssl to create the pkcs12 file
+      package:
+        name: openssl
+        state: present
 
     # openssl_pkcs12 does not support certificate chains.
     # Only the first certificate is considered.
@@ -182,6 +189,7 @@
       # --- end CA certificates stuff -----------------------------------
 
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_cert, dirsrv_tls ]
   always:
     - name: Remove temporary files
       file:
@@ -199,6 +207,7 @@
     dn: "cn=RSA,cn=encryption,cn=config"
     state: absent
   when: not dirsrv_tls_enabled
+  tags: [ dirsrv_tls ]
   notify: dirsrv restart
 
 - name: Create RSA configuration for TLS (if enabled)
@@ -210,6 +219,7 @@
       - nsEncryptionModule
     state: present
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_tls ]
   notify: dirsrv restart
 
 - name: Configure RSA parameters
@@ -225,6 +235,7 @@
     - { name: "nsSSLPersonalitySSL", value: "server-cert-ansible-managed" }
     - { name: "nsSSLActivation", value: "on" }
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_tls ]
   notify: dirsrv restart
 
 # Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
@@ -239,6 +250,7 @@
     name: "nsslapd-security"
     values: "{{ 'on' if dirsrv_tls_enabled else 'off' }}"
     state: exact
+  tags: [ dirsrv_tls ]
 
 # Doesn't work:
 # - name: Disable TLS-only port (636)
@@ -262,6 +274,7 @@
     - { name: "sslVersionMin", value: "TLS{{ dirsrv_tls_min_version }}" }
   notify: dirsrv restart
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_tls ]
 
 # TODO: support it?
 - name: Disable TLS client authentication
@@ -271,6 +284,8 @@
     name: "nsSSLClientAuth"
     values: "off"
     state: exact
+  when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_tls ]
 
 - name: Configure anonymous binds
   ldap_attr:
@@ -286,3 +301,4 @@
   # This defaults to "off" and it's better left alone
   # - { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_tls ]

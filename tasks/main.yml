@@ -12,12 +12,14 @@
       - dirsrv_tls_enabled
     msg: "dirsrv_tls_enforced: true doesn't make sense when dirsrv_tls_enabled: false, enable TLS or disable enforcing"
   when: dirsrv_tls_enforced | bool
+  tags: [ dirsrv_tls ]
 
 - name: Check if TLS is enforced (secure binds)
   command: "grep \"nsslapd-require-secure-binds: on\" /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif"
   register: dirsrv_tls_enforced_initially_binds
   changed_when: false
   failed_when: dirsrv_tls_enforced_initially_binds.rc != 0 and dirsrv_tls_enforced_initially_binds.rc != 1
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
 
 # If nsslapd-minssf isn't set at all, it defaults to 0.
 # So we have to check if it's defined...
@@ -26,6 +28,7 @@
   register: dirsrv_tls_enforced_initially_ssf_set
   changed_when: false
   failed_when: dirsrv_tls_enforced_initially_ssf_set.rc != 0 and dirsrv_tls_enforced_initially_ssf_set.rc != 1
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
 
 # ...and if it's 0 or something else.
 - name: Check if TLS is enforced (minimum SSF)
@@ -33,8 +36,10 @@
   register: dirsrv_tls_enforced_initially_ssf
   changed_when: false
   failed_when: dirsrv_tls_enforced_initially_ssf.rc != 0 and dirsrv_tls_enforced_initially_ssf.rc != 1
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
 
 - name: Prepare LDAP auth data
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
   set_fact:
     dirsrv_ldap_auth:
       server_uri: "ldap://localhost"
@@ -72,3 +77,4 @@
 
 # Restart server and/or reload schema, to enable TLS and schema changes.
 - meta: flush_handlers
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]

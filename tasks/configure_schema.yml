@@ -8,6 +8,7 @@
     owner: dirsrv
     group: dirsrv
   loop: "{{ dirsrv_custom_schema }}"
+  tags: [ dirsrv_schema ]
   notify: dirsrv schema reload
 
 - name: Search other schema files
@@ -17,6 +18,7 @@
     # https://stackoverflow.com/a/53758369
     excludes: "{{ dirsrv_custom_schema | map('basename') | list + ['99user.ldif'] }}"
   register: dirsrv_found_files
+  tags: [ dirsrv_schema ]
 
 - name: Delete other schema files
   file:
@@ -24,4 +26,5 @@
     state: absent
   loop: "{{ dirsrv_found_files['files'] }}"
   notify: dirsrv schema reload
+  tags: [ dirsrv_schema ]
   when: not dirsrv_allow_other_schema_files
