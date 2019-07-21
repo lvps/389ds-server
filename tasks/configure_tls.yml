@@ -82,7 +82,6 @@
         -out "/tmp/server-cert-ansible-managed.p12"
         -nodes -passout pass:
       changed_when: false
-      when: dirsrv_tls_cert_chain is defined
 
     - name: Add pkcs12 to NSS database
       command: >
