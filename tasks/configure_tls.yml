@@ -111,7 +111,7 @@
     # Let's start by counting what we have there
     - name: Count Ansible managed keys in NSS database
       shell: >
-        certutil -K
+        certutil -L
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
         |
         grep

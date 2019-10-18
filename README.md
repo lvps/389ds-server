@@ -270,7 +270,7 @@ Both LDAPS (port 636) and StartTLS (port 389) are enabled.
 
 If you get tired of having a secure connection, set `dirsrv_tls_enabled: false` but the certificate will stay in 389DS NSS database. It can be removed manually.
 
-Certificate rollover (replacing certificate and key with a new one, e.g. because old ones are expired) has been tested a few times and seems to work, but the process is still very complicated and full of hacks and workarounds. If you want to use this in production, it is advisable that you read the relevant parts of [section 9.3 of the Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/managing_the_nss_database_used_by_directory_server) and the comments in `tasks/configure_tls.yml` to understand what's the rationale for all those tasks.
+Certificate rollover (replacing certificate and key with a new one, e.g. because old ones are expired) has been tested a few times and seems to work with self signed and Let's Encrypt certificates, but the process is still very complicated and full of hacks and workarounds. If you want to use this in production, it is advisable that you read the relevant parts of [section 9.3 of the Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/managing_the_nss_database_used_by_directory_server) and the comments in `tasks/configure_tls.yml` to understand what's happening and why.
 
 ### TLS with Let's Encrypt (or other ACME providers)
 
@@ -320,8 +320,7 @@ Since I couldn't find many other examples on the http-01 challenge with `acme_ce
         challenge: "http-01"
         # You'll need the full chain (which contains your certificate and all
         # intermediate ones, but no root certificate). This will be fed into
-        # NSS/389DS, which should hopefully serve all of them. At least, in my
-        # tests it did and it was recognized as valid and trusted by clients.
+        # NSS/389DS, which should serve all of them.
         fullchain: "/etc/some/secret/directory/example.fullchain.pem"
         csr: "/etc/some/secret/directory/example.csr"
         # remaining_days: 10
@@ -419,7 +418,7 @@ Or to test a single scenario: `molecule test -s tls`
 ## Future extensions
 
 ### Probably will be done
-- Support for CentOS 8 when it comes out
+- Support for CentOS 8
 
 ### Could be done, but not planned for the short term
 - Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
