@@ -63,6 +63,16 @@
       bind_dn: "{{ dirsrv_rootdn }}"
       bind_pw: "{{ dirsrv_rootdn_password }}"
 
+- name: Configure listen address
+  ldap_attr:
+    params: "{{ dirsrv_ldap_auth }}"
+    dn: "cn=config"
+    name: "nsslapd-listenhost"
+    values: "{{ dirsrv_listen_host }}"
+    state: exact
+  notify: dirsrv restart
+  when: dirsrv_listen_host != None
+
 - include: configure_authentication.yml
 
 - include: configure_logging.yml

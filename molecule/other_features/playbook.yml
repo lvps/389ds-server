@@ -9,6 +9,7 @@
       dirsrv_password_storage_scheme: "PBKDF2_SHA256"
       dirsrv_serverid: test
       dirsrv_rootdn_password: secret
+      dirsrv_listen_host: 0.0.0.0
       dirsrv_tls_enabled: false
       dirsrv_install_examples: true
       dirsrv_ldapi_enabled: true

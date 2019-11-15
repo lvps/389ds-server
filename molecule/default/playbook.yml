@@ -8,4 +8,5 @@
       dirsrv_suffix: "dc=example,dc=local"
       dirsrv_serverid: test
       dirsrv_rootdn_password: secret
+      dirsrv_listen_host: 0.0.0.0
       dirsrv_tls_enabled: false
