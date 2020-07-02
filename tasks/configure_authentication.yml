@@ -18,7 +18,8 @@
 
     - name: Configure LDAPI
       ldap_attr:
-        params: "{{ dirsrv_ldap_auth }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
         name: "{{ item.name }}"
         values: "{{ item.value }}"
@@ -29,7 +30,7 @@
   rescue:
     - name: Configure LDAPI over LDAPI
       ldap_attr:
-        server_uri: "ldapi:///var/run/slapd-{{ dirsrv_serverid }}.socket"
+        server_uri: "ldapi:///var/run/dirsrv/slapd-{{ dirsrv_serverid }}.socket"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
@@ -44,7 +45,10 @@
 - block:
     - name: Configure SASL
       ldap_attr:
-        params: "{{ dirsrv_ldap_auth }}"
+        server_uri: "ldap://localhost"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
         name: "nsslapd-allowed-sasl-mechanisms"
         values: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
@@ -64,7 +68,10 @@
 - block:
     - name: Configure password storage scheme
       ldap_attr:
-        params: "{{ dirsrv_ldap_auth }}"
+        server_uri: "ldap://localhost"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
         name: "passwordStorageScheme"
         values: "{{ dirsrv_password_storage_scheme }}"
