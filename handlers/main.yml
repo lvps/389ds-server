@@ -10,7 +10,11 @@
     # so TLS status enforcing may have changed.
     # Restarting the server also reloads the schema, but I see no easy way to
     # avoid this task if the other handler has been executed...
-    params: "{{ dirsrv_ldap_auth_later }}"
+    server_uri: "ldap://localhost"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_tls_enforced }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=ansible-managed schema reload,cn=schema reload task,cn=tasks,cn=config"
     objectClass:
       - extensibleObject
