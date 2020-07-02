@@ -7,6 +7,8 @@ dirsrv_rootdn: cn=Directory Manager
 # dirsrv_rootdn_password: secret
 dirsrv_fqdn: "{{ ansible_nodename }}"
 dirsrv_serverid: default
+# The tasks run on the same server as 389DS, so this will be localhost in most cases
+dirsrv_server_uri: "ldap://localhost"
 
 dirsrv_install_examples: false
 dirsrv_install_additional_ldif: []
@@ -73,7 +75,7 @@ dirsrv_allow_other_schema_files: false
 
 dirsrv_tls_enabled: false
 dirsrv_tls_min_version: '1.2'
-dirsrv_tls_certificate_trusted: true
+dirsrv_tls_certificate_trusted: true  # As in, "publicly trusted because it's signed by a public and recognized CA"
 dirsrv_tls_enforced: false
 dirsrv_tls_minssf: 256
 dirsrv_allow_anonymous_binds: 'rootdse'

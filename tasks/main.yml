@@ -41,38 +41,23 @@
 - name: Prepare LDAP auth data
   tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
   set_fact:
-    dirsrv_ldap_auth:
-      server_uri: "ldap://localhost"
-      validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-      # LDAPI or binding port 389 without STARTTLS will fail, if TLS
-      # is enforced. But we can't bind on port 636 or use STARTTLS
-      # without checking: when the server has been just installed, no
-      # certificates and no TLS are available.
-      # The condition checks "secure-binds is on (found) OR minssf is not 0 (is set and is not 0)"
-      start_tls: "{{ dirsrv_tls_enforced_initially_binds.rc == 0 \
+    # LDAPI or binding port 389 without STARTTLS will fail, if TLS
+    # is enforced. But we can't bind on port 636 or use STARTTLS
+    # without checking: when the server has been just installed, no
+    # certificates and no TLS are available.
+    # The condition checks "secure-binds is on (found) OR minssf is not 0 (is set and is not 0)"
+    dirsrv_starttls_early: "{{ dirsrv_tls_enforced_initially_binds.rc == 0 \
       or (dirsrv_tls_enforced_initially_ssf_set.rc == 0 and dirsrv_tls_enforced_initially_ssf.rc == 1) }}"
-      bind_dn: "{{ dirsrv_rootdn }}"
-      bind_pw: "{{ dirsrv_rootdn_password }}"
-    # Cannot override a single parameter, so if the TLS enforcing
-    # state changes during the play, we need another set of auth
-    # parameters just to switch a boolean...
-    dirsrv_ldap_auth_later:
-      server_uri: "ldap://localhost"
-      validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-      start_tls: "{{ dirsrv_tls_enforced }}"
-      bind_dn: "{{ dirsrv_rootdn }}"
-      bind_pw: "{{ dirsrv_rootdn_password }}"
 
 - name: Configure listen address
   ldap_attr:
-    start_tls: "{{ dirsrv_tls_enforced_initially_binds.rc == 0 \
-    or (dirsrv_tls_enforced_initially_ssf_set.rc == 0 and dirsrv_tls_enforced_initially_ssf.rc == 1) }}"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
     name: "nsslapd-listenhost"
-    server_uri: "ldap://localhost"
-    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     values: "{{ dirsrv_listen_host }}"
     state: exact
   notify: dirsrv restart

@@ -203,7 +203,9 @@
 
 - name: Remove RSA configuration for TLS (if disabled)
   ldap_entry:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=RSA,cn=encryption,cn=config"
@@ -214,7 +216,9 @@
 
 - name: Create RSA configuration for TLS (if enabled)
   ldap_entry:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=RSA,cn=encryption,cn=config"
@@ -228,7 +232,9 @@
 
 - name: Configure RSA parameters
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=RSA,cn=encryption,cn=config"
@@ -251,7 +257,9 @@
 # Also: for this reason, the order is relevant.
 - name: Configure TLS support
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
@@ -271,7 +279,9 @@
 
 - name: Configure TLS minimum version (disable SSL)
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=encryption,cn=config
@@ -289,7 +299,9 @@
 # TODO: support it?
 - name: Disable TLS client authentication
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=encryption,cn=config
@@ -301,7 +313,9 @@
 
 - name: Configure anonymous binds
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"

@@ -3,7 +3,9 @@
 # this excludes state=present and state=absent, but state=exact still works (only does a ldapsearch)
 - name: Configure Audit logging
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=config
@@ -20,7 +22,9 @@
 
 - name: Configure Error logging
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=config
@@ -37,7 +41,9 @@
 
 - name: Configure Access logging
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=config

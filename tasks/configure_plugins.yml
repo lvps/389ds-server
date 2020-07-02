@@ -1,7 +1,9 @@
 ---
 - name: Enable plugins
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn={{ item.key }},cn=plugins,cn=config"
@@ -12,7 +14,9 @@
 
 - name: Remove DNA plugin configuration (if disabled)
   ldap_entry:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "{{ item }}"
@@ -25,7 +29,9 @@
 
 - name: Create DNA plugin configuration (if enabled)
   ldap_entry:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "{{ item }}"
@@ -41,7 +47,9 @@
 
 - name: Configure DNA plugin parameters (UID)
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
@@ -61,7 +69,9 @@
 
 - name: Configure DNA plugin parameters (GID)
   ldap_attr:
-    server_uri: "ldap://localhost"
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"

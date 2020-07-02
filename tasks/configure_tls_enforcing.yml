@@ -2,7 +2,9 @@
 - block:
     - name: Configure enforcing of TLS
       ldap_attr:
-        server_uri: "ldap://localhost"
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_tls_enforced }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
@@ -18,7 +20,7 @@
   rescue:
     - name: Configure enforcing of TLS, over TLS
       ldap_attr:
-        server_uri: "ldap://localhost"
+        server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_tls_enforced }}"
         bind_dn: "{{ dirsrv_rootdn }}"

@@ -18,7 +18,9 @@
 
     - name: Configure LDAPI
       ldap_attr:
-        server_uri: "ldap://localhost"
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
@@ -46,8 +48,9 @@
 - block:
     - name: Configure SASL
       ldap_attr:
-        server_uri: "ldap://localhost"
+        server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
@@ -69,8 +72,9 @@
 - block:
     - name: Configure password storage scheme
       ldap_attr:
-        server_uri: "ldap://localhost"
+        server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
