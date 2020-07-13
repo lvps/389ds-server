@@ -98,7 +98,7 @@
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
-    dn: "dnaHostname={{ ansible_ fqdn }}+dnaPortNum=389,cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}"
+    dn: "dnaHostname={{ ansible_fqdn }}+dnaPortNum=389,cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
     state: exact
@@ -120,7 +120,7 @@
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
-    dn: "dnaHostname={{ ansible_ fqdn }}+dnaPortNum=389,cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}"
+    dn: "dnaHostname={{ ansible_fqdn }}+dnaPortNum=389,cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}"
     name: "{{ item.name }}"
     values: "{{ item.value }}"
     state: exact
