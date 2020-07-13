@@ -83,7 +83,7 @@
     - { name: "dnatype", value: "gidNumber" }
     - { name: "dnamagicregen", value: "magic" }
     - { name: "dnafilter", value: "(objectclass=posixAccount)" }
-    - { name: "dnascope", value: "{{ suffix }}" }
+    - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
     - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
     - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
