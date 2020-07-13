@@ -47,7 +47,7 @@ dirsrv_logging:
 # true for enabled, false for disabled.
 #
 # This is a valid example:
-# plugins_enabled:
+# dirsrv_plugins_enabled:
 #   MemberOf Plugin: true
 #   Distributed Numeric Assignment Plugin: false
 #

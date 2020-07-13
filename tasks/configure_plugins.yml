@@ -64,6 +64,7 @@
     - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
     - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.uid_min }}" }
     - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.uid_max }}" }
+    - { name: "dnasharedcfgdn", value: "cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}" }
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
@@ -82,9 +83,54 @@
     - { name: "cn", value: "GID numbers" }
     - { name: "dnatype", value: "gidNumber" }
     - { name: "dnamagicregen", value: "magic" }
-    - { name: "dnafilter", value: "(objectclass=posixAccount)" }
+    - { name: "dnafilter", value: "(|(objectclass=posixAccount)(objectclass=posixGroup))" }
     - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
     - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
     - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
+    - { name: "dnasharedcfgdn", value: "cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}" }
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
+  notify: dirsrv restart
+
+- name: Configure DNA plugin parameters for the replica (UID)
+  ldap_attr:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "dnaHostname={{ ansible_ fqdn }}+dnaPortNum=389,cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}"
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+    - { name: "objectClass", value: "dnaSharedConfig" }
+    - { name: "objectClass", value: "top" }
+    - { name: "dnahostname", value: "{{ ansible_fqdn }}" }
+    - { name: "dnaPortNum", value: "389" }
+    - { name: "dnaSecurePortNum", value: "636" }
+  when:
+    - "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
+    - dirsrv_replica_role is defined
+  notify: dirsrv restart
+
+- name: Configure DNA plugin parameters for the replica (GID)
+  ldap_attr:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "dnaHostname={{ ansible_ fqdn }}+dnaPortNum=389,cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}"
+    name: "{{ item.name }}"
+    values: "{{ item.value }}"
+    state: exact
+  loop:
+    - { name: "objectClass", value: "dnaSharedConfig" }
+    - { name: "objectClass", value: "top" }
+    - { name: "dnahostname", value: "{{ ansible_fqdn }}" }
+    - { name: "dnaPortNum", value: "389" }
+    - { name: "dnaSecurePortNum", value: "636" }
+  when:
+    - "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
+    - dirsrv_replica_role is defined
   notify: dirsrv restart
