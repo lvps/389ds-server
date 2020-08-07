@@ -1,8 +1,17 @@
 ---
-- name: Install 389DS
+- name: Install 389DS (CentOS 7)
   yum:
     name: 389-ds-base
     state: present
+  when: "ansible_facts['distribution_major_version'] | int < 8"
+
+# We install the 389-directory-server group, branch stable, minimal installation
+# Corresponds to only installing 389-ds-base
+- name: Install 389DS (CentOS 8)
+  yum:
+    name: "@389-directory-server:stable/minimal"
+    state: present
+  when: "ansible_facts['distribution_major_version'] | int == 8"
 
 # as suggested by Red Hat Directory Server manual
 - name: Add user 'dirsrv'
@@ -25,9 +34,14 @@
 
 # TODO: How do we change the Directory Manager password if we need it to change the password?
 - block:
+    # We have two distinct templates for the two versions of 389DS' install.inf format
+    - name: Determine right template to use for intall.inf
+      set_fact:
+        dirsrv_install_template: '{% if ansible_distribution_major_version | int < 8 %}install-v1.inf.j2{% else %}install-v2.inf.j2{% endif %}'
+
     - name: Copy installation template
       template:
-        src: templates/install.inf.j2
+        src: templates/{{ dirsrv_install_template }}
         dest: /tmp/install.inf
         mode: '600'
       when: not dirsrv_instance_dir_exists
@@ -37,17 +51,47 @@
         src: "{{ item }}"
         dest: "/tmp/{{ item | basename }}"
         mode: '400'
+        owner: dirsrv
+        group: dirsrv
+      when: not dirsrv_instance_dir_exists
+      loop: "{{ dirsrv_install_additional_ldif }}"
+
+    - name: Set SELinux context for additional ldif files
+      sefcontext:
+        setype: user_tmp_t
+        seuser: unconfined_u
+        state: present
+        target: "/tmp/{{ item | basename }}"
       when: not dirsrv_instance_dir_exists
       loop: "{{ dirsrv_install_additional_ldif }}"
 
     # This will install the Directory Server *only*.
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).
     # No Administration Server: it isn't worth the effort.
-    - name: Run installation script setup-ds.pl
+    - name: Run installation script (setup-ds.pl)
       command: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
       become: true
-      when: not dirsrv_instance_dir_exists
+      when:
+        - not dirsrv_instance_dir_exists
+        - "ansible_facts['distribution_major_version'] | int < 8"
 
+    # On newer versions of 389DS setup-ds.pl got deprecated and separated in a legacy package
+    # Here we're using the modern equivalent, with a completely different API...
+    - name: Run installation script (dscreate)
+      command: /usr/sbin/dscreate from-file /tmp/install.inf
+      become: true
+      when:
+        - not dirsrv_instance_dir_exists
+        - "ansible_facts['distribution_major_version'] | int == 8"
+
+    # The newer version of the install.ini file does not have a InstallLdifFile object anymore
+    # So we manually install extra ldifs later
+    - name: Install additional ldif files (dsconf)
+      command: /usr/sbin/dsconf -D "{{ dirsrv_rootdn }}" -w {{ dirsrv_rootdn_password }} ldap://{{ dirsrv_fqdn }} backend import userRoot /tmp/{{ item | basename }}
+      when:
+        - not dirsrv_instance_dir_exists
+        - "ansible_facts['distribution_major_version'] | int == 8"
+      loop: "{{ dirsrv_install_additional_ldif }}"
   always:
     - name: Remove installation template
       file:

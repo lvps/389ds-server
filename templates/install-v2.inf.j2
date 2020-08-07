@@ -1,0 +1,34 @@
+#
+# {{ ansible_managed }}
+#
+# Supported directives:
+# https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/installation_guide/parameters_in_inf_files
+
+[general]
+config_version = 2
+{% if dirsrv_defaults_version is defined %}
+defaults = {{ dirsrv_defaults_version }}
+{% endif %}
+full_machine_name = {{ dirsrv_fqdn }}
+
+[slapd]
+instance_name = {{ dirsrv_serverid }}
+root_dn = {{ dirsrv_rootdn }}
+root_password = {{ dirsrv_rootdn_password }}
+{% if dirsrv_selfsigned_cert is defined %}
+self_sign_cert = {{ "True" if dirsrv_selfsigned_cert else "False" }}
+{% endif %}
+{% if dirsrv_selfsigned_cert_duration is defined %}
+self_sign_cert_valid_months = {{ dirsrv_selfsigned_cert_duration }}
+{% endif %}
+
+[backend-userroot]
+{% if dirsrv_install_examples %}
+sample_entries = yes
+{% else %}
+sample_entries = no
+{% endif %}
+suffix = {{ dirsrv_suffix }}
+{% if dirsrv_create_suffix_entry is defined %}
+create_suffix_entry = {{ "True" if dirsrv_create_suffix_entry else "False" }}
+{% endif %}
