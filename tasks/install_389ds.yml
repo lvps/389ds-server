@@ -19,7 +19,8 @@
   register: dirsrv_package_details
 
 - name: Check 389DS package version
-  set_fact: dirsrv_package_version: "{{ dirsrv_package_details.results|selectattr('yumstate', 'equalto', 'installed')|map(attribute='version')|list|first }}"
+  set_fact:
+    dirsrv_package_version: "{{ dirsrv_package_details.results|selectattr('yumstate','equalto','installed')|map(attribute='version')|list|first }}"
 
 - name: Determine installed 389DS server type (1.3.X or 1.4.X)
   set_fact:

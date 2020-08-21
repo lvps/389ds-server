@@ -9,7 +9,10 @@ lint: |
   ansible-lint
 platforms:
   - name: default
-    image: centos/systemd:latest
+    image: centos:8
+    python_package: python2
+    python_devel_package: python2-devel
+    install_epel: true
     command: /sbin/init
     capabilities:
       - SYS_ADMIN
