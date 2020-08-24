@@ -432,6 +432,8 @@ There's [another role](https://github.com/lvps/389ds-replication) for that.
 
 ## Tests
 
+> Tests make use of the [docker systemctl replacement](https://github.com/gdraheim/docker-systemctl-replacement) script created and distributed by [gdraheim](https://github.com/gdraheim) under the EUPL license. This script gets downloaded and copied to a local container to allow for the tests to execute correctly. Such distribution happens under the same license and terms upon which gdraheim created and published their work. The script is downloaded as-is and no alteration to it is made whatsoever. By running the tests on their machines the end user agrees to handle the downloaded script under the same terms of the EUPL as intended by its author. Note that the tests themselves (and the role overall) are still licensed under the Apache 2 license.
+
 This role uses molecule for its tests. Install it with pipenv (pip probably works, too) and test all the scenarios:
 
 ```shell
@@ -451,7 +453,8 @@ Or to test a single scenario: `molecule test -s tls`
 
 ## License
 
-Apache 2.0
+Apache 2.0 for the role and and associated tests
+EUPL v 1.2 for the "docker systemctl replacement" script by gdraheim downloaded during the tests' execution
 
 ## Author Information
 

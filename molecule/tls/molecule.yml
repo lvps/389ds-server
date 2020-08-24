@@ -3,9 +3,27 @@ dependency:
   name: galaxy
 driver:
   name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
 platforms:
-  - name: tls
-    image: centos/systemd:latest
+  - name: CentOS7-Default
+    image: centos:7
+    python_package: python
+    python_devel_package: python-devel
+    install_epel: false
+    command: /sbin/init
+    capabilities:
+      - SYS_ADMIN
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  # Images that contain the string "SYSCTL" will be trated with the "docker systemctl replacement" script
+  - name: CentOS8-Default-SYSCTL
+    image: centos:8
+    python_package: python2
+    python_devel_package: python2-devel
+    install_epel: true
     command: /sbin/init
     capabilities:
       - SYS_ADMIN
@@ -13,6 +31,7 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 provisioner:
   name: ansible
+  log: true
 verifier:
   name: testinfra
   lint: |

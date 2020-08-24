@@ -13,7 +13,13 @@
         path: /usr/bin/systemctl
         state: absent
       changed_when: false
+      when: ansible_facts["nodename"] is search("SYSCTL")
 
+    # The test suite uses the "docker systemctl replacement" script created and distributed by gdraheim under the EUPL license. The script gets downloaded and
+    # copied to a local container to allow for the tests to execute correctly. Such distribution happens under the same license and terms upon which gdraheim
+    # created and published their work. The script is downloaded as-is and no alteration to it is made whatsoever. By running the tests on their machines the
+    # end users agrees to handle the downloaded script under the terms of the EUPL as intended by its author. Note that this task, and the role overall is
+    # still licensed under the Apache 2 license as opposed as the downloaded asset which is licensed under the EUPL.
     - name: Implant systemctl replacement
       become: true
       uri:
@@ -22,8 +28,9 @@
         owner: root
         group: root
         mode: u=rwx,g=rx,o=rx
-        url: https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl.py
+        url: https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/1bb5768abbf68245b7b6a8bd9d6ac4df4d78044f/files/docker/systemctl.py
       changed_when: false
+      when: ansible_facts["nodename"] is search("SYSCTL")
 
     - name: Create dirsrv service dropin directory
       file:
