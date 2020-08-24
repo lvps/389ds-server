@@ -13,7 +13,7 @@
         path: /usr/bin/systemctl
         state: absent
       changed_when: false
-      when: ansible_facts[\"nodename\"] is search(\"SYSCTL\")
+      when: ansible_facts["nodename"] is search("SYSCTL")
 
     # The test suite uses the "docker systemctl replacement" script created and distributed by gdraheim under the EUPL license. The script gets downloaded and
     # copied to a local container to allow for the tests to execute correctly. Such distribution happens under the same license and terms upon which gdraheim
@@ -30,7 +30,7 @@
         mode: u=rwx,g=rx,o=rx
         url: https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/1bb5768abbf68245b7b6a8bd9d6ac4df4d78044f/files/docker/systemctl.py
       changed_when: false
-      when: ansible_facts[\"nodename\"] is search(\"SYSCTL\")
+      when: ansible_facts["nodename"] is search("SYSCTL")
 
     - name: Create dirsrv service dropin directory
       file:
