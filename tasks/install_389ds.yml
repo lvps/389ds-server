@@ -22,7 +22,7 @@
   set_fact:
     dirsrv_package_version: "{{ dirsrv_package_details.results|selectattr('yumstate','equalto','installed')|map(attribute='version')|list|first }}"
 
-- name: Determine installed 389DS server type (1.3.X or 1.4.X)
+- name: Determine installed server type (1.3.X or 1.4.X)
   set_fact:
     dirsrv_legacy: "{{ dirsrv_package_version is version('1.4.0', '<') }}"
 

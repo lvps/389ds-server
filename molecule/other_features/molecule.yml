@@ -8,7 +8,7 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
-  - name: CentOS7-Default
+  - name: CentOS7-Other
     image: centos:7
     python_package: python
     python_devel_package: python-devel
@@ -19,7 +19,7 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
   # Images that contain the string "SYSCTL" will be trated with the "docker systemctl replacement" script
-  - name: CentOS8-Default-SYSCTL
+  - name: CentOS8-Other-SYSCTL
     image: centos:8
     python_package: python2
     python_devel_package: python2-devel

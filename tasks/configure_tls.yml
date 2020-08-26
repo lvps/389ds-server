@@ -76,7 +76,7 @@
         state: present
 
     # We need to check if pwdfile.txt is present. If so, then the NSS database is protected and we need to pass it as a key
-    - name: Stat the password file (/etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt)
+    - name: Stat the password file
       stat:
         path: /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt
       register: pwdfile

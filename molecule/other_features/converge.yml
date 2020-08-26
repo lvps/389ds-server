@@ -2,6 +2,33 @@
 - name: Converge
   hosts: all
 
+  vars:
+    dirsrv_suffix: "dc=test,dc=local"
+
+    dirsrv_rootdn: "cn=Directory Manager"
+    dirsrv_rootdn_password: "P455W0RD"
+
+    dirsrv_serverid: "test"
+    dirsrv_listen_host: 0.0.0.0
+
+    dirsrv_tls_enabled: false
+
+    dirsrv_password_storage_scheme: "PBKDF2_SHA256"
+    dirsrv_install_examples: true
+    dirsrv_ldapi_enabled: true
+
+    plugins_enabled:
+      MemberOf Plugin: true
+      Distributed Numeric Assignment Plugin: false
+
+    custom_schema:
+      - "98telegram.ldif"
+
+    # Interoperability between 389DS 1.3.X and 1.4.X
+    dirsrv_defaults_version: "001004002"
+    dirsrv_selfsigned_cert: False
+    dirsrv_create_suffix_entry: True
+
   pre_tasks:
     # The following two tasks when executed together are always idempotent (as they replace the same file with the same content) but they register as changed
     # from Ansible's perspective. Since there is no easy way to determine wether the existing file is the original binary or the replacement script (checksum
@@ -53,19 +80,6 @@
   roles:
     -
       role: 389ds-server
-      dirsrv_suffix: "dc=example,dc=local"
-      dirsrv_password_storage_scheme: "PBKDF2_SHA256"
-      dirsrv_serverid: test
-      dirsrv_rootdn_password: P455W0RD
-      dirsrv_listen_host: 0.0.0.0
-      dirsrv_tls_enabled: false
-      dirsrv_install_examples: true
-      dirsrv_ldapi_enabled: true
-      plugins_enabled:
-        MemberOf Plugin: true
-        Distributed Numeric Assignment Plugin: false
-      custom_schema:
-        - "98telegram.ldif"
 
   tasks:
     - name: Ensure container entries exist, for testing
