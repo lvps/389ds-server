@@ -453,9 +453,8 @@ Or to test a single scenario: `molecule test -s tls`
 
 ## License
 
-Apache 2.0 for the role and and associated tests
-
-EUPL v 1.2 for the "docker systemctl replacement" script by gdraheim
+Apache 2.0 for the role and and associated tests  
+EUPL v 1.2 for the "docker systemctl replacement" script by gdraheim (not included but downloaded when running tests)
 
 ## Author Information
 
