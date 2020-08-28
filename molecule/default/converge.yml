@@ -72,7 +72,11 @@
         state: present
 
     - name: Ensure self-signed certificate has been created
-      shell: "grep -rhsc 'CN=ssca.389ds.example.com,O=testing' /etc/dirsrv/slapd-{{ dirsrv_serverid }}/ | sort -r | uniq | head -n 1"
+      shell:
+        cmd: >
+          set -o pipefail && \
+            grep -rhsc 'CN=ssca.389ds.example.com,O=testing' /etc/dirsrv/slapd-{{ dirsrv_serverid }}/ | sort -r | uniq | head -n 1
+        executable: /bin/bash
       register: dirsrv_selfsigned_cert_test
       failed_when: "dirsrv_selfsigned_cert_test.stdout | int == 0"
       changed_when: false

@@ -31,9 +31,6 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 provisioner:
   name: ansible
-  log: true
-  options:
-    vvv: true
 verifier:
   name: testinfra
   lint: |
