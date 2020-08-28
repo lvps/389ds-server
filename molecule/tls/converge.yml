@@ -8,7 +8,6 @@
     dirsrv_rootdn: "cn=Directory Manager"
     dirsrv_rootdn_password: "P455W0RD"
 
-    dirsrv_serverid: "test"
     dirsrv_listen_host: 0.0.0.0
 
     dirsrv_tls_enabled: true
@@ -83,6 +82,6 @@
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "{{ dirsrv_suffix }}"
         objectClass: "top"
-        start_tls: true
+        start_tls: "{{ dirsrv_tls_enabled }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         state: present

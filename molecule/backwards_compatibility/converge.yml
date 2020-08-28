@@ -3,28 +3,11 @@
   hosts: all
 
   vars:
-    dirsrv_suffix: "dc=test,dc=local"
-
-    dirsrv_rootdn: "cn=Directory Manager"
     dirsrv_rootdn_password: "P455W0RD"
-
-    dirsrv_serverid: "test"
     dirsrv_listen_host: 0.0.0.0
 
-    dirsrv_tls_enabled: false
-
-    dirsrv_password_storage_scheme: "PBKDF2_SHA256"
-    dirsrv_install_examples: true
-    dirsrv_ldapi_enabled: true
-
-    dirsrv_plugins_enabled:
-      MemberOf Plugin: true
-      Distributed Numeric Assignment Plugin: false
-
-    dirsrv_custom_schema:
-      - "98telegram.ldif"
-
-    # Interoperability between 389DS 1.3.X and 1.4.X
+    # BACKWARDS COMPATIBILITY TEST
+    # Should guarantee nteroperability between 389DS 1.3.X and 1.4.X
     dirsrv_defaults_version: "001004002"
     dirsrv_selfsigned_cert: False
     dirsrv_create_suffix_entry: True
@@ -82,16 +65,49 @@
       role: 389ds-server
 
   tasks:
-    - name: Ensure container entries exist, for testing
+    - name: Ensure we can access the server, for testing
       ldap_entry:
         server_uri: "ldap://localhost"
-        bind_dn: "cn=Directory Manager"
-        bind_pw: "secret"
-        dn: "{{ item.dn }}"
-        objectClass: "{{ item.objectClass }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=config"
+        objectClass: "top"
+        start_tls: "{{ dirsrv_tls_enabled }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         state: present
-      loop:
-        - { dn: "ou=Groups,dc=example,dc=local", objectClass: ["organizationalunit", "top"] }
-        - { dn: "ou=People,dc=example,dc=local", objectClass: ["organizationalunit", "top"] }
-      register: dirsrv_test_containers
-      failed_when: dirsrv_test_containers.changed
+
+    - name: Ensure suffix entry exists
+      ldap_entry:
+        server_uri: "ldap://localhost"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "{{ dirsrv_suffix }}"
+        objectClass: "top"
+        start_tls: "{{ dirsrv_tls_enabled }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        state: present
+      register: dirsrv_suffix_test
+      failed_when: dirsrv_suffix_test.changed
+
+    # A complementary test (that asserts that the certificate *does* exist) has been placed in the default test.
+    # The purpose of that test is one of a coal-mine canary: if RH changes the dn of the certificate the tests
+    # fail and we notice it, and can change the dn we check against accordingly rather than havin a silent fail.
+    - name: Ensure no self-signed certificate has been created
+      shell: "grep -rhsc 'CN=ssca.389ds.example.com,O=testing' /etc/dirsrv/slapd-{{ dirsrv_serverid }}/ | sort -r | uniq | head -n 1"
+      register: dirsrv_selfsigned_cert_test
+      failed_when: "dirsrv_selfsigned_cert_test.stdout | int > 0"
+      changed_when: false
+
+    - name: Ensure TLS is disabled
+      ldap_attr:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=config"
+        name: "nsslapd-security"
+        values: "off"
+        state: exact
+      register: dirsrv_backwards_tls_test
+      failed_when: dirsrv_backwards_tls_test.changed

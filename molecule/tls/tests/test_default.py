@@ -1,8 +1,11 @@
 import os
 
-from testinfra.utils.ansible_runner import AnsibleRunner
+import testinfra.utils.ansible_runner
 
-testinfra_hosts = AnsibleRunner(os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
+serverid = 'default'
+
+testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
+    os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
 
 
 def test_389ds_installed(host):
@@ -12,8 +15,9 @@ def test_389ds_installed(host):
 
 
 def test_389ds_running_and_enabled(host):
-    dirsrv = host.service('dirsrv@test')
+    dirsrv = host.service(f'dirsrv@{serverid}')
 
+    assert dirsrv.is_enabled
     assert dirsrv.is_enabled
 
 
@@ -23,7 +27,7 @@ def test_389ds_listening_389(host):
     assert socket.is_listening
 
 
-def test_389ds_listening_636(host):
+def test_389ds_not_listening_636(host):
     socket = host.socket('tcp://0.0.0.0:636')
 
-    assert socket.is_listening
+    assert not socket.is_listening
