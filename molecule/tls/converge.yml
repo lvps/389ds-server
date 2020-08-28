@@ -3,12 +3,7 @@
   hosts: all
 
   vars:
-    dirsrv_suffix: "dc=test,dc=local"
-
-    dirsrv_rootdn: "cn=Directory Manager"
     dirsrv_rootdn_password: "P455W0RD"
-
-    dirsrv_serverid: "test"
     dirsrv_listen_host: 0.0.0.0
 
     dirsrv_tls_enabled: true
@@ -17,11 +12,6 @@
 
     dirsrv_tls_cert_file: tls_test_local_cert.pem
     dirsrv_tls_key_file: tls_test_local.key
-
-    # Interoperability between 389DS 1.3.X and 1.4.X
-    dirsrv_defaults_version: "001004002"
-    dirsrv_selfsigned_cert: False
-    dirsrv_create_suffix_entry: True
 
   pre_tasks:
     # The following two tasks when executed together are always idempotent (as they replace the same file with the same content) but they register as changed
@@ -81,8 +71,8 @@
         server_uri: "ldap://localhost"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
-        dn: "{{ dirsrv_suffix }}"
+        dn: "cn=config"
         objectClass: "top"
-        start_tls: true
+        start_tls: "{{ dirsrv_tls_enabled }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         state: present

@@ -2,6 +2,8 @@ import os
 
 from testinfra.utils.ansible_runner import AnsibleRunner
 
+serverid = 'default'
+
 testinfra_hosts = AnsibleRunner(os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
 
 
@@ -12,7 +14,7 @@ def test_389ds_installed(host):
 
 
 def test_389ds_running_and_enabled(host):
-    dirsrv = host.service('dirsrv@test')
+    dirsrv = host.service(f'dirsrv@{serverid}')
 
     assert dirsrv.is_enabled
 

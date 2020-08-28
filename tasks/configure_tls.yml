@@ -79,15 +79,15 @@
     - name: Stat the password file
       stat:
         path: /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt
-      register: pwdfile
+      register: dirsrv_pwdfile_stat
 
     - name: Define pk12util authentication flag
       set_fact:
-        dirsrv_pkutil_authflag: '{% if pwdfile.stat.exists %}-k /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}-K ""{% endif %}'
+        dirsrv_pkutil_authflag: '{% if dirsrv_pwdfile_stat.stat.exists %}-k /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}-K ""{% endif %}'
 
     - name: Define certutil authentication flag
       set_fact:
-        dirsrv_certutil_authflag: '{% if pwdfile.stat.exists %}-f /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}{% endif %}'
+        dirsrv_certutil_authflag: '{% if dirsrv_pwdfile_stat.stat.exists %}-f /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}{% endif %}'
 
     # openssl_pkcs12 does not support certificate chains.
     # Only the first certificate is considered.

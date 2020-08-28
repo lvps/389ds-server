@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+platforms:
+  # Images that contain the string "SYSCTL" will be trated with the "docker systemctl replacement" script
+  - name: CentOS8-Backwards-SYSCTL
+    image: centos:8
+    python_package: python2
+    python_devel_package: python2-devel
+    install_epel: true
+    command: /sbin/init
+    capabilities:
+      - SYS_ADMIN
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+provisioner:
+  name: ansible
+verifier:
+  name: testinfra
+  lint: |
+    set -e
+    flake8
