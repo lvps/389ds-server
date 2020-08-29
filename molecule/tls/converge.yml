@@ -7,12 +7,14 @@
     dirsrv_listen_host: 0.0.0.0
 
     dirsrv_tls_enabled: true
+    dirsrv_tls_enforced: true
     dirsrv_tls_files_remote: false
     dirsrv_tls_certificate_trusted: false
 
     dirsrv_tls_cert_file: tls_test_local_cert.pem
     dirsrv_tls_key_file: tls_test_local.key
 
+    dirsrv_create_suffix_entry: True
   pre_tasks:
     # The following two tasks when executed together are always idempotent (as they replace the same file with the same content) but they register as changed
     # from Ansible's perspective. Since there is no easy way to determine wether the existing file is the original binary or the replacement script (checksum
@@ -61,6 +63,12 @@
         mode: "u=rw,g=r,o=r"
         force: true
 
+    # Ansible is not secure enough for a SSF of 256 for 389DS 1.4.X
+    # Unfortunately we don't yet have access to dirsrv_legacy or the installed version so we need to base the condition on the CentOS version
+    - name: Set minimum SSF
+      set_fact:
+        dirsrv_tls_minssf: "{%if ansible_facts['distribution_major_version'] | int == 8 %}128{% else %}256{% endif %}"
+
   roles:
     -
       role: 389ds-server
@@ -76,3 +84,21 @@
         start_tls: "{{ dirsrv_tls_enabled }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         state: present
+
+    - block:
+        - name: Ensure TLS is enforced
+          ldap_entry:
+            server_uri: "ldap://localhost"
+            bind_dn: "{{ dirsrv_rootdn }}"
+            bind_pw: "{{ dirsrv_rootdn_password }}"
+            dn: "{{ dirsrv_suffix }}"
+            objectClass: "domain"
+            start_tls: "false"
+            state: present
+          register: dirsrv_tls_test
+
+      rescue:
+        - name: Assert that task failed successfully
+          assert:
+            that:
+              - "{{ dirsrv_tls_test.details }}.info == 'Minimum SSF not met.'"

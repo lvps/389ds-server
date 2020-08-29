@@ -89,10 +89,6 @@
       register: dirsrv_suffix_test
       failed_when: dirsrv_suffix_test.changed
 
-    - name: Debruh
-      debug:
-        msg: "{{ dirsrv_suffix_test }}"
-
     # A complementary test (that asserts that the certificate *does* exist) has been placed in the default test.
     # The purpose of that test is one of a coal-mine canary: if RH changes the dn of the certificate the tests
     # fail and we notice it, and can change the dn we check against accordingly rather than havin a silent fail.
@@ -110,7 +106,7 @@
       ldap_attr:
         server_uri: "ldap://localhost"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-        start_tls: "{{ dirsrv_starttls_early }}"
+        start_tls: "{{ dirsrv_tls_enabled }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
