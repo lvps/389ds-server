@@ -8,8 +8,14 @@ install:
   - pip install pipenv
   - pipenv install
 
+env:
+  - SCENARIO="backwards_compatibility"
+  - SCENARIO="default"
+  - SCENARIO="other_features"
+  - SCENARIO="tls"
+
 script:
-  - molecule test --all
+  - molecule test -s ${SCENARIO}
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

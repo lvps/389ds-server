@@ -2,11 +2,82 @@
 - name: Converge
   hosts: all
 
+  vars:
+    # Minimum default configuration
+    dirsrv_rootdn_password: "P455W0RD"
+    dirsrv_listen_host: 0.0.0.0
+
+  pre_tasks:
+    # The following two tasks when executed together are always idempotent (as they replace the same file with the same content) but they register as changed
+    # from Ansible's perspective. Since there is no easy way to determine wether the existing file is the original binary or the replacement script (checksum
+    # matching is not possible as both the systemctl binary and the replacement script might be updated at any time in the future) then the only option is to
+    # force the two tasks to not change.
+    - name: Remove systemctl binary
+      become: true
+      file:
+        path: /usr/bin/systemctl
+        state: absent
+      changed_when: false
+      when: ansible_facts["nodename"] is search("SYSCTL")
+
+    # The test suite uses the "docker systemctl replacement" script created and distributed by gdraheim under the EUPL license. The script gets downloaded and
+    # copied to a local container to allow for the tests to execute correctly. Such distribution happens under the same license and terms upon which gdraheim
+    # created and published their work. The script is downloaded as-is and no alteration to it is made whatsoever. By running the tests on their machines the
+    # end users agrees to handle the downloaded script under the terms of the EUPL as intended by its author. Note that this task, and the role overall is
+    # still licensed under the Apache 2 license as opposed as the downloaded asset which is licensed under the EUPL.
+    - name: Implant systemctl replacement
+      become: true
+      uri:
+        creates: /usr/local/bin/systemctl
+        dest: /usr/bin/systemctl
+        owner: root
+        group: root
+        mode: u=rwx,g=rx,o=rx
+        url: https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/1bb5768abbf68245b7b6a8bd9d6ac4df4d78044f/files/docker/systemctl.py
+      changed_when: false
+      when: ansible_facts["nodename"] is search("SYSCTL")
+
+    - name: Create dirsrv service dropin directory
+      file:
+        path: /etc/systemd/system/dirsrv@.service.d/
+        owner: root
+        group: root
+        mode: "u=rwx,g=rx,o=rx"
+        state: directory
+
+    - name: Copy dirsrv service dropin config
+      become: true
+      copy:
+        src: dirsrv-dropin.conf
+        dest: /etc/systemd/system/dirsrv@.service.d/custom.conf
+        owner: root
+        group: root
+        mode: "u=rw,g=r,o=r"
+        force: true
+
   roles:
     -
       role: 389ds-server
-      dirsrv_suffix: "dc=example,dc=local"
-      dirsrv_serverid: test
-      dirsrv_rootdn_password: secret
-      dirsrv_listen_host: 0.0.0.0
-      dirsrv_tls_enabled: false
+
+  tasks:
+    - name: Ensure we can access the server, for testing
+      ldap_entry:
+        server_uri: "ldap://localhost"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=config"
+        objectClass: "top"
+        start_tls: "{{ dirsrv_tls_enabled }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        state: present
+
+    - name: Ensure self-signed certificate has been created
+      shell:
+        cmd: >
+          set -o pipefail && \
+            grep -rhsc 'CN=ssca.389ds.example.com,O=testing' /etc/dirsrv/slapd-{{ dirsrv_serverid }}/ | sort -r | uniq | head -n 1
+        executable: /bin/bash
+      register: dirsrv_selfsigned_cert_test
+      failed_when: "dirsrv_selfsigned_cert_test.stdout | int == 0"
+      changed_when: false
+      when: not dirsrv_legacy

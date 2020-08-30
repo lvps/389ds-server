@@ -29,7 +29,7 @@ RootDNPwd = {{ dirsrv_rootdn_password }}
 	AddSampleEntries = No
 	{% if dirsrv_install_additional_ldif|length > 0 %}
 	{% for file in dirsrv_install_additional_ldif %}
-	InstallLdifFile = /tmp/{{ file }}
+	InstallLdifFile = /tmp/{{ file|basename }}
 	{% endfor %}
 	{% endif %}
 {% endif %}

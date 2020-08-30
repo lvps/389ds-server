@@ -26,7 +26,7 @@ Replication is managed with [another role](https://github.com/lvps/389ds-replica
 ## Requirements
 
 - Ansible 2.7 or newer
-- CentOS 7
+- CentOS 7 or CentOS 8
 
 ## Role Variables
 
@@ -59,11 +59,36 @@ The variables that can be passed to this role and a brief description about them
 | dirsrv_ldapi_enabled            | false                | Enable LDAPI (connect to the server via a UNIX socket at `ldapi:///var/run/dirsrv/slapd-{{ dirsrv_serverid }}.socket`). Note that this is subject to TLS enforcing and TLS is not supported, so it's useless if you set dirsrv_tls_enforced to true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Yes            |
 | dirsrv_sasl_plain_enabled       | true                 | Enable SASL PLAIN authentication: if a client tries to authenticate without TLS and TLS is enforced, this kind of authentication should stop it before it sends the plaintext password, while a SIMPLE bind will send the password and then fail because SSF is too low.                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Yes            |
 
+### Variables exclusive to 389DS version 1.4.X
+
+These variables only affect on installations of 389DS version 1.4.X and have no effect on previous versions even if defined.
+
+| Variable                        | Default              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Can be changed |
+|---------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| dirsrv_defaults_version         | 999999999²           | The defaults configuration values will be the ones of the specified version of 389DS. The format is XXXYYYZZZ, where XXX is the major version, YYY is the minor version and ZZZ is the patch level (all three values are padded with zeros to the length of three). If 999999999 is selected, the latest version of the defaults will be used.                                                                                                                                                                                                                                                                                                                                                                                     | **No**         |
+| dirsrv_selfsigned_cert          | True²                | Determines wether 389DS will generate a self-signed certificate and enable TLS automatically.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | **No**         |
+| dirsrv_selfsigned_cert_duration | 24²                  | Validity in months of the self-signed certificate generated by 389DS.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | **No**         |
+| dirsrv_create_suffix_entry      | False²               | Determines wether 389DS will generate a suffix entry in the directory with the given suffix: `cn={{ dirsrv_suffix }}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | **No**         |
+
+### Interoperability between 1.3.X and 1.4.X
+
+To have a playook that behaves in the same way on 1.3 and 1.4 verions of 389DS, the following values should be used:
+
+| Variable                        | Value                |
+|---------------------------------|----------------------|
+| dirsrv_defaults_version         | 001004002³           |
+| dirsrv_selfsigned_cert          | False                |
+| dirsrv_create_suffix_entry      | True                 |
+
 Some variables cannot be changed by this role (or at all) after creating an instance of 389DS. If one of them is changed and the role is applied again, undefined behaviour ranging from "nothing" to "the role fails" may happen. Some of them, e.g. the root DN password, can be changed manually: please refer to the [Administration Guide](https://access.redhat.com/documentation/en-us/red_hat_directory_server/10/html/administration_guide/index) for details.
 
 All variables are prefixed with dirsrv because starting a variable name with a number ("389ds") doesn't work that well.
 
 ¹ Changing this variable from a previous run will lead to the creation of another instance, another directory completely separated from the previous one. This should work, but it hasn't been tested at all.
+
+² These are the default values as of 389DS version 1.4.2.15 and may change for later versions: run `dscreate create-template` in your machine to see the effective defaults.
+
+³ This is the version of defaults on top of which this role has been written and validated. Setting the `dirsrv_defaults_version` is not technically required, but can prevent future updates to the defaults from breaking the playbook by being incompatible with 389DS 1.3. On the other hand, setting the variable will essentially lock the configuration in time and if done for a prolonged period of time might render it obsolete. Use with discrection.
 
 ### dirsrv_logging
 
@@ -407,6 +432,8 @@ There's [another role](https://github.com/lvps/389ds-replication) for that.
 
 ## Tests
 
+> Tests make use of the [docker systemctl replacement](https://github.com/gdraheim/docker-systemctl-replacement) script created and distributed by [gdraheim](https://github.com/gdraheim) under the EUPL license. This script gets downloaded and copied to a local container to allow for the tests to execute correctly. Such distribution happens under the same license and terms upon which gdraheim created and published their work. The script is downloaded as-is and no alteration to it is made whatsoever. By running the tests on their machines the end user agrees to handle the downloaded script under the same terms of the EUPL as intended by its author. Note that the tests themselves (and the role overall) are still licensed under the Apache 2 license.
+
 This role uses molecule for its tests. Install it with pipenv (pip probably works, too) and test all the scenarios:
 
 ```shell
@@ -419,9 +446,6 @@ Or to test a single scenario: `molecule test -s tls`
 
 ## Future extensions
 
-### Probably will be done
-- Support for CentOS 8
-
 ### Could be done, but not planned for the short term
 - Support for Debian/Ubuntu/FreeBSD or any other platform that 389DS supports
 - Support for other plugins that need more than enabled/disabled
@@ -429,7 +453,8 @@ Or to test a single scenario: `molecule test -s tls`
 
 ## License
 
-Apache 2.0
+Apache 2.0 for the role and and associated tests  
+EUPL v 1.2 for the "docker systemctl replacement" script by gdraheim (not included but downloaded when running tests)
 
 ## Author Information
 
