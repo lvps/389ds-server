@@ -365,3 +365,4 @@
     state: exact
   notify: dirsrv restart
   when: dirsrv_listen_host != None
+  tags: [ dirsrv_tls ]
