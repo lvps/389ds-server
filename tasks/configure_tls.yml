@@ -361,8 +361,8 @@
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
     name: "nsslapd-securelistenhost"
-    values: "{{ dirsrv_listen_host }}"
+    values: "{{ dirsrv_secure_listen_host }}"
     state: exact
   notify: dirsrv restart
-  when: dirsrv_listen_host != None
+  when: dirsrv_secure_listen_host != None
   tags: [ dirsrv_tls ]
