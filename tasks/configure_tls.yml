@@ -351,3 +351,18 @@
   # - { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
+
+- name: Configure secure listen address
+  ldap_attr:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "cn=config"
+    name: "nsslapd-securelistenhost"
+    values: "{{ dirsrv_listen_host }}"
+    state: exact
+  notify: dirsrv restart
+  when: dirsrv_listen_host != None
+  tags: [ dirsrv_tls ]
