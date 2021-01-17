@@ -27,64 +27,124 @@
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and not dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
   notify: dirsrv restart
 
-- name: Create DNA plugin configuration (if enabled)
-  ldap_entry:
-    server_uri: "{{ dirsrv_server_uri }}"
-    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-    start_tls: "{{ dirsrv_starttls_early }}"
-    bind_dn: "{{ dirsrv_rootdn }}"
-    bind_pw: "{{ dirsrv_rootdn_password }}"
-    dn: "{{ item }}"
-    objectClass:
-      - top
-      - extensibleObject
-    state: present
-  loop:
-    - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-    - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-  when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
-  notify: dirsrv restart
+- name: Manage the dna shared ranges OUs, required when we have a replica
+  block:
+    - name: Create the shared DNA Ranges OU
+      ldap_entry:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "{{ item }}"
+        objectClass:
+          - top
+          - extensibleObject
+          - organizationalUnit
+        state: present
+      loop:
+        - "ou=Ranges,{{ dirsrv_suffix }}"
 
-- name: Configure DNA plugin parameters (UID)
-  ldap_attr:
-    server_uri: "{{ dirsrv_server_uri }}"
-    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-    start_tls: "{{ dirsrv_starttls_early }}"
-    bind_dn: "{{ dirsrv_rootdn }}"
-    bind_pw: "{{ dirsrv_rootdn_password }}"
-    dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
-    state: exact
-  loop:
-    - { name: "cn", value: "UID numbers" }
-    - { name: "dnatype", value: "uidNumber" }
-    - { name: "dnamagicregen", value: "magic" }  # doesn't have to be a number
-    - { name: "dnafilter", value: "(objectclass=posixAccount)" }
-    - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
-    - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.uid_min }}" }
-    - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.uid_max }}" }
-  when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
-  notify: dirsrv restart
+    - name: Create the shared DNA account and group OUs
+      ldap_entry:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "{{ item }}"
+        objectClass:
+          - top
+          - extensibleObject
+        state: present
+      loop:
+        - "cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}"
+        - "cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}"
 
-- name: Configure DNA plugin parameters (GID)
-  ldap_attr:
-    server_uri: "{{ dirsrv_server_uri }}"
-    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-    start_tls: "{{ dirsrv_starttls_early }}"
-    bind_dn: "{{ dirsrv_rootdn }}"
-    bind_pw: "{{ dirsrv_rootdn_password }}"
-    dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
-    state: exact
-  loop:
-    - { name: "cn", value: "GID numbers" }
-    - { name: "dnatype", value: "gidNumber" }
-    - { name: "dnamagicregen", value: "magic" }
-    - { name: "dnafilter", value: "(objectclass=posixAccount)" }
-    - { name: "dnascope", value: "{{ suffix }}" }
-    - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
-    - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
+    - name: Configure DNA plugin parameters for the replica
+      ldap_entry:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "{{ item }}"
+        objectClass:
+          - top
+          - dnaSharedConfig
+        attributes:
+          dnahostname: '{{ ansible_fqdn }}'
+          dnaPortNum: 389
+          dnaSecurePortNum: 636
+      loop:
+        - "dnaHostname={{ ansible_fqdn }}+dnaPortNum=389,cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}"
+        - "dnaHostname={{ ansible_fqdn }}+dnaPortNum=389,cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}"
+
+  when:
+    - "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
+    - dirsrv_replica_role is defined
+
+- name: Manage the DNA plugin configuration
+  block:
+    - name: Create DNA plugin configuration (if enabled)
+      ldap_entry:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "{{ item }}"
+        objectClass:
+          - top
+          - extensibleObject
+        state: present
+      loop:
+        - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
+        - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
+      notify: dirsrv restart
+
+    - name: Configure DNA plugin parameters (UID)
+      ldap_attr:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
+        name: "{{ item.name }}"
+        values: "{{ item.value }}"
+        state: exact
+      loop:
+        - { name: "cn", value: "UID numbers" }
+        - { name: "dnatype", value: "uidNumber" }
+        - { name: "dnamagicregen", value: "magic" }  # doesn't have to be a number
+        - { name: "dnafilter", value: "(objectclass=posixAccount)" }
+        - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
+        - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.uid_min }}" }
+        - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.uid_max }}" }
+        - { name: "dnasharedcfgdn", value: "cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}" }
+      notify: dirsrv restart
+
+    - name: Configure DNA plugin parameters (GID)
+      ldap_attr:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
+        name: "{{ item.name }}"
+        values: "{{ item.value }}"
+        state: exact
+      loop:
+        - { name: "cn", value: "GID numbers" }
+        - { name: "dnatype", value: "gidNumber" }
+        - { name: "dnamagicregen", value: "magic" }
+        - { name: "dnafilter", value: "(|(objectclass=posixAccount)(objectclass=posixGroup))" }
+        - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
+        - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
+        - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
+        - { name: "dnasharedcfgdn", value: "cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}" }
+      notify: dirsrv restart
+
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
-  notify: dirsrv restart
