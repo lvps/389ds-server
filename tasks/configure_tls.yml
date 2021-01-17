@@ -75,6 +75,20 @@
         name: openssl
         state: present
 
+    # We need to check if pwdfile.txt is present. If so, then the NSS database is protected and we need to pass it as a key
+    - name: Stat the password file
+      stat:
+        path: /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt
+      register: dirsrv_pwdfile_stat
+
+    - name: Define pk12util authentication flag
+      set_fact:
+        dirsrv_pkutil_authflag: '{% if dirsrv_pwdfile_stat.stat.exists %}-k /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}-K ""{% endif %}'
+
+    - name: Define certutil authentication flag
+      set_fact:
+        dirsrv_certutil_authflag: '{% if dirsrv_pwdfile_stat.stat.exists %}-f /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}{% endif %}'
+
     # openssl_pkcs12 does not support certificate chains.
     # Only the first certificate is considered.
     # If the chain is manually broken up into pieces, it may be imported,
@@ -95,7 +109,7 @@
         pk12util
         -i /tmp/server-cert-ansible-managed.p12
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
-        -K ''
+        {{ dirsrv_pkutil_authflag }}
         -W ''
       changed_when: false
 
@@ -109,10 +123,14 @@
     # 389DS finds such duplicate certificates.
     #
     # Let's start by counting what we have there
+    #
+    # I don't think this command needs the password-file parameter even if the database is password
+    # protected, but just to be sure...
     - name: Count Ansible managed keys in NSS database
       shell: >
         certutil -L
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
+        {{ dirsrv_certutil_authflag }}
         |
         grep
         -c "server-cert-ansible-managed"
@@ -135,6 +153,7 @@
         certutil -F
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
         -n "server-cert-ansible-managed"
+        {{ dirsrv_certutil_authflag }}
       when: dirsrv_nss_key_count_too_many
       # I'm still wondering if this loop is horrible or clever...
       loop: "{{ range(0, dirsrv_nss_key_count.stdout|int) | list }}"
@@ -145,7 +164,7 @@
         -i /tmp/server-cert-ansible-managed.p12
         -n server-cert-ansible-managed
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
-        -K ''
+        {{ dirsrv_pkutil_authflag }}
         -W ''
       when: dirsrv_nss_key_count_too_many
       notify: dirsrv restart
@@ -157,6 +176,7 @@
       #     -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
       #     -n server-cert-ansible-managed
       #     -t "u,u,u"
+      #     {{ dirsrv_certutil_authflag }}
       #   when: not dirsrv_tls_certificate_trusted
 
       # --- CA certificates stuff ---------------------------------------
@@ -184,6 +204,7 @@
       #     -t 'C,,'
       #     -a
       #     -i '/tmp/dirsrv_{{ serverid }}_ca_ansible_managed.crt'
+      #     {{ dirsrv_certutil_authflag }}
       #   changed_when: false
 
       # --- end CA certificates stuff -----------------------------------
@@ -329,4 +350,19 @@
   # This defaults to "off" and it's better left alone
   # - { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_tls ]
+
+- name: Configure secure listen address
+  ldap_attr:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "cn=config"
+    name: "nsslapd-securelistenhost"
+    values: "{{ dirsrv_secure_listen_host }}"
+    state: exact
+  notify: dirsrv restart
+  when: dirsrv_secure_listen_host != None
   tags: [ dirsrv_tls ]

@@ -73,8 +73,14 @@
 
 - include: configure_tls.yml
 
+# Restart server and/or reload schema, to enable TLS and schema changes.
+# Required to enforce TLS as TLS must be enabled beforehand (requiring a restart).
+- meta: flush_handlers
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]
+
 - include: configure_tls_enforcing.yml
 
-# Restart server and/or reload schema, to enable TLS and schema changes.
+# Restart server to enforce TLS.
+# This only happens if TLS is being enforced.
 - meta: flush_handlers
   tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]

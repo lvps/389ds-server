@@ -70,6 +70,16 @@
           - "{{ dirsrv_sasl_result.details }}.desc == 'No such attribute'"
 
 - block:
+    # With 389DS version 1.4.X the option to delete this attribute to reset it to the default value has been removed.
+    # Instead, we have to set it to "DEFAULT" (case sensitive).
+    - name: Normalize password storage scheme
+      set_fact:
+        dirsrv_normalized_password_storage_scheme: >-
+          {% if not dirsrv_legacy and dirsrv_password_storage_scheme == [] %}DEFAULT{% else %}{{ dirsrv_password_storage_scheme }}{% endif %}
+
+    # if we use DEFAULT as password value to reset the field in 389DS 1.4.X we fail idempotence tests since "DEFAULT" is different from whatever scheme is currently used
+    # as DEFAULT itself get instantly converted in the name of an actual password storage scheme. Therefore, to determine if the task actually changed, we compare the value before and after
+    # instead of relying on the attribute change task to report its status
     - name: Configure password storage scheme
       ldap_attr:
         server_uri: "{{ dirsrv_server_uri }}"
@@ -79,9 +89,28 @@
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
         name: "passwordStorageScheme"
-        values: "{{ dirsrv_password_storage_scheme }}"
+        values: "{{ dirsrv_normalized_password_storage_scheme }}"
         state: exact
       register: dirsrv_pwdstorage_result
+      when: dirsrv_normalized_password_storage_scheme != "DEFAULT"
+
+    # This is not perfect: for example if we are using the playbook to reset the storage scheme to the default value after
+    # having previously altered it to a different value, however there is no way known to us in vanilla ansible to query an
+    # LDAP attribute value and therefore we can't make a comparison to check wether the value actually changed or not.
+    - name: Reset password storage scheme (389DS 1.4.X)
+      ldap_attr:
+        server_uri: "{{ dirsrv_server_uri }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+        start_tls: "{{ dirsrv_starttls_early }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=config"
+        name: "passwordStorageScheme"
+        values: "{{ dirsrv_normalized_password_storage_scheme }}"
+        state: exact
+      register: dirsrv_pwdstorage_result
+      when: dirsrv_normalized_password_storage_scheme == "DEFAULT"
+      changed_when: false
 
   rescue:
     # Same as above
