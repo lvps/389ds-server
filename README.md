@@ -162,9 +162,12 @@ dirsrv_dna_plugin:
   uid_max: 2999
 ```
 
-Ansible doesn't merge dicts by default, i.e. if you want to change only uid_max and gid_max you have to define the \_min variables too. When you define dna_plugin, it replaces this default dict entirely.
+Ansible doesn't merge dicts by default, i.e. if you want to change only uid_max and gid_max you have to define the \_min variables too. When you define dirsrv_dna_plugin, it replaces this default dict entirely.
 
 This configuration is only applied if "Distributed Numeric Assignment Plugin" is true in plugins_enabled, and is removed when it is false. If it's not mentioned, nothing is done.
+
+`dirsrv_replica_role` has to be defined to configure DNA with replication. That variable is also defined in the [lvps/389ds-recplication](https://github.com/lvps/389ds-replication) role, so refer to that one for documentation.
+For this role it is sufficient for it to be defined if you are using replication, the value does not matter.
 
 ## Tags
 
