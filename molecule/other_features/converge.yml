@@ -19,7 +19,7 @@
 
     dirsrv_plugins_enabled:
       MemberOf Plugin: true
-      Distributed Numeric Assignment Plugin: false
+      Distributed Numeric Assignment Plugin: true
 
     dirsrv_custom_schema:
       - "98telegram.ldif"
