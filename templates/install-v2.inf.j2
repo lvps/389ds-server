@@ -21,8 +21,11 @@ self_sign_cert = {{ "True" if dirsrv_selfsigned_cert else "False" }}
 {% if dirsrv_selfsigned_cert_duration is defined %}
 self_sign_cert_valid_months = {{ dirsrv_selfsigned_cert_duration }}
 {% endif %}
+{% if dirsrv_rundir is defined %}
+run_dir = {{ dirsrv_rundir }}
+{% endif %}
 
-[backend-userroot]
+[backend-{{ dirsrv_bename }}]
 {% if dirsrv_install_examples %}
 sample_entries = yes
 {% else %}
@@ -32,3 +35,16 @@ suffix = {{ dirsrv_suffix }}
 {% if dirsrv_create_suffix_entry is defined %}
 create_suffix_entry = {{ "True" if dirsrv_create_suffix_entry else "False" }}
 {% endif %}
+{% for suffix in dirsrv_othersuffixes %}
+
+[backend-{{ suffix.name }}]
+{% if dirsrv_install_examples %}
+sample_entries = yes
+{% else %}
+sample_entries = no
+{% endif %}
+suffix = {{ suffix.dn }}
+{% if dirsrv_create_suffix_entry is defined %}
+create_suffix_entry = {{ "True" if dirsrv_create_suffix_entry else "False" }}
+{% endif %}
+{% endfor %}
