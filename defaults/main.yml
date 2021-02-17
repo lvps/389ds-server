@@ -3,6 +3,8 @@
 # Instance settings
 
 dirsrv_suffix: dc=example,dc=com
+dirsrv_bename: userRoot
+dirsrv_othersuffixes: []
 dirsrv_rootdn: cn=Directory Manager
 # dirsrv_rootdn_password: secret
 dirsrv_fqdn: "{{ ansible_nodename }}"
