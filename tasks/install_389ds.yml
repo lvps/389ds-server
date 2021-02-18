@@ -1,15 +1,15 @@
 ---
 - name: Install 389DS (CentOS 7)
   yum:
-    name: 389-ds-base
+    name: "{{ dirsrv_product }}"
     state: present
   when: "ansible_facts['distribution_major_version'] | int < 8"
 
 # We install the 389-directory-server group, branch stable, minimal installation
 # Corresponds to only installing 389-ds-base
 - name: Install 389DS (CentOS 8)
-  yum:
-    name: "@389-directory-server:stable/minimal"
+  dnf:
+    name: "{{ dirsrv_product }}"
     state: present
   when: "ansible_facts['distribution_major_version'] | int == 8"
 
@@ -17,6 +17,13 @@
   yum:
     list: 389-ds-base
   register: dirsrv_package_details
+  when: "ansible_facts['distribution_major_version'] | int < 8"
+
+- name: Check 389DS package details
+  dnf:
+    list: 389-ds-base
+  register: dirsrv_package_details
+  when: "ansible_facts['distribution_major_version'] | int == 8"
 
 - name: Check 389DS package version
   set_fact:
@@ -35,6 +42,7 @@
     shell: /sbin/nologin
     system: true
     create_home: false
+  when: dirsrv_legacy
 
 - name: Check if instance directory exists
   stat:
@@ -75,7 +83,11 @@
         seuser: unconfined_u
         state: present
         target: "/tmp/{{ item | basename }}"
-      when: not dirsrv_instance_dir_exists
+      when:
+        - not dirsrv_instance_dir_exists
+        - ansible_selinux is defined
+        - ansible_selinux != False
+        - ansible_selinux.status == 'enabled'
       loop: "{{ dirsrv_install_additional_ldif }}"
 
     # This will install the Directory Server *only*.
