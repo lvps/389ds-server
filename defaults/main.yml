@@ -2,6 +2,7 @@
 
 # Instance settings
 
+dirsrv_product: '{% if ansible_facts["distribution_major_version"] | int < 8 %}389-ds-base{% else %}@389-directory-server:stable/minimal{% endif %}'
 dirsrv_suffix: dc=example,dc=com
 dirsrv_bename: userRoot
 dirsrv_othersuffixes: []
@@ -9,8 +10,9 @@ dirsrv_rootdn: cn=Directory Manager
 # dirsrv_rootdn_password: secret
 dirsrv_fqdn: "{{ ansible_nodename }}"
 dirsrv_serverid: default
+dirsrv_port: 389
 # The tasks run on the same server as 389DS, so this will be localhost in most cases
-dirsrv_server_uri: "ldap://localhost"
+dirsrv_server_uri: "ldap://localhost:{{ dirsrv_port }}"
 
 dirsrv_install_examples: false
 dirsrv_install_additional_ldif: []

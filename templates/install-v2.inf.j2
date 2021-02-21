@@ -13,6 +13,7 @@ full_machine_name = {{ dirsrv_fqdn }}
 
 [slapd]
 instance_name = {{ dirsrv_serverid }}
+port = {{ dirsrv_port }}
 root_dn = {{ dirsrv_rootdn }}
 root_password = {{ dirsrv_rootdn_password }}
 {% if dirsrv_selfsigned_cert is defined %}

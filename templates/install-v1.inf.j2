@@ -15,7 +15,7 @@ SuiteSpotUserID = dirsrv
 SuiteSpotGroup = dirsrv
 
 [slapd]
-ServerPort = 389
+ServerPort = {{ dirsrv_port }}
 ServerIdentifier = {{ dirsrv_serverid }}
 Suffix = {{ dirsrv_suffix }}
 ds_bename = {{ dirsrv_bename }}
