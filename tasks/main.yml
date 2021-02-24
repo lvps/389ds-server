@@ -64,8 +64,10 @@
   when: dirsrv_listen_host != None
 
 - include: configure_authentication.yml
+  when: not dirsrv_factory
 
 - include: configure_logging.yml
+  when: not dirsrv_factory
 
 - include: configure_plugins.yml
 
