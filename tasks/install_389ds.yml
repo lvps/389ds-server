@@ -1,33 +1,9 @@
 ---
-- name: Install 389DS (CentOS 7)
-  yum:
-    name: "{{ dirsrv_product }}"
-    state: present
-  when: "ansible_facts['distribution_major_version'] | int < 8"
+- include: tasks/install_389ds_EL7.yml
+  when: "ansible_facts['distribution_major_version'] | int == 7"
 
-# We install the 389-directory-server group, branch stable, minimal installation
-# Corresponds to only installing 389-ds-base
-- name: Install 389DS (CentOS 8)
-  dnf:
-    name: "{{ dirsrv_product }}"
-    state: present
+- include: tasks/install_389ds_EL8.yml
   when: "ansible_facts['distribution_major_version'] | int == 8"
-
-- name: Check 389DS package details
-  yum:
-    list: 389-ds-base
-  register: dirsrv_package_details
-  when: "ansible_facts['distribution_major_version'] | int < 8"
-
-- name: Check 389DS package details
-  dnf:
-    list: 389-ds-base
-  register: dirsrv_package_details
-  when: "ansible_facts['distribution_major_version'] | int == 8"
-
-- name: Check 389DS package version
-  set_fact:
-    dirsrv_package_version: "{{ dirsrv_package_details.results|selectattr('yumstate','equalto','installed')|map(attribute='version')|list|first }}"
 
 - name: Determine installed server type (1.3.X or 1.4.X)
   set_fact:

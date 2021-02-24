@@ -1,0 +1,14 @@
+---
+- name: Install 389DS with dnf
+  dnf:
+    name: "{{ dirsrv_product }}"
+    state: present
+
+- name: Check 389DS package details with dnf
+  dnf:
+    list: 389-ds-base
+  register: dirsrv_package_details
+
+- name: Check 389DS package version
+  set_fact:
+    dirsrv_package_version: "{{ dirsrv_package_details.results|selectattr('yumstate','equalto','installed')|map(attribute='version')|list|first }}"

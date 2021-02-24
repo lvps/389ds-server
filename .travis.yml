@@ -15,7 +15,7 @@ env:
   - SCENARIO="tls"
 
 script:
-  - molecule --debug test -s ${SCENARIO}
+  - molecule test -s ${SCENARIO}
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
