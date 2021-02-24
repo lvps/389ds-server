@@ -4,7 +4,7 @@
       set_fact:
         dirsrv_ldapi_config:
           - { name: "nsslapd-ldapilisten", value: "on" }
-          - { name: "nsslapd-ldapifilepath", value: "/var/run/dirsrv/slapd-{{ dirsrv_serverid }}.socket" }
+          - { name: "nsslapd-ldapifilepath", value: "{% if dirsrv_rundir is defined %}{{ dirsrv_rundir }}{% else %}/var/run{% endif %}/slapd-{{ dirsrv_serverid }}.socket" }
           - { name: "nsslapd-ldapiautobind", value: "on" }
           - { name: "nsslapd-ldapimaptoentries", value: "off" }
       when: dirsrv_ldapi_enabled|bool
@@ -33,7 +33,7 @@
   rescue:
     - name: Configure LDAPI over LDAPI
       ldap_attr:
-        server_uri: "ldapi:///var/run/dirsrv/slapd-{{ dirsrv_serverid }}.socket"
+        server_uri: "ldapi:///{% if dirsrv_rundir is defined %}{{ dirsrv_rundir }}{% else %}/var/run{% endif %}/slapd-{{ dirsrv_serverid }}.socket"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"

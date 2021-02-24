@@ -91,6 +91,7 @@ dirsrv_password_storage_scheme: []
 
 # Other
 
+dirsrv_factory: false
 dirsrv_ldapi_enabled: false
 dirsrv_sasl_plain_enabled: true
 dirsrv_listen_host:
