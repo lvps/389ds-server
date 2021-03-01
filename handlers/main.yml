@@ -1,10 +1,10 @@
 ---
-- name: dirsrv restart
+- name: dirsrv restart "{{ dirsrv_serverid }}"
   service:
     name: "dirsrv@{{ dirsrv_serverid }}"
     state: restarted
 
-- name: dirsrv schema reload
+- name: dirsrv schema reload "{{ dirsrv_serverid }}"
   ldap_entry:
     # This runs after dirsrv restart, if a restart is needed,
     # so TLS status enforcing may have changed.

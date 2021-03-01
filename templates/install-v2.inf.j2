@@ -36,6 +36,7 @@ suffix = {{ dirsrv_suffix }}
 {% if dirsrv_create_suffix_entry is defined %}
 create_suffix_entry = {{ "True" if dirsrv_create_suffix_entry else "False" }}
 {% endif %}
+{% if dirsrv_othersuffixes is defined %}
 {% for suffix in dirsrv_othersuffixes %}
 
 [backend-{{ suffix.name }}]
@@ -49,3 +50,4 @@ suffix = {{ suffix.dn }}
 create_suffix_entry = {{ "True" if dirsrv_create_suffix_entry else "False" }}
 {% endif %}
 {% endfor %}
+{% endif %}

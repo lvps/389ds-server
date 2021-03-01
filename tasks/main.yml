@@ -60,7 +60,7 @@
     name: "nsslapd-listenhost"
     values: "{{ dirsrv_listen_host }}"
     state: exact
-  notify: dirsrv restart
+  notify: dirsrv restart "{{ dirsrv_serverid }}"
   when: dirsrv_listen_host != None
 
 - include: configure_authentication.yml
