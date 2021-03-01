@@ -16,7 +16,7 @@
         - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
       failed_when: false
       tags: [ dirsrv_tls ]
-      notify: dirsrv restart
+      notify: dirsrv restart "{{ dirsrv_serverid }}"
 
   rescue:
     - name: Configure enforcing of TLS, over TLS
@@ -34,4 +34,4 @@
         - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
         - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
       tags: [ dirsrv_tls ]
-      notify: dirsrv restart
+      notify: dirsrv restart "{{ dirsrv_serverid }}"

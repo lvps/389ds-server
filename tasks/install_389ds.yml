@@ -32,7 +32,7 @@
 # TODO: How do we change the Directory Manager password if we need it to change the password?
 - block:
     # We have two distinct templates for the two versions of 389DS' install.inf format
-    - name: Determine right template to use for intall.inf
+    - name: Determine right template to use for install.inf
       set_fact:
         dirsrv_install_template: '{% if dirsrv_legacy %}install-v1.inf.j2{% else %}install-v2.inf.j2{% endif %}'
 
