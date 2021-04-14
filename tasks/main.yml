@@ -116,6 +116,7 @@
         (dirsrv_restart_condition_schema_reload_1 is defined and dirsrv_restart_condition_schema_reload_1.changed) or\
         (dirsrv_restart_condition_schema_reload_2 is defined and dirsrv_restart_condition_schema_reload_2.changed)\
         )"
+
 - include: configure_tls_enforcing.yml
 
 # This only happens if TLS is being enforced.
