@@ -9,7 +9,7 @@
     group: dirsrv
   loop: "{{ dirsrv_custom_schema }}"
   tags: [ dirsrv_schema ]
-  notify: dirsrv schema reload "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_schema_reload_1
 
 - name: Search other schema files
   find:
@@ -25,6 +25,6 @@
     path: "{{ item.path }}"
     state: absent
   loop: "{{ dirsrv_found_files['files'] }}"
-  notify: dirsrv schema reload "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_schema_reload_2
   tags: [ dirsrv_schema ]
   when: not dirsrv_allow_other_schema_files
