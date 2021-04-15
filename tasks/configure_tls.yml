@@ -167,7 +167,7 @@
         {{ dirsrv_pkutil_authflag }}
         -W ''
       when: dirsrv_nss_key_count_too_many
-      notify: dirsrv restart "{{ dirsrv_serverid }}"
+      register: dirsrv_restart_condition_tls_1
 
       # I *think* this may be needed for self-signed certificates, but not entirely sure...
       # - name: Set certificate parameters
@@ -233,7 +233,7 @@
     state: absent
   when: not dirsrv_tls_enabled
   tags: [ dirsrv_tls ]
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_tls_2
 
 - name: Create RSA configuration for TLS (if enabled)
   ldap_entry:
@@ -249,7 +249,7 @@
     state: present
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_tls_3
 
 - name: Configure RSA parameters
   ldap_attr:
@@ -269,7 +269,7 @@
     - { name: "nsSSLActivation", value: "on" }
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_tls_4
 
 # Note: https://www.port389.org/docs/389ds/howto/howto-ssl.html says
 # that other settings will not activate if nsslapd-security is off.
@@ -313,7 +313,7 @@
     - { name: "nsssl2", value: "off" }
     - { name: "nsssl3", value: "off" }
     - { name: "sslVersionMin", value: "TLS{{ dirsrv_tls_min_version }}" }
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_tls_5
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
 
@@ -363,6 +363,6 @@
     name: "nsslapd-securelistenhost"
     values: "{{ dirsrv_secure_listen_host }}"
     state: exact
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_tls_6
   when: dirsrv_secure_listen_host != None
   tags: [ dirsrv_tls ]

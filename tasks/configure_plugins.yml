@@ -25,7 +25,7 @@
     - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
     - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and not dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_plugins_1
 
 - name: Manage the dna shared ranges OUs, required when we have a replica
   block:
@@ -101,7 +101,7 @@
       loop:
         - "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
         - "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-      notify: dirsrv restart "{{ dirsrv_serverid }}"
+      register: dirsrv_restart_condition_plugins_2
 
     - name: Configure DNA plugin parameters (UID)
       ldap_attr:
@@ -123,7 +123,7 @@
         - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.uid_min }}" }
         - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.uid_max }}" }
         - { name: "dnasharedcfgdn", value: "cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}" }
-      notify: dirsrv restart "{{ dirsrv_serverid }}"
+      register: dirsrv_restart_condition_plugins_3
 
     - name: Configure DNA plugin parameters (GID)
       ldap_attr:
@@ -145,6 +145,6 @@
         - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
         - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
         - { name: "dnasharedcfgdn", value: "cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}" }
-      notify: dirsrv restart "{{ dirsrv_serverid }}"
+      register: dirsrv_restart_condition_plugins_4
 
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"

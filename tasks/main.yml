@@ -60,7 +60,7 @@
     name: "nsslapd-listenhost"
     values: "{{ dirsrv_listen_host }}"
     state: exact
-  notify: dirsrv restart "{{ dirsrv_serverid }}"
+  register: dirsrv_restart_condition_main
   when: dirsrv_listen_host != None
 
 - include: configure_authentication.yml
@@ -75,14 +75,54 @@
 
 - include: configure_tls.yml
 
-# Restart server and/or reload schema, to enable TLS and schema changes.
-# Required to enforce TLS as TLS must be enabled beforehand (requiring a restart).
-- meta: flush_handlers
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]
+# Required also to enforce TLS as TLS must be enabled beforehand (requiring a restart).
+- name: "Restart {{ dirsrv_serverid }} to enable TLS, authentication, plugins"
+  service:
+    name: "dirsrv@{{ dirsrv_serverid }}"
+    state: restarted
+  # Cannot use an handler due to https://github.com/lvps/389ds-server/issues/16
+  # Cannot use use any fancy woarkaround due to https://github.com/ansible/ansible/issues/63822
+  # Cannot use a generic name for the handler since https://github.com/lvps/389ds-server/pull/14, it *has* to be tied to the server
+  when: "(dirsrv_restart_condition_main is defined and dirsrv_restart_condition_main.changed) or\
+        (dirsrv_restart_condition_plugins_1 is defined and dirsrv_restart_condition_plugins_1.changed) or\
+        (dirsrv_restart_condition_plugins_2 is defined and dirsrv_restart_condition_plugins_2.changed) or\
+        (dirsrv_restart_condition_plugins_3 is defined and dirsrv_restart_condition_plugins_3.changed) or\
+        (dirsrv_restart_condition_plugins_4 is defined and dirsrv_restart_condition_plugins_4.changed) or\
+        (dirsrv_restart_condition_auth_1 is defined and dirsrv_restart_condition_auth_1.changed) or\
+        (dirsrv_restart_condition_auth_2 is defined and dirsrv_restart_condition_auth_2.changed) or\
+        (dirsrv_restart_condition_tls_1 is defined and dirsrv_restart_condition_tls_1.changed) or\
+        (dirsrv_restart_condition_tls_2 is defined and dirsrv_restart_condition_tls_2.changed) or\
+        (dirsrv_restart_condition_tls_3 is defined and dirsrv_restart_condition_tls_3.changed) or\
+        (dirsrv_restart_condition_tls_4 is defined and dirsrv_restart_condition_tls_4.changed) or\
+        (dirsrv_restart_condition_tls_5 is defined and dirsrv_restart_condition_tls_5.changed) or\
+        (dirsrv_restart_condition_tls_6 is defined and dirsrv_restart_condition_tls_6.changed)"
+  register: dirsrv_restart_condition_has_restarted
+
+- name: "Reload schema on {{ dirsrv_serverid }}"
+  ldap_entry:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_tls_enforced }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "cn=ansible-managed schema reload,cn=schema reload task,cn=tasks,cn=config"
+    objectClass:
+      - extensibleObject
+    attributes:
+      cn: ansible-managed schema reload
+      schemadir: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema/"
+    state: present
+  when: "not dirsrv_restart_condition_has_restarted and (\
+        (dirsrv_restart_condition_schema_reload_1 is defined and dirsrv_restart_condition_schema_reload_1.changed) or\
+        (dirsrv_restart_condition_schema_reload_2 is defined and dirsrv_restart_condition_schema_reload_2.changed)\
+        )"
 
 - include: configure_tls_enforcing.yml
 
-# Restart server to enforce TLS.
 # This only happens if TLS is being enforced.
-- meta: flush_handlers
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]
+- name: "Restart {{ dirsrv_serverid }} to enforce TLS"
+  service:
+    name: "dirsrv@{{ dirsrv_serverid }}"
+    state: restarted
+  when: "(dirsrv_restart_condition_tls_enforcing_1 is defined and dirsrv_restart_condition_tls_enforcing_1.changed) or\
+        (dirsrv_restart_condition_tls_enforcing_2 is defined and dirsrv_restart_condition_tls_enforcing_2.changed)"
