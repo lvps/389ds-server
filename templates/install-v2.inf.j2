@@ -22,6 +22,9 @@ self_sign_cert = {{ "True" if dirsrv_selfsigned_cert else "False" }}
 {% if dirsrv_selfsigned_cert_duration is defined %}
 self_sign_cert_valid_months = {{ dirsrv_selfsigned_cert_duration }}
 {% endif %}
+{% if dirsrv_db_home_dir is defined %}
+db_home_dir = {{ dirsrv_db_home_dir }}
+{% endif %}
 {% if dirsrv_rundir is defined %}
 run_dir = {{ dirsrv_rundir }}
 {% endif %}
