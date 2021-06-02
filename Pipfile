@@ -13,6 +13,7 @@ ansible-lint = "*"
 yamllint = "*"
 pytest = "*"
 testinfra = "*"
+molecule-docker = "*"
 
 [requires]
 python_version = "3.6"

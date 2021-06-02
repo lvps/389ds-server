@@ -34,6 +34,7 @@ iniconfig==1.1.1
 jinja2-time==0.2.0
 jinja2==3.0.1; python_version >= '3.6'
 markupsafe==2.0.1; python_version >= '3.6'
+molecule-docker==0.2.4
 molecule==3.3.3
 packaging==20.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 paramiko==2.7.2
@@ -54,7 +55,7 @@ requests==2.25.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3
 rich==10.2.2; python_version >= '3.6' and python_version < '4.0'
 ruamel.yaml.clib==0.2.2; python_version < '3.10' and platform_python_implementation == 'CPython'
 ruamel.yaml==0.17.7; python_version < '3.7'
-selinux==0.2.1; sys_platform == 'linux'
+selinux==0.2.1; sys_platform == 'linux' and sys_platform == 'linux'
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 subprocess-tee==0.3.1; python_version >= '3.6'
 tenacity==7.0.0

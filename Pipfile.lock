@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "380c6ceeee92fb20b8b02f1c34a3691e43b985f83243a8608256e0313554c4b6"
+            "sha256": "53af16f8ca1647177ce9764661eb9f24fbaa727ee6d15dce4d25632914eb21ad"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -331,6 +331,14 @@
             "index": "pypi",
             "version": "==3.3.3"
         },
+        "molecule-docker": {
+            "hashes": [
+                "sha256:251832979dcb590da4cd46df60f2240c1e88f66f4015223efe350b6afe68c342",
+                "sha256:715a16d6fb90c6a260f280c8e5c559b3bd4a3e75752eb208f6ab055df5afe04a"
+            ],
+            "index": "pypi",
+            "version": "==0.2.4"
+        },
         "packaging": {
             "hashes": [
                 "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5",
@@ -558,7 +566,7 @@
                 "sha256:820adcf1b4451c9cc7759848797703263ba0eb6a4cad76d73548a9e0d57b7926",
                 "sha256:d435f514e834e3fdc0941f6a29d086b80b2ea51b28112aee6254bd104ee42a74"
             ],
-            "markers": "sys_platform == 'linux'",
+            "markers": "sys_platform == 'linux' and sys_platform == 'linux'",
             "version": "==0.2.1"
         },
         "six": {
