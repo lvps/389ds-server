@@ -56,8 +56,7 @@
         force: true
 
   roles:
-    -
-      role: 389ds-server
+    - role: lvps.389ds_server
 
   tasks:
     - name: Ensure we can access the server, for testing

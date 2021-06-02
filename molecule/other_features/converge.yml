@@ -78,8 +78,7 @@
         force: true
 
   roles:
-    -
-      role: 389ds-server
+    - role: lvps.389ds_server
 
   tasks:
     - name: Ensure container entries exist, for testing

@@ -1,3 +1,5 @@
+---
 skip_list:
   - 106
   - 503
+  - 'role-name'  # Cannot start with a number, which is unfortunate for a software named 389DS

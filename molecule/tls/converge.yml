@@ -70,8 +70,7 @@
         dirsrv_tls_minssf: "{%if ansible_facts['distribution_major_version'] | int == 8 %}128{% else %}256{% endif %}"
 
   roles:
-    -
-      role: 389ds-server
+    - role: lvps.389ds_server
 
   tasks:
     - name: Ensure we can access the server, for testing
