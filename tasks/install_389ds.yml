@@ -126,6 +126,15 @@
         - not dirsrv_instance_dir_exists
         - not dirsrv_legacy
       loop: "{{ dirsrv_install_additional_ldif }}"
+
+    - name: Delete temporary additional ldif files (dsconf)
+      file:
+        path: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
+        state: absent
+      when:
+        - not dirsrv_instance_dir_exists
+        - not dirsrv_legacy
+      loop: "{{ dirsrv_install_additional_ldif }}"
   always:
     - name: Remove installation template
       file:
