@@ -4,10 +4,6 @@ services: docker
 cache:
   pip: true
 
-install:
-  - pip install pipenv
-  - pipenv install
-
 env:
   - SCENARIO="backwards_compatibility"
   - SCENARIO="default"
