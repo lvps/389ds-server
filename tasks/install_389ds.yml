@@ -43,26 +43,29 @@
         mode: '600'
       when: not dirsrv_instance_dir_exists
 
-    - name: Copy additional ldif files
+    - name: Copy additional ldif files (setup-ds.pl)
       copy:
         src: "{{ item }}"
-        dest: "/tmp/{{ item | basename }}"
+        dest: "{% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
         mode: '400'
         owner: dirsrv
         group: dirsrv
-      when: not dirsrv_instance_dir_exists
+      when:
+        - not dirsrv_instance_dir_exists
+        - dirsrv_legacy
       loop: "{{ dirsrv_install_additional_ldif }}"
 
-    - name: Set SELinux context for additional ldif files
+    - name: Set SELinux context for additional ldif files (setup-ds.pl)
       sefcontext:
         setype: user_tmp_t
         seuser: unconfined_u
         state: present
-        target: "/tmp/{{ item | basename }}"
+        target: "{% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
       when:
         - not dirsrv_instance_dir_exists
         - ansible_selinux is defined
         - ansible_selinux.status == 'enabled'
+        - dirsrv_legacy
       loop: "{{ dirsrv_install_additional_ldif }}"
 
     # This will install the Directory Server *only*.
@@ -84,6 +87,31 @@
         - not dirsrv_instance_dir_exists
         - not dirsrv_legacy
 
+    - name: Copy additional ldif files (dsconf)
+      copy:
+        src: "{{ item }}"
+        dest: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
+        mode: '400'
+        owner: dirsrv
+        group: dirsrv
+      when:
+        - not dirsrv_instance_dir_exists
+        - not dirsrv_legacy
+      loop: "{{ dirsrv_install_additional_ldif }}"
+
+    - name: Set SELinux context for additional ldif files (dsconf)
+      sefcontext:
+        setype: user_tmp_t
+        seuser: unconfined_u
+        state: present
+        target: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
+      when:
+        - not dirsrv_instance_dir_exists
+        - ansible_selinux is defined
+        - ansible_selinux.status == 'enabled'
+        - not dirsrv_legacy
+      loop: "{{ dirsrv_install_additional_ldif }}"
+
     # The newer version of the install.ini file does not have a InstallLdifFile object anymore
     # So we manually install extra ldifs later
     - name: Install additional ldif files (dsconf)
@@ -93,7 +121,7 @@
         -w {{ dirsrv_rootdn_password }}
         ldap://{{ dirsrv_fqdn }}
         backend import userRoot
-        /tmp/{{ item|basename }}
+        {{ dirsrv_install_additional_ldif_dir }}/{{ item|basename }}
       when:
         - not dirsrv_instance_dir_exists
         - not dirsrv_legacy

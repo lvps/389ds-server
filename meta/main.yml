@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   author: lvps
+  role_name: 389ds_server
   description: >
     Installs 389DS LDAP server. Also configures TLS, logging, custom schema
     files, enable/disable plugins, DNA plugin for UID/GID, LDAPI and SASL PLAIN.
