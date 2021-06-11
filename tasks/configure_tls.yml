@@ -252,21 +252,19 @@
   register: dirsrv_restart_condition_tls_3
 
 - name: Configure RSA parameters
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=RSA,cn=encryption,cn=config"
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
+    attributes:
+      cn: "RSA"
+      nsSSLToken: "internal (software)"
+      nsSSLPersonalitySSL: "server-cert-ansible-managed"
+      nsSSLActivation: "on"
     state: exact
-  loop:
-    - { name: "cn", value: "RSA" }
-    - { name: "nsSSLToken", value: "internal (software)" }
-    - { name: "nsSSLPersonalitySSL", value: "server-cert-ansible-managed" }
-    - { name: "nsSSLActivation", value: "on" }
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
   register: dirsrv_restart_condition_tls_4
@@ -277,91 +275,85 @@
 # possibly immediately.
 # Also: for this reason, the order is relevant.
 - name: Configure TLS support
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
-    name: "nsslapd-security"
-    values: "{{ 'on' if dirsrv_tls_enabled else 'off' }}"
+    attributes:
+      nsslapd-security: "{{ 'on' if dirsrv_tls_enabled else 'off' }}"
     state: exact
   tags: [ dirsrv_tls ]
 
 # Doesn't work:
 # - name: Disable TLS-only port (636)
-#   ldap_attr:
+#   ldap_attrs:
 #     params: "{{ ldap_auth }}"
 #     dn: "cn=config"
-#     name: "nsslapd-securePort"
-#     values: "0"
+#     attributes:
+#        nsslapd-securePort: "0"
 #     state: exact
 
 - name: Configure TLS minimum version (disable SSL)
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=encryption,cn=config
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
+    attributes:
+      nsssl2: "off"
+      nsssl3: "off"
+      sslVersionMin: "TLS{{ dirsrv_tls_min_version }}"
     state: exact
-  loop:
-    - { name: "nsssl2", value: "off" }
-    - { name: "nsssl3", value: "off" }
-    - { name: "sslVersionMin", value: "TLS{{ dirsrv_tls_min_version }}" }
   register: dirsrv_restart_condition_tls_5
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
 
 # TODO: support it?
 - name: Disable TLS client authentication
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: cn=encryption,cn=config
-    name: "nsSSLClientAuth"
-    values: "off"
+    attributes:
+      nsSSLClientAuth: "off"
     state: exact
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
 
 - name: Configure anonymous binds
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
-    name: "{{ item.name }}"
-    values: "{{ item.value }}"
+    attributes:
+      nsslapd-allow-anonymous-access: "{{ 'rootdse' if dirsrv_allow_anonymous_binds == 'rootdse' else 'on' if dirsrv_allow_anonymous_binds else 'off' }}"
+      # This defaults to "off" and it's better left alone
+      # "nsslapd-allow-unauthenticated-binds": "{{ 'on' if allow_unauthenticated_binds else 'off' }}"
     state: exact
-  loop:
-    -
-      name: "nsslapd-allow-anonymous-access"
-      value: "{{ 'rootdse' if dirsrv_allow_anonymous_binds == 'rootdse' else 'on' if dirsrv_allow_anonymous_binds else 'off' }}"
-  # This defaults to "off" and it's better left alone
-  # - { name: "nsslapd-allow-unauthenticated-binds", value: "{{ 'on' if allow_unauthenticated_binds else 'off' }" }
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_tls ]
 
 - name: Configure secure listen address
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
-    name: "nsslapd-securelistenhost"
-    values: "{{ dirsrv_secure_listen_host }}"
+    attributes:
+      nsslapd-securelistenhost: "{{ dirsrv_secure_listen_host }}"
     state: exact
   register: dirsrv_restart_condition_tls_6
   when: dirsrv_secure_listen_host != None

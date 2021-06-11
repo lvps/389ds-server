@@ -3,60 +3,55 @@
     - name: Set configuration to enable LDAPI
       set_fact:
         dirsrv_ldapi_config:
-          - { name: "nsslapd-ldapilisten", value: "on" }
-          - name: "nsslapd-ldapifilepath"
-            value: "{% if dirsrv_rundir is defined %}{{ dirsrv_rundir }}{% else %}/var/run{% endif %}/slapd-{{ dirsrv_serverid }}.socket"
-          - { name: "nsslapd-ldapiautobind", value: "on" }
-          - { name: "nsslapd-ldapimaptoentries", value: "off" }
+          nsslapd-ldapilisten: "on"
+          nsslapd-ldapifilepath: "{% if dirsrv_rundir is defined %}{{ dirsrv_rundir }}{% else %}/var/run{% endif %}/slapd-{{ dirsrv_serverid }}.socket"
+          nsslapd-ldapiautobind: "on"
+          nsslapd-ldapimaptoentries: "off"
       when: dirsrv_ldapi_enabled|bool
 
     - name: Set configuration to disable LDAPI
       set_fact:
         dirsrv_ldapi_config:
-          - { name: "nsslapd-ldapilisten", value: "off" }
-          - { name: "nsslapd-ldapiautobind", value: "off" }
+          nsslapd-ldapilisten: "off"
+          nsslapd-ldapiautobind: "off"
       when: not dirsrv_ldapi_enabled
 
     - name: Configure LDAPI
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
+        attributes: "{{ dirsrv_ldapi_config }}"
         state: exact
-      loop: "{{ dirsrv_ldapi_config }}"
       register: dirsrv_restart_condition_auth_1
 
   rescue:
     - name: Configure LDAPI over LDAPI
-      ldap_attr:
+      ldap_attrs:
         server_uri: "ldapi:///{% if dirsrv_rundir is defined %}{{ dirsrv_rundir }}{% else %}/var/run{% endif %}/slapd-{{ dirsrv_serverid }}.socket"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
+        attributes: "{{ dirsrv_ldapi_config }}"
         state: exact
-      loop: "{{ dirsrv_ldapi_config }}"
       register: dirsrv_restart_condition_auth_2
 
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
 # TODO: "none" means "everything is allowed"... how to allow none (or just EXTERNAL that is always enabled but not always allowed or whatever?)
 - block:
     - name: Configure SASL
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "nsslapd-allowed-sasl-mechanisms"
-        values: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
+        attributes:
+          nsslapd-allowed-sasl-mechanisms: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
         state: exact
       register: dirsrv_sasl_result
 
@@ -83,15 +78,15 @@
     # as DEFAULT itself get instantly converted in the name of an actual password storage scheme. Therefore, to determine if the task actually changed, we compare the value before and after
     # instead of relying on the attribute change task to report its status
     - name: Configure password storage scheme
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "passwordStorageScheme"
-        values: "{{ dirsrv_normalized_password_storage_scheme }}"
+        attributes:
+          passwordStorageScheme: "{{ dirsrv_normalized_password_storage_scheme }}"
         state: exact
       register: dirsrv_pwdstorage_result
       when: dirsrv_normalized_password_storage_scheme != "DEFAULT"
@@ -100,15 +95,15 @@
     # having previously altered it to a different value, however there is no way known to us in vanilla ansible to query an
     # LDAP attribute value and therefore we can't make a comparison to check wether the value actually changed or not.
     - name: Reset password storage scheme (389DS 1.4.X)
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "passwordStorageScheme"
-        values: "{{ dirsrv_normalized_password_storage_scheme }}"
+        attributes:
+          passwordStorageScheme: "{{ dirsrv_normalized_password_storage_scheme }}"
         state: exact
       register: dirsrv_pwdstorage_result
       when: dirsrv_normalized_password_storage_scheme == "DEFAULT"

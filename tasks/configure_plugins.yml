@@ -1,14 +1,14 @@
 ---
 - name: Enable plugins
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn={{ item.key }},cn=plugins,cn=config"
-    name: nsslapd-pluginEnabled
-    values: "{{ 'on' if item.value else 'off' }}"
+    attributes:
+      nsslapd-pluginEnabled: "{{ 'on' if item.value else 'off' }}"
     state: exact
   loop: "{{ dirsrv_plugins_enabled | dict2items }}"
 
@@ -104,47 +104,43 @@
       register: dirsrv_restart_condition_plugins_2
 
     - name: Configure DNA plugin parameters (UID)
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=UID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
+        attributes:
+          cn: "UID numbers"
+          dnatype: "uidNumber"
+          dnamagicregen: "magic"  # doesn't have to be a number
+          dnafilter: "(objectclass=posixAccount)"
+          dnascope: "{{ dirsrv_suffix }}"
+          dnanextvalue: "{{ dirsrv_dna_plugin.uid_min }}"
+          dnamaxvalue: "{{ dirsrv_dna_plugin.uid_max }}"
+          dnasharedcfgdn: "cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}"
         state: exact
-      loop:
-        - { name: "cn", value: "UID numbers" }
-        - { name: "dnatype", value: "uidNumber" }
-        - { name: "dnamagicregen", value: "magic" }  # doesn't have to be a number
-        - { name: "dnafilter", value: "(objectclass=posixAccount)" }
-        - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
-        - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.uid_min }}" }
-        - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.uid_max }}" }
-        - { name: "dnasharedcfgdn", value: "cn=Account UIDs,ou=Ranges,{{ dirsrv_suffix }}" }
       register: dirsrv_restart_condition_plugins_3
 
     - name: Configure DNA plugin parameters (GID)
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_starttls_early }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=GID numbers,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
+        attributes:
+          cn: "GID numbers"
+          dnatype: "gidNumber"
+          dnamagicregen: "magic"
+          dnafilter: "(|(objectclass=posixAccount)(objectclass=posixGroup))"
+          dnascope: "{{ dirsrv_suffix }}"
+          dnanextvalue: "{{ dirsrv_dna_plugin.gid_min }}"
+          dnamaxvalue: "{{ dirsrv_dna_plugin.gid_max }}"
+          dnasharedcfgdn: "cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}"
         state: exact
-      loop:
-        - { name: "cn", value: "GID numbers" }
-        - { name: "dnatype", value: "gidNumber" }
-        - { name: "dnamagicregen", value: "magic" }
-        - { name: "dnafilter", value: "(|(objectclass=posixAccount)(objectclass=posixGroup))" }
-        - { name: "dnascope", value: "{{ dirsrv_suffix }}" }
-        - { name: "dnanextvalue", value: "{{ dirsrv_dna_plugin.gid_min }}" }
-        - { name: "dnamaxvalue", value: "{{ dirsrv_dna_plugin.gid_max }}" }
-        - { name: "dnasharedcfgdn", value: "cn=Account GIDs,ou=Ranges,{{ dirsrv_suffix }}" }
       register: dirsrv_restart_condition_plugins_4
 
   when: "'Distributed Numeric Assignment Plugin' in dirsrv_plugins_enabled and dirsrv_plugins_enabled['Distributed Numeric Assignment Plugin']"

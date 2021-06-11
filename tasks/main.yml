@@ -50,15 +50,15 @@
       or (dirsrv_tls_enforced_initially_ssf_set.rc == 0 and dirsrv_tls_enforced_initially_ssf.rc == 1) }}"
 
 - name: Configure listen address
-  ldap_attr:
+  ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
     bind_dn: "{{ dirsrv_rootdn }}"
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
-    name: "nsslapd-listenhost"
-    values: "{{ dirsrv_listen_host }}"
+    attributes:
+      nsslapd-listenhost: "{{ dirsrv_listen_host }}"
     state: exact
   register: dirsrv_restart_condition_main
   when: dirsrv_listen_host != None

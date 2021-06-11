@@ -102,15 +102,15 @@
       changed_when: false
 
     - name: Ensure TLS is disabled
-      ldap_attr:
+      ldap_attrs:
         server_uri: "ldap://localhost"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_tls_enabled }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "nsslapd-security"
-        values: "off"
+        attributes:
+          nsslapd-security: "off"
         state: exact
       register: dirsrv_backwards_tls_test
       failed_when: dirsrv_backwards_tls_test.changed

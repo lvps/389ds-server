@@ -1,37 +1,33 @@
 ---
 - block:
     - name: Configure enforcing of TLS
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_tls_enforced }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
+        attributes:
+          nsslapd-require-secure-binds: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}"
+          nsslapd-minssf: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}"
         state: exact
-      loop:
-        - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
-        - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
       failed_when: false
       tags: [ dirsrv_tls ]
       register: dirsrv_restart_condition_tls_enforcing_1
 
   rescue:
     - name: Configure enforcing of TLS, over TLS
-      ldap_attr:
+      ldap_attrs:
         server_uri: "{{ dirsrv_server_uri }}"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_tls_enforced }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
-        name: "{{ item.name }}"
-        values: "{{ item.value }}"
+        attributes:
+          nsslapd-require-secure-binds: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}"
+          nsslapd-minssf: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}"
         state: exact
-      loop:
-        - { name: "nsslapd-require-secure-binds", value: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}" }
-        - { name: "nsslapd-minssf", value: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}" }
       tags: [ dirsrv_tls ]
       register: dirsrv_restart_condition_tls_enforcing_2
