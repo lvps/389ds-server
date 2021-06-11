@@ -6,7 +6,7 @@ galaxy_info:
     Installs 389DS LDAP server. Also configures TLS, logging, custom schema
     files, enable/disable plugins, DNA plugin for UID/GID, LDAPI and SASL PLAIN.
   license: Apache2
-  min_ansible_version: 2.7
+  min_ansible_version: 2.10
   platforms:
     - name: EL
       versions:
