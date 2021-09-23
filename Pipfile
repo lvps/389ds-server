@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 molecule = "*"
 docker = "*"
-ansible = "<3.0.0"
+ansible = "<5.0.0"
 ansible-lint = "*"
 yamllint = "*"
 pytest = "*"
