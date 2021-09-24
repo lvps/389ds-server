@@ -77,6 +77,7 @@
 
 # Required also to enforce TLS as TLS must be enabled beforehand (requiring a restart).
 - name: "Restart {{ dirsrv_serverid }} to enable TLS, authentication, plugins"
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
   service:
     name: "dirsrv@{{ dirsrv_serverid }}"
     state: restarted
