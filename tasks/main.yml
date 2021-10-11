@@ -113,7 +113,7 @@
       cn: ansible-managed schema reload
       schemadir: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema/"
     state: present
-  when: "not dirsrv_restart_condition_has_restarted and (\
+  when: "not dirsrv_restart_condition_has_restarted|default(false) and (\
         (dirsrv_restart_condition_schema_reload_1 is defined and dirsrv_restart_condition_schema_reload_1.changed) or\
         (dirsrv_restart_condition_schema_reload_2 is defined and dirsrv_restart_condition_schema_reload_2.changed)\
         )"
