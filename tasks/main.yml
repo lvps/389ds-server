@@ -100,6 +100,7 @@
   register: dirsrv_restart_condition_has_restarted
 
 - name: "Reload schema on {{ dirsrv_serverid }}"
+  tags: dirsrv_schema
   ldap_entry:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
