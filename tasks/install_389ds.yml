@@ -117,10 +117,9 @@
     - name: Install additional ldif files (dsconf)
       command: >
         /usr/sbin/dsconf
-        -D "{{ dirsrv_rootdn }}"
-        -w {{ dirsrv_rootdn_password }}
-        ldap://{{ dirsrv_fqdn }}
-        backend import userRoot
+        {{ dirsrv_serverid }}
+        backend import
+        {{ dirsrv_bename }}
         {{ dirsrv_install_additional_ldif_dir }}/{{ item|basename }}
       when:
         - not dirsrv_instance_dir_exists

@@ -279,21 +279,21 @@ Ansible doesn't merge dicts by default, i.e. if you want to change only audit > 
 If you want to enable the memberof plugin located at `cn=MemberOf Plugin,cn=plugins,cn=config`, set the variable to:
 
 ```yaml
-plugins_enabled:
+dirsrv_plugins_enabled:
   MemberOf Plugin: true
 ```
 
 If it's enabled and you want to disable it, set it to:
 
 ```yaml
-plugins_enabled:
+dirsrv_plugins_enabled:
   MemberOf Plugin: false
 ```
 
 If you want to enable more plugins:
 
 ```yaml
-plugins_enabled:
+dirsrv_plugins_enabled:
   MemberOf Plugin: true
   Distributed Numeric Assignment Plugin: true
 ```
@@ -316,7 +316,7 @@ dirsrv_dna_plugin:
 
 Ansible doesn't merge dicts by default, i.e. if you want to change only uid_max and gid_max you have to define the \_min variables too. When you define dirsrv_dna_plugin, it replaces this default dict entirely.
 
-This configuration is only applied if "Distributed Numeric Assignment Plugin" is true in plugins_enabled, and is removed when it is false. If it's not mentioned, nothing is done.
+This configuration is only applied if "Distributed Numeric Assignment Plugin" is true in dirsrv_plugins_enabled, and is removed when it is false. If it's not mentioned, nothing is done.
 
 `dirsrv_replica_role` has to be defined to configure DNA with replication. That variable is also defined in the [lvps/389ds-recplication](https://github.com/lvps/389ds-replication) role, so refer to that one for documentation.
 For this role it is sufficient for it to be defined if you are using replication, the value does not matter.
@@ -407,9 +407,9 @@ The same may be needed for the LDAPS port (636), if you enable TLS and want to u
           maxlogsize: 200
           maxlogsperdir: 14
           mode: 600
-      plugins_enabled:
+      dirsrv_plugins_enabled:
         MemberOf Plugin: true
-      custom_schema:
+      dirsrv_custom_schema:
         - "50example.ldif"
         - "60foobar.ldif"
 ```
