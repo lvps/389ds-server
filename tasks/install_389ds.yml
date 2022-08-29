@@ -3,7 +3,7 @@
   when: "ansible_facts['distribution_major_version'] | int == 7"
 
 - include: tasks/install_389ds_EL8.yml
-  when: "ansible_facts['distribution_major_version'] | int == 8"
+  when: "ansible_facts['distribution_major_version'] | int >= 8"
 
 - name: Determine installed server type (1.3.X or 1.4.X)
   set_fact:

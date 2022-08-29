@@ -2,7 +2,7 @@
 
 # Instance settings
 
-dirsrv_product: '{% if ansible_facts["distribution_major_version"] | int < 8 %}389-ds-base{% else %}@389-directory-server:stable/minimal{% endif %}'
+dirsrv_product: '{% if ansible_facts["distribution_major_version"] | int == 8 %}@389-directory-server:stable/minimal{% else %}389-ds-base{% endif %}'
 dirsrv_suffix: dc=example,dc=com
 dirsrv_bename: userRoot
 dirsrv_othersuffixes: []
