@@ -26,7 +26,7 @@ Replication is managed with [another role](https://github.com/lvps/389ds-replica
 ## Requirements
 
 - Ansible 2.10 or newer, for Ansible 2.8 and 2.9 use the 3.1.x releases of this role
-- CentOS 7 or CentOS 8 or other RHEL based OS
+- CentOS 7, CentOS 8, CentOS 9 or other RHEL based OS
 
 ## Role Variables
 
