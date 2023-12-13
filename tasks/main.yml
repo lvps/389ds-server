@@ -4,7 +4,7 @@
 # TODO: are nsCertFile and nsKeyFile still allowed, instead of the NSS database which is nearly impossible to handle correctly?
 # https://www.port389.org/docs/389ds/howto/howto-ssl.html
 
-- include: install_389ds.yml
+- import_tasks: install_389ds.yml
 
 - name: Check that tls_enforced makes sense
   assert:
@@ -63,17 +63,17 @@
   register: dirsrv_restart_condition_main
   when: dirsrv_listen_host != None
 
-- include: configure_authentication.yml
+- import_tasks: configure_authentication.yml
   when: not dirsrv_factory
 
-- include: configure_logging.yml
+- import_tasks: configure_logging.yml
   when: not dirsrv_factory
 
-- include: configure_plugins.yml
+- import_tasks: configure_plugins.yml
 
-- include: configure_schema.yml
+- import_tasks: configure_schema.yml
 
-- include: configure_tls.yml
+- import_tasks: configure_tls.yml
 
 # Required also to enforce TLS as TLS must be enabled beforehand (requiring a restart).
 - name: "Restart {{ dirsrv_serverid }} to enable TLS, authentication, plugins"
@@ -119,7 +119,7 @@
         (dirsrv_restart_condition_schema_reload_2 is defined and dirsrv_restart_condition_schema_reload_2.changed)\
         )"
 
-- include: configure_tls_enforcing.yml
+- import_tasks: configure_tls_enforcing.yml
 
 # This only happens if TLS is being enforced.
 - name: "Restart {{ dirsrv_serverid }} to enforce TLS"
