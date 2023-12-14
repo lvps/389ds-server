@@ -11,6 +11,7 @@
         attributes:
           nsslapd-require-secure-binds: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}"
           nsslapd-minssf: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}"
+          nsslapd-localssf: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}"
         state: exact
       failed_when: false
       tags: [ dirsrv_tls ]
@@ -28,6 +29,7 @@
         attributes:
           nsslapd-require-secure-binds: "{{ 'on' if dirsrv_tls_enabled and dirsrv_tls_enforced else 'off' }}"
           nsslapd-minssf: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}"
+          nsslapd-localssf: "{{ dirsrv_tls_minssf if dirsrv_tls_enabled and dirsrv_tls_enforced else '0' }}"
         state: exact
       tags: [ dirsrv_tls ]
       register: dirsrv_restart_condition_tls_enforcing_2
