@@ -14,40 +14,43 @@
   when: dirsrv_tls_enforced | bool
   tags: [ dirsrv_tls ]
 
-- name: Check if TLS is enforced (secure binds)
-  command: "grep \"nsslapd-require-secure-binds: on\" /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif"
-  register: dirsrv_tls_enforced_initially_binds
-  changed_when: false
-  failed_when: dirsrv_tls_enforced_initially_binds.rc != 0 and dirsrv_tls_enforced_initially_binds.rc != 1
+- block:
+    - name: read LDAP server configuration
+      slurp:
+        src: /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif
+      register: dirsrv_ldif_base64
+    - name: check auth-related server configuration
+      set_fact:
+        dirsrv_ldapilisten_enabled: >-
+          {{ dirsrv_ldif_base64.content | b64decode |
+          regex_search('(?m)^nsslapd-ldapilisten:.*$')
+          == 'nsslapd-ldapilisten: on' }}
+        dirsrv_tls_ldapi_filepath: >-
+          {{ dirsrv_ldif_base64.content | b64decode |
+                 regex_search('(?m)^nsslapd-ldapifilepath:.*$') |
+                 regex_replace('^[^:]*: ', '') }}
+        dirsrv_tls_enforced_initially_binds: >-
+          {{ dirsrv_ldif_base64.content | b64decode |
+                 regex_search('(?m)^nsslapd-require-secure-binds:.*$')
+             == 'nsslapd-require-secure-binds: on' }}
+        dirsrv_tls_enforced_initially_ssf: >-
+          {{ dirsrv_ldif_base64.content | b64decode |
+                 regex_search('(?m)^nsslapd-minssf:.*$') |
+                 regex_replace('^[^:]*: ', '') }}
+        dirsrv_ldapi_uri: >-
+          {{ "ldapi://" ~
+             ( ( dirsrv_rundir | default("/var/run") ) ~
+               "/slapd-" ~ dirsrv_serverid ~ ".socket" ) | quote_plus }}
+    - name: Prepare LDAP auth data
+      set_fact:
+        dirsrv_starttls_early: >-
+          {{ not dirsrv_ldapilisten_enabled and
+             ( dirsrv_tls_enforced_initially_binds or
+               dirsrv_tls_enforced_initially_ssf | int > 0 ) }}
+        dirsrv_server_uri: >-
+          {{ dirsrv_ldapi_uri if dirsrv_ldapilisten_enabled
+                              else dirsrv_server_uri }}
   tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
-
-# If nsslapd-minssf isn't set at all, it defaults to 0.
-# So we have to check if it's defined...
-- name: Check if TLS is enforced (minimum SSF is set)
-  command: "grep \"nsslapd-minssf:\" /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif"
-  register: dirsrv_tls_enforced_initially_ssf_set
-  changed_when: false
-  failed_when: dirsrv_tls_enforced_initially_ssf_set.rc != 0 and dirsrv_tls_enforced_initially_ssf_set.rc != 1
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
-
-# ...and if it's 0 or something else.
-- name: Check if TLS is enforced (minimum SSF)
-  command: "grep \"nsslapd-minssf: 0\" /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif"
-  register: dirsrv_tls_enforced_initially_ssf
-  changed_when: false
-  failed_when: dirsrv_tls_enforced_initially_ssf.rc != 0 and dirsrv_tls_enforced_initially_ssf.rc != 1
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
-
-- name: Prepare LDAP auth data
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
-  set_fact:
-    # LDAPI or binding port 389 without STARTTLS will fail, if TLS
-    # is enforced. But we can't bind on port 636 or use STARTTLS
-    # without checking: when the server has been just installed, no
-    # certificates and no TLS are available.
-    # The condition checks "secure-binds is on (found) OR minssf is not 0 (is set and is not 0)"
-    dirsrv_starttls_early: "{{ dirsrv_tls_enforced_initially_binds.rc == 0 \
-      or (dirsrv_tls_enforced_initially_ssf_set.rc == 0 and dirsrv_tls_enforced_initially_ssf.rc == 1) }}"
 
 - name: Configure listen address
   ldap_attrs:
