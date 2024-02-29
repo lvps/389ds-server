@@ -9,7 +9,7 @@
 - name: Check that tls_enforced makes sense
   assert:
     that:
-      - dirsrv_tls_enabled
+      - dirsrv_tls_enabled or dirsrv_selfsigned_cert
     msg: "dirsrv_tls_enforced: true doesn't make sense when dirsrv_tls_enabled: false, enable TLS or disable enforcing"
   when: dirsrv_tls_enforced | bool
   tags: [ dirsrv_tls ]
