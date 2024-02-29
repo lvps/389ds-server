@@ -1,6 +1,55 @@
 ---
 # ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
 # this excludes state=present and state=absent, but state=exact still works (only does a ldapsearch)
+- name: fetch current log sizes
+  community.general.ldap_search:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "cn=config"
+    attrs:
+      - nsslapd-auditlog-maxlogsize
+      - nsslapd-errorlog-maxlogsize
+      - nsslapd-accesslog-maxlogsize
+  register: dirsrv_cur_maxlogsize
+
+# decreasing logmaxdiskspace fails if current maxlogsize is larger than the
+# value passed. Decrease maxlogsize first, and set it to the desired value
+# below.
+- name: reset maxlogsize if necessary
+  community.general.ldap_attrs:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "cn=config"
+    attributes:
+      nsslapd-auditlog-maxlogsize:  >-
+        {{ "1"
+           if (dirsrv_cur_maxlogsize.results[0]["nsslapd-auditlog-maxlogsize"]
+                 | int) > dirsrv_logging.audit.logmaxdiskspace
+           else
+               dirsrv_cur_maxlogsize.results[0]["nsslapd-auditlog-maxlogsize"]
+        }}
+      nsslapd-errorlog-maxlogsize:  >-
+        {{ "1"
+           if (dirsrv_cur_maxlogsize.results[0]["nsslapd-errorlog-maxlogsize"]
+                | int) > dirsrv_logging.error.logmaxdiskspace
+           else
+               dirsrv_cur_maxlogsize.results[0]["nsslapd-errorlog-maxlogsize"]
+        }}
+      nsslapd-accesslog-maxlogsize:  >-
+        {{ "1"
+           if (dirsrv_cur_maxlogsize.results[0]["nsslapd-accesslog-maxlogsize"]
+                 | int) > dirsrv_logging.access.logmaxdiskspace
+           else
+               dirsrv_cur_maxlogsize.results[0]["nsslapd-accesslog-maxlogsize"]
+        }}
+    state: exact
+
 - name: Configure Audit logging
   ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
