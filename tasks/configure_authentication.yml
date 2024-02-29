@@ -31,7 +31,7 @@
   rescue:
     - name: Configure LDAPI over LDAPI
       ldap_attrs:
-        server_uri: "ldapi:///{% if dirsrv_rundir is defined %}{{ dirsrv_rundir }}{% else %}/var/run{% endif %}/slapd-{{ dirsrv_serverid }}.socket"
+        server_uri: "{{ dirsrv_ldapi_uri }}"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
         dn: "cn=config"
