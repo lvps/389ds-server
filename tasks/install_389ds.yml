@@ -54,6 +54,7 @@
       copy:
         src: "{{ item }}"
         dest: "{% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
+        remote_src: "{{ dirsrv_ldif_files_remote }}"
         mode: '400'
         owner: dirsrv
         group: dirsrv
@@ -98,6 +99,7 @@
       copy:
         src: "{{ item }}"
         dest: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
+        remote_src: "{{ dirsrv_ldif_files_remote }}"
         mode: '400'
         owner: dirsrv
         group: dirsrv

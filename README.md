@@ -107,6 +107,12 @@ Default: `[]` · Can be changed: **No**
 
 Install these additional LDIF files, by default none (empty array). This corresponds to the `InstallLdifFile` directive in the inf installation file for 389DS <= 1.3. From 1.4 onward, this is done via dsconf.
 
+#### dirsrv_ldif_files_remote
+Default: `false` - can be changed: Yes
+
+The ldif file are on the remote server, not on the ansible controller.
+
+
 #### dirsrv_install_additional_ldif_dir
 Default: `/var/lib/dirsrv/slapd-{{ dirsrv_serverid }}/ldif` · Can be changed: **No**
 
