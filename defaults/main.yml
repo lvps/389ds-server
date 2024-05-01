@@ -18,9 +18,10 @@ dirsrv_install_examples: false
 dirsrv_install_additional_ldif: []
 # Cannot use /tmp, see https://github.com/lvps/389ds-server/issues/18
 dirsrv_install_additional_ldif_dir: "/var/lib/dirsrv/slapd-{{ dirsrv_serverid }}/ldif"
+# ldif files are already on remote server
+dirsrv_ldif_files_remote: false
 
 # Logging
-
 dirsrv_logging:
   audit:
     enabled: false
