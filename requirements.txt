@@ -17,7 +17,7 @@ click-help-colors==0.9.1
 colorama==0.4.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 commonmark==0.9.1
 cookiecutter==1.7.3; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
-cryptography==3.4.8; python_version >= '3.6'
+cryptography==43.0.1; python_version >= '3.6'
 dataclasses==0.8; python_version >= '3.6' and python_version < '3.7'
 distro==1.6.0
 docker==5.0.0
@@ -25,7 +25,7 @@ enrich==1.2.6; python_version >= '3.6'
 idna==3.2; python_version >= '3'
 importlib-metadata==4.8.1; python_version < '3.8'
 iniconfig==1.1.1
-jinja2==3.0.1; python_version >= '3.6'
+jinja2==3.1.5; python_version >= '3.6'
 jinja2-time==0.2.0
 markupsafe==2.0.1; python_version >= '3.6'
 molecule==3.3.3
