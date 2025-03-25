@@ -308,6 +308,7 @@
       nsssl2: "off"
       nsssl3: "off"
       sslVersionMin: "TLS{{ dirsrv_tls_min_version }}"
+      nsSSL3Ciphers: "{{ dirsrv_tls_ciphers }}"
     state: exact
   register: dirsrv_restart_condition_tls_5
   when: dirsrv_tls_enabled | bool
