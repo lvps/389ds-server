@@ -153,6 +153,12 @@ Default: `'1.2'` · Can be changed: Yes
 
 Minimum TLS version: 1.0, 1.1 or 1.2. Possibly even 1.3, if supported by your 389DS version. SSLv2 and SSLv3 are always disabled by this role.
 
+#### dirsrv_tls_ciphers
+Default: `'default'` · Can be changed: Yes
+
+List of cipher suites available for use across all SSL/TLS protocols, not just SSLv3. This attribute is crucial for configuring the encryption methods used to secure connections to the directory server.
+See [nss-cipher-design](https://www.port389.org/docs/389ds/design/nss-cipher-design.html) for more info
+
 #### dirsrv_tls_certificate_trusted
 Default: `true` · Can be changed: Yes
 
