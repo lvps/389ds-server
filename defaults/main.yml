@@ -90,6 +90,11 @@ dirsrv_allow_anonymous_binds: 'rootdse'
 dirsrv_simple_auth_enabled: true
 dirsrv_password_storage_scheme: []
 
+# SELinux
+
+dirsrv_selinux_setype: user_tmp_t
+dirsrv_selinux_seuser: unconfined_u
+
 # It's already off by default
 # allow_unauthenticated_binds: false
 

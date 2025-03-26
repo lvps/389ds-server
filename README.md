@@ -199,6 +199,16 @@ Default: `true` · Can be changed: Yes
 
 Enable SASL PLAIN authentication: if a client tries to authenticate without TLS and TLS is enforced, this kind of authentication should stop it before it sends the plaintext password, while a SIMPLE bind will send the password and then fail because SSF is too low.
 
+#### dirsrv_selinux_setype
+Default: `user_tmp_t` · Can be changed: yes
+
+This parameter specifies the SELinux type for the Directory Server files. The default setting is `user_tmp_t`, which is suitable for temporary user files.
+
+#### dirsrv_selinux_seuser
+Default: `unconfined_u` · Can be changed: yes 
+
+This parameter defines the SELinux user for the Directory Server. The default setting is `unconfined_u`, allowing the process to run with an unconfined SELinux user context.
+
 ### Variables exclusive to 389DS version 1.4.X
 
 These variables only affect on installations of 389DS version 1.4.X and have no effect on previous versions even if defined.
