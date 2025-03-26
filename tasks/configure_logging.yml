@@ -27,21 +27,21 @@
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
     attributes:
-      nsslapd-auditlog-maxlogsize:  >-
+      nsslapd-auditlog-maxlogsize: >-
         {{ "1"
            if (dirsrv_cur_maxlogsize.results[0]["nsslapd-auditlog-maxlogsize"]
                  | int) > dirsrv_logging.audit.logmaxdiskspace
            else
                dirsrv_cur_maxlogsize.results[0]["nsslapd-auditlog-maxlogsize"]
         }}
-      nsslapd-errorlog-maxlogsize:  >-
+      nsslapd-errorlog-maxlogsize: >-
         {{ "1"
            if (dirsrv_cur_maxlogsize.results[0]["nsslapd-errorlog-maxlogsize"]
                 | int) > dirsrv_logging.error.logmaxdiskspace
            else
                dirsrv_cur_maxlogsize.results[0]["nsslapd-errorlog-maxlogsize"]
         }}
-      nsslapd-accesslog-maxlogsize:  >-
+      nsslapd-accesslog-maxlogsize: >-
         {{ "1"
            if (dirsrv_cur_maxlogsize.results[0]["nsslapd-accesslog-maxlogsize"]
                  | int) > dirsrv_logging.access.logmaxdiskspace

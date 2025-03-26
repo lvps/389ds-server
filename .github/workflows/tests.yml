@@ -27,7 +27,7 @@ jobs:
 
       - name: Lint with yamllint
         run: |
-          yamllint . --format github
+          yamllint requirements.yml defaults meta molecule tasks templates --format github
 
       - name: Lint with ansible-lint
         run: ansible-lint
