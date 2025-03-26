@@ -64,11 +64,20 @@
       loop: "{{ dirsrv_install_additional_ldif }}"
 
     - name: Set SELinux context for additional ldif files (setup-ds.pl)
-      sefcontext:
-        setype: user_tmp_t
-        seuser: unconfined_u
+      community.general.sefcontext:
+        setype: "{{ dirsrv_selinux_setype }}"
+        seuser: "{{ dirsrv_selinux_seuser }}"
         state: present
         target: "{% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
+      when:
+        - not dirsrv_instance_dir_exists
+        - ansible_selinux is defined
+        - ansible_selinux.status == 'enabled'
+        - dirsrv_legacy
+      loop: "{{ dirsrv_install_additional_ldif }}"
+
+    - name: Apply new SELinux file context to filesystem (setup-ds.pl)
+      ansible.builtin.command: "restorecon -irv {% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
       when:
         - not dirsrv_instance_dir_exists
         - ansible_selinux is defined
@@ -109,11 +118,20 @@
       loop: "{{ dirsrv_install_additional_ldif }}"
 
     - name: Set SELinux context for additional ldif files (dsconf)
-      sefcontext:
-        setype: user_tmp_t
-        seuser: unconfined_u
+      community.general.sefcontext:
+        setype: "{{ dirsrv_selinux_setype }}"
+        seuser: "{{ dirsrv_selinux_seuser }}"
         state: present
         target: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
+      when:
+        - not dirsrv_instance_dir_exists
+        - ansible_selinux is defined
+        - ansible_selinux.status == 'enabled'
+        - not dirsrv_legacy
+      loop: "{{ dirsrv_install_additional_ldif }}"
+
+    - name: Apply new SELinux file context to filesystem (dsconf)
+      ansible.builtin.command: "restorecon -irv {{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
       when:
         - not dirsrv_instance_dir_exists
         - ansible_selinux is defined
