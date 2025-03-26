@@ -7,8 +7,20 @@ galaxy_info:
     files, enable/disable plugins, DNA plugin for UID/GID, LDAPI and SASL PLAIN.
   license: Apache2
   min_ansible_version: 2.10
+  
   galaxy_tags:
     - ldap
+    - 389ds
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+        - 9
+    - name: opensuse
+    - name: SLES
+
+# Can only depend on Roles, not collections.
+# See: https://github.com/ansible/ansible/issues/76030
 dependencies: []
-collections:
-  - community.general
