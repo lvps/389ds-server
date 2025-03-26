@@ -1,0 +1,14 @@
+name: Notify Ansible Galaxy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Ansible Galaxy
+        run: |
+          curl -X POST https://galaxy.ansible.com/api/v2/notifications/ \
+               -H "Content-Type: application/json" \
+               -d '{"repository":"${{ github.repository }}"}'
