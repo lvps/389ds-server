@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   author: lvps
+  namespace: lvps
   role_name: 389ds_server
   description: >
     Installs 389DS LDAP server. Also configures TLS, logging, custom schema

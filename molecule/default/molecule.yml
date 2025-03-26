@@ -3,10 +3,7 @@ dependency:
   name: galaxy
 driver:
   name: docker
-lint: |
-  set -e
-  yamllint .
-  ansible-lint
+role_name_check: 1
 platforms:
   - name: CentOS7-Default
     image: centos:7
@@ -33,6 +30,3 @@ provisioner:
   name: ansible
 verifier:
   name: testinfra
-  lint: |
-    set -e
-    flake8

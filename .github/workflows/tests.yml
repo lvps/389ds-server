@@ -10,9 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        scenario: ["backwards_compatibility", "default", "other_features", "tls"]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,8 +25,18 @@ jobs:
           python -m pip install --upgrade pip
           env PIP_CONSTRAINT=./constraint.txt pip install -r requirements.txt
 
+      - name: Lint with yamllint
+        run: |
+          yamllint . --format github
+
+      - name: Lint with ansible-lint
+        run: ansible-lint
+
       - name: Run Molecule tests
-        run: molecule --debug test -s ${{ matrix.scenario }}
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+        run: molecule test --all --debug
 
       - name: Notify Ansible Galaxy
         if: success()
