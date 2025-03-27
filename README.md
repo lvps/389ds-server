@@ -1,7 +1,7 @@
 # 389ds-server
 
-[![Build Status](https://travis-ci.com/lvps/389ds-server.svg?branch=master)](https://travis-ci.com/lvps/389ds-server)
-[![Ansible Galaxy](https://img.shields.io/ansible/role/40529.svg)](https://galaxy.ansible.com/lvps/389ds-server)
+![Build Status](https://github.com/lvps/389ds-server/actions/workflows/tests.yml/badge.svg)
+[![Ansible Role](https://img.shields.io/ansible/role/d/lvps/389ds_server)](https://galaxy.ansible.com/lvps/389ds_server/)
 
 This role installs the 389DS server (LDAP server) on the target machine(s).
 
