@@ -231,7 +231,7 @@
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=RSA,cn=encryption,cn=config"
     state: absent
-  when: not dirsrv_tls_enabled and not dirsrv_selfsigned_cert
+  when: not dirsrv_tls_enabled and not (dirsrv_selfsigned_cert | default(false))
   tags: [ dirsrv_tls ]
   register: dirsrv_restart_condition_tls_2
 
