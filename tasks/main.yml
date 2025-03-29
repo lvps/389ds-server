@@ -4,23 +4,27 @@
 # TODO: are nsCertFile and nsKeyFile still allowed, instead of the NSS database which is nearly impossible to handle correctly?
 # https://www.port389.org/docs/389ds/howto/howto-ssl.html
 
-- import_tasks: install_389ds.yml
+- name: Import 389DS installation tasks
+  ansible.builtin.import_tasks: install_389ds.yml
 
 - name: Check that tls_enforced makes sense
-  assert:
+  ansible.builtin.assert:
     that:
       - dirsrv_tls_enabled or dirsrv_selfsigned_cert
     msg: "dirsrv_tls_enforced: true doesn't make sense when dirsrv_tls_enabled: false, enable TLS or disable enforcing"
   when: dirsrv_tls_enforced | bool
   tags: [ dirsrv_tls ]
 
-- block:
-    - name: read LDAP server configuration
-      slurp:
+- name: Configure LDAP server settings
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]
+  block:
+    - name: Read LDAP server configuration
+      ansible.builtin.slurp:
         src: /etc/dirsrv/slapd-{{ dirsrv_serverid }}/dse.ldif
       register: dirsrv_ldif_base64
-    - name: check auth-related server configuration
-      set_fact:
+
+    - name: Check auth-related server configuration
+      ansible.builtin.set_fact:
         dirsrv_ldapilisten_enabled: >-
           {{ dirsrv_ldif_base64.content | b64decode |
           regex_search('(?m)^nsslapd-ldapilisten:.*$')
@@ -41,8 +45,9 @@
           {{ "ldapi://" ~
              ( ( dirsrv_rundir | default("/var/run") ) ~
                "/slapd-" ~ dirsrv_serverid ~ ".socket" ) | quote_plus }}
+
     - name: Prepare LDAP auth data
-      set_fact:
+      ansible.builtin.set_fact:
         dirsrv_starttls_early: >-
           {{ not dirsrv_ldapilisten_enabled and
              ( dirsrv_tls_enforced_initially_binds or
@@ -50,10 +55,9 @@
         dirsrv_server_uri: >-
           {{ dirsrv_ldapi_uri if dirsrv_ldapilisten_enabled
                               else dirsrv_server_uri }}
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
 
 - name: Configure listen address
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -66,27 +70,32 @@
   register: dirsrv_restart_condition_main
   when: dirsrv_listen_host != None
 
-- import_tasks: configure_authentication.yml
+- name: Import authentication configuration
+  ansible.builtin.import_tasks: configure_authentication.yml
   when: not dirsrv_factory
 
-- import_tasks: configure_logging.yml
+- name: Import logging configuration
+  ansible.builtin.import_tasks: configure_logging.yml
   when: not dirsrv_factory
 
-- import_tasks: configure_plugins.yml
+- name: Import plugins configuration
+  ansible.builtin.import_tasks: configure_plugins.yml
 
-- import_tasks: configure_schema.yml
+- name: Import schema configuration
+  ansible.builtin.import_tasks: configure_schema.yml
 
-- import_tasks: configure_tls.yml
+- name: Import TLS configuration
+  ansible.builtin.import_tasks: configure_tls.yml
 
 # Required also to enforce TLS as TLS must be enabled beforehand (requiring a restart).
-- name: "Restart {{ dirsrv_serverid }} to enable TLS, authentication, plugins"
-  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]  # Needed for all these tags
-  service:
+- name: Enable TLS, authentication, and plugins
+  ansible.builtin.service:
     name: "dirsrv@{{ dirsrv_serverid }}"
     state: restarted
   # Cannot use an handler due to https://github.com/lvps/389ds-server/issues/16
   # Cannot use use any fancy woarkaround due to https://github.com/ansible/ansible/issues/63822
   # Cannot use a generic name for the handler since https://github.com/lvps/389ds-server/pull/14, it *has* to be tied to the server
+  tags: [ dirsrv_tls, dirsrv_cert, dirsrv_schema ]
   when: "(dirsrv_restart_condition_main is defined and dirsrv_restart_condition_main.changed) or\
         (dirsrv_restart_condition_plugins_1 is defined and dirsrv_restart_condition_plugins_1.changed) or\
         (dirsrv_restart_condition_plugins_2 is defined and dirsrv_restart_condition_plugins_2.changed) or\
@@ -103,8 +112,7 @@
   register: dirsrv_restart_condition_has_restarted
 
 - name: "Reload schema on {{ dirsrv_serverid }}"
-  tags: dirsrv_schema
-  ldap_entry:
+  community.general.ldap_entry:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_tls_enforced }}"
@@ -117,16 +125,18 @@
       cn: ansible-managed schema reload
       schemadir: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema/"
     state: present
+  tags: dirsrv_schema
   when: "not dirsrv_restart_condition_has_restarted|default(false) and (\
         (dirsrv_restart_condition_schema_reload_1 is defined and dirsrv_restart_condition_schema_reload_1.changed) or\
         (dirsrv_restart_condition_schema_reload_2 is defined and dirsrv_restart_condition_schema_reload_2.changed)\
         )"
 
-- import_tasks: configure_tls_enforcing.yml
+- name: Import TLS enforcing configuration
+  ansible.builtin.import_tasks: configure_tls_enforcing.yml
 
 # This only happens if TLS is being enforced.
-- name: "Restart {{ dirsrv_serverid }} to enforce TLS"
-  service:
+- name: Enforce TLS for server {{ dirsrv_serverid }}
+  ansible.builtin.service:
     name: "dirsrv@{{ dirsrv_serverid }}"
     state: restarted
   when: "(dirsrv_restart_condition_tls_enforcing_1 is defined and dirsrv_restart_condition_tls_enforcing_1.changed) or\

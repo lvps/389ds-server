@@ -3,7 +3,7 @@
 # TODO: remove certificate if TLS is disabled?
 
 - name: Check that tls_key[_file] is defined
-  assert:
+  ansible.builtin.assert:
     that:
       - "(dirsrv_tls_key is defined) != (dirsrv_tls_key_file is defined)"  # This is a XOR
     msg: "only one of dirsrv_tls_key or dirsrv_tls_key_file must be defined"
@@ -11,16 +11,19 @@
   tags: [ dirsrv_cert, dirsrv_tls ]
 
 - name: Check that tls_cert[_file] is defined
-  assert:
+  ansible.builtin.assert:
     that:
       - "(dirsrv_tls_cert is defined) != (dirsrv_tls_cert_file is defined)"  # This is a XOR, again
     msg: "only one of dirsrv_tls_cert or dirsrv_tls_cert_file must be defined"
   when: dirsrv_tls_enabled | bool
   tags: [ dirsrv_cert, dirsrv_tls ]
 
-- block:
+- name: Configure TLS certificates and NSS database
+  when: dirsrv_tls_enabled | bool
+  tags: [ dirsrv_cert, dirsrv_tls ]
+  block:
     - name: Copy cert (from variable)
-      copy:
+      ansible.builtin.copy:
         content: "{{ dirsrv_tls_cert }}"
         dest: "/tmp/server-cert-ansible-managed.crt"
         mode: '400'
@@ -30,7 +33,7 @@
 
     # TODO: if the file is already on the remote machine, copying it to /tmp is a pointless waste of time...
     - name: Copy cert (from file)
-      copy:
+      ansible.builtin.copy:
         src: "{{ dirsrv_tls_cert_file }}"
         dest: "/tmp/server-cert-ansible-managed.crt"
         remote_src: "{{ dirsrv_tls_files_remote }}"
@@ -40,7 +43,7 @@
       changed_when: false
 
     - name: Copy private key (from variable)
-      copy:
+      ansible.builtin.copy:
         content: "{{ dirsrv_tls_key }}"
         dest: "/tmp/server-cert-ansible-managed.key"
         mode: '400'
@@ -49,7 +52,7 @@
       changed_when: false
 
     - name: Copy private key (from file)
-      copy:
+      ansible.builtin.copy:
         src: "{{ dirsrv_tls_key_file }}"
         dest: "/tmp/server-cert-ansible-managed.key"
         remote_src: "{{ dirsrv_tls_files_remote }}"
@@ -63,7 +66,7 @@
     # This avoids exposing to every user a file that contains the private key.
     # openssl pkcs12 overwrites the content without changing permissions.
     - name: Create pkcs12 empty file with correct permissions
-      file:
+      ansible.builtin.file:
         path: "/tmp/server-cert-ansible-managed.p12"
         setype: cert_t
         state: touch
@@ -71,22 +74,22 @@
       changed_when: false
 
     - name: Install openssl to create the pkcs12 file
-      package:
+      ansible.builtin.package:
         name: openssl
         state: present
 
     # We need to check if pwdfile.txt is present. If so, then the NSS database is protected and we need to pass it as a key
     - name: Stat the password file
-      stat:
+      ansible.builtin.stat:
         path: /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt
       register: dirsrv_pwdfile_stat
 
     - name: Define pk12util authentication flag
-      set_fact:
+      ansible.builtin.set_fact:
         dirsrv_pkutil_authflag: '{% if dirsrv_pwdfile_stat.stat.exists %}-k /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}-K ""{% endif %}'
 
     - name: Define certutil authentication flag
-      set_fact:
+      ansible.builtin.set_fact:
         dirsrv_certutil_authflag: '{% if dirsrv_pwdfile_stat.stat.exists %}-f /etc/dirsrv/slapd-{{ dirsrv_serverid }}/pwdfile.txt{% else %}{% endif %}'
 
     # openssl_pkcs12 does not support certificate chains.
@@ -94,7 +97,7 @@
     # If the chain is manually broken up into pieces, it may be imported,
     # but that's just too complicated to automate.
     - name: Create pkcs12
-      command: >
+      ansible.builtin.command: >
         openssl pkcs12
         -export
         -in "/tmp/server-cert-ansible-managed.crt"
@@ -105,7 +108,7 @@
       changed_when: false
 
     - name: Add pkcs12 to NSS database
-      command: >
+      ansible.builtin.command: >
         pk12util
         -i /tmp/server-cert-ansible-managed.p12
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
@@ -127,7 +130,8 @@
     # I don't think this command needs the password-file parameter even if the database is password
     # protected, but just to be sure...
     - name: Count Ansible managed keys in NSS database
-      shell: >
+      ansible.builtin.shell: >
+        set -o pipefail;
         certutil -L
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}/
         {{ dirsrv_certutil_authflag }}
@@ -141,7 +145,7 @@
     # and Ansible casts everything to string or boolean, so no integer
     # variables for us...
     - name: Count keys
-      set_fact:
+      ansible.builtin.set_fact:
         dirsrv_nss_key_count_too_many: "{{ dirsrv_nss_key_count.stdout | int > 1 }}"
 
     # This is the correct way to remove private keys (section 9.3.8.1
@@ -149,17 +153,18 @@
     # key, so we have to remove all of them and add the correct one
     # again...
     - name: Remove old keys from NSS database
-      command: >
+      ansible.builtin.command: >
         certutil -F
         -d /etc/dirsrv/slapd-{{ dirsrv_serverid }}
         -n "server-cert-ansible-managed"
         {{ dirsrv_certutil_authflag }}
       when: dirsrv_nss_key_count_too_many
       # I'm still wondering if this loop is horrible or clever...
+      changed_when: false
       loop: "{{ range(0, dirsrv_nss_key_count.stdout|int) | list }}"
 
     - name: Add pkcs12 to NSS database (again)
-      command: >
+      ansible.builtin.command: >
         pk12util
         -i /tmp/server-cert-ansible-managed.p12
         -n server-cert-ansible-managed
@@ -167,6 +172,7 @@
         {{ dirsrv_pkutil_authflag }}
         -W ''
       when: dirsrv_nss_key_count_too_many
+      changed_when: false
       register: dirsrv_restart_condition_tls_1
 
       # I *think* this may be needed for self-signed certificates, but not entirely sure...
@@ -209,11 +215,9 @@
 
       # --- end CA certificates stuff -----------------------------------
 
-  when: dirsrv_tls_enabled | bool
-  tags: [ dirsrv_cert, dirsrv_tls ]
   always:
     - name: Remove temporary files
-      file:
+      ansible.builtin.file:
         state: absent
         path: "{{ item }}"
       loop:
@@ -223,7 +227,7 @@
       changed_when: false
 
 - name: Remove RSA configuration for TLS (if disabled)
-  ldap_entry:
+  community.general.ldap_entry:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -236,7 +240,7 @@
   register: dirsrv_restart_condition_tls_2
 
 - name: Create RSA configuration for TLS (if enabled)
-  ldap_entry:
+  community.general.ldap_entry:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -252,7 +256,7 @@
   register: dirsrv_restart_condition_tls_3
 
 - name: Configure RSA parameters
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -275,7 +279,7 @@
 # possibly immediately.
 # Also: for this reason, the order is relevant.
 - name: Configure TLS support
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -289,7 +293,7 @@
 
 # Doesn't work:
 # - name: Disable TLS-only port (636)
-#   ldap_attrs:
+#   community.general.ldap_attrs:
 #     params: "{{ ldap_auth }}"
 #     dn: "cn=config"
 #     attributes:
@@ -297,7 +301,7 @@
 #     state: exact
 
 - name: Configure TLS minimum version (disable SSL)
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -316,7 +320,7 @@
 
 # TODO: support it?
 - name: Disable TLS client authentication
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -330,7 +334,7 @@
   tags: [ dirsrv_tls ]
 
 - name: Configure anonymous binds
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -346,7 +350,7 @@
   tags: [ dirsrv_tls ]
 
 - name: Configure secure listen address
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"

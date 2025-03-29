@@ -1,24 +1,27 @@
 ---
-- import_tasks: tasks/install_389ds_suse.yml
+- name: Import SUSE-specific installation tasks
+  ansible.builtin.import_tasks: tasks/install_389ds_suse.yml
   when: "ansible_facts['os_family'] == 'Suse'"
 
-- import_tasks: tasks/install_389ds_EL7.yml
+- name: Import RHEL 7 installation tasks
+  ansible.builtin.import_tasks: tasks/install_389ds_EL7.yml
   when: >-
     ansible_facts['os_family'] == 'RedHat' and
     ansible_facts['distribution_major_version'] | int == 7
 
-- import_tasks: tasks/install_389ds_EL8.yml
+- name: Import RHEL 8+ installation tasks
+  ansible.builtin.import_tasks: tasks/install_389ds_EL8.yml
   when: >-
     ansible_facts['os_family'] == 'RedHat' and
     ansible_facts['distribution_major_version'] | int >= 8
 
 - name: Determine installed server type (1.3.X or 1.4.X)
-  set_fact:
+  ansible.builtin.set_fact:
     dirsrv_legacy: "{{ dirsrv_package_version is version('1.4.0', '<') }}"
 
 # as suggested by Red Hat Directory Server manual
 - name: Add user 'dirsrv'
-  user:
+  ansible.builtin.user:
     name: dirsrv
     group: dirsrv
     comment: System user for 389DS
@@ -28,30 +31,31 @@
   when: dirsrv_legacy
 
 - name: Check if instance directory exists
-  stat:
+  ansible.builtin.stat:
     path: "/var/lib/dirsrv/slapd-{{ dirsrv_serverid }}"
   register: dirsrv_instance_dir
 
-- name: "Check if {{ dirsrv_serverid }} instance directory exists"
-  set_fact:
+- name: Check instance directory status for {{ dirsrv_serverid }}
+  ansible.builtin.set_fact:
     dirsrv_instance_dir_exists: "{{ dirsrv_instance_dir.stat.exists and dirsrv_instance_dir.stat.isdir }}"
 
+- name: Configure 389DS installation
 # TODO: How do we change the Directory Manager password if we need it to change the password?
-- block:
+  block:
     # We have two distinct templates for the two versions of 389DS' install.inf format
     - name: Determine right template to use for install.inf
-      set_fact:
+      ansible.builtin.set_fact:
         dirsrv_install_template: '{% if dirsrv_legacy %}install-v1.inf.j2{% else %}install-v2.inf.j2{% endif %}'
 
     - name: Copy installation template
-      template:
+      ansible.builtin.template:
         src: templates/{{ dirsrv_install_template }}
         dest: /tmp/install.inf
         mode: '600'
       when: not dirsrv_instance_dir_exists
 
     - name: Copy additional ldif files (setup-ds.pl)
-      copy:
+      ansible.builtin.copy:
         src: "{{ item }}"
         dest: "{% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
         remote_src: "{{ dirsrv_ldif_files_remote }}"
@@ -78,6 +82,7 @@
 
     - name: Apply new SELinux file context to filesystem (setup-ds.pl)
       ansible.builtin.command: "restorecon -irv {% if dirsrv_legacy %}/tmp/{% else %}{{ dirsrv_install_additional_ldif_dir }}/{% endif %}{{ item | basename }}"
+      changed_when: false
       when:
         - not dirsrv_instance_dir_exists
         - ansible_selinux is defined
@@ -89,8 +94,9 @@
     # No Configuration Directory Server: it's documented but it doesn't really exist (it's part of the Administration Server).
     # No Administration Server: it isn't worth the effort.
     - name: Run installation script (setup-ds.pl)
-      command: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
+      ansible.builtin.command: /usr/sbin/setup-ds.pl -s -f /tmp/install.inf
       become: true
+      changed_when: true
       when:
         - not dirsrv_instance_dir_exists
         - dirsrv_legacy
@@ -98,14 +104,15 @@
     # On newer versions of 389DS setup-ds.pl got deprecated and separated in a legacy package
     # Here we're using the modern equivalent, with a completely different API...
     - name: Run installation script (dscreate)
-      command: /usr/sbin/dscreate from-file /tmp/install.inf
+      ansible.builtin.command: /usr/sbin/dscreate from-file /tmp/install.inf
       become: true
+      changed_when: true
       when:
         - not dirsrv_instance_dir_exists
         - not dirsrv_legacy
 
     - name: Copy additional ldif files (dsconf)
-      copy:
+      ansible.builtin.copy:
         src: "{{ item }}"
         dest: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
         remote_src: "{{ dirsrv_ldif_files_remote }}"
@@ -132,6 +139,7 @@
 
     - name: Apply new SELinux file context to filesystem (dsconf)
       ansible.builtin.command: "restorecon -irv {{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
+      changed_when: false
       when:
         - not dirsrv_instance_dir_exists
         - ansible_selinux is defined
@@ -142,19 +150,20 @@
     # The newer version of the install.ini file does not have a InstallLdifFile object anymore
     # So we manually install extra ldifs later
     - name: Install additional ldif files (dsconf)
-      command: >
+      ansible.builtin.command: >
         /usr/sbin/dsconf
         {{ dirsrv_serverid }}
         backend import
         {{ dirsrv_bename }}
-        {{ dirsrv_install_additional_ldif_dir }}/{{ item|basename }}
+        {{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}
+      changed_when: true
       when:
         - not dirsrv_instance_dir_exists
         - not dirsrv_legacy
       loop: "{{ dirsrv_install_additional_ldif }}"
 
     - name: Delete temporary additional ldif files (dsconf)
-      file:
+      ansible.builtin.file:
         path: "{{ dirsrv_install_additional_ldif_dir }}/{{ item | basename }}"
         state: absent
       when:
@@ -163,22 +172,22 @@
       loop: "{{ dirsrv_install_additional_ldif }}"
   always:
     - name: Remove installation template
-      file:
+      ansible.builtin.file:
         state: absent
         path: /tmp/install.inf
 
-- name: Start and enable 389DS {{ dirsrv_serverid }} instance
-  become: true
-  service:
+- name: Start and enable instance for 389DS {{ dirsrv_serverid }}
+  ansible.builtin.service:
     name: "dirsrv@{{ dirsrv_serverid }}"
     state: started
     enabled: yes
+  become: true
 
 # The setup script starts the server itself, but the service/target
 # still needs to be enabled. In my tests I've found that enabling
 # dirsrv@serverid is not enough, it still doesn't start automatically...
 - name: Enable systemd target
-  become: true
-  service:
+  ansible.builtin.service:
     name: dirsrv.target
     enabled: yes
+  become: true
