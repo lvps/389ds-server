@@ -5,4 +5,6 @@ ansible-lint
 docker==5.0.0
 molecule>=3.3.3
 molecule-plugins[docker]
+six>=1.16.0
+setuptools>=67.8.0  # For distutils
 yamllint

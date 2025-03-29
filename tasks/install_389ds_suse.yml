@@ -1,16 +1,14 @@
 ---
 - name: Install 389DS with zypper
-  zypper:
+  community.general.zypper:
     name: "{{ dirsrv_product }}"
-    state: latest
+    state: present
     update_cache: no
 
-- name: Check 389DS package version with rpm
-  command:
-    cmd: "rpm -q --qf '%{version}' {{ dirsrv_product }}"
-  register: dirsrv_package_details
-  check_mode: false
+- name: Get package facts
+  ansible.builtin.package_facts:
+    manager: auto
 
 - name: Check 389DS package version
-  set_fact:
-    dirsrv_package_version: "{{ dirsrv_package_details.stdout }}"
+  ansible.builtin.set_fact:
+    dirsrv_package_version: "{{ ansible_facts.packages[dirsrv_product][0].version }}"
