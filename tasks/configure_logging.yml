@@ -1,7 +1,7 @@
 ---
 # ldapcompare cannot be used on cn=config https://pagure.io/389-ds-base/issue/49390
 # this excludes state=present and state=absent, but state=exact still works (only does a ldapsearch)
-- name: fetch current log sizes
+- name: Fetch current log sizes
   community.general.ldap_search:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
@@ -18,7 +18,7 @@
 # decreasing logmaxdiskspace fails if current maxlogsize is larger than the
 # value passed. Decrease maxlogsize first, and set it to the desired value
 # below.
-- name: reset maxlogsize if necessary
+- name: Reset maxlogsize if necessary
   community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
@@ -51,7 +51,7 @@
     state: exact
 
 - name: Configure Audit logging
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -68,7 +68,7 @@
     state: exact
 
 - name: Configure Error logging
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"
@@ -85,7 +85,7 @@
     state: exact
 
 - name: Configure Access logging
-  ldap_attrs:
+  community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
     validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
     start_tls: "{{ dirsrv_starttls_early }}"

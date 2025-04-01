@@ -19,7 +19,7 @@
     # force the two tasks to not change.
     - name: Remove systemctl binary
       become: true
-      file:
+      ansible.builtin.file:
         path: /usr/bin/systemctl
         state: absent
       changed_when: false
@@ -32,7 +32,7 @@
     # still licensed under the Apache 2 license as opposed as the downloaded asset which is licensed under the EUPL.
     - name: Implant systemctl replacement
       become: true
-      uri:
+      ansible.builtin.uri:
         creates: /usr/local/bin/systemctl
         dest: /usr/bin/systemctl
         owner: root
@@ -43,7 +43,7 @@
       when: ansible_facts["nodename"] is search("SYSCTL")
 
     - name: Create dirsrv service dropin directory
-      file:
+      ansible.builtin.file:
         path: /etc/systemd/system/dirsrv@.service.d/
         owner: root
         group: root
@@ -52,7 +52,7 @@
 
     - name: Copy dirsrv service dropin config
       become: true
-      copy:
+      ansible.builtin.copy:
         src: dirsrv-dropin.conf
         dest: /etc/systemd/system/dirsrv@.service.d/custom.conf
         owner: root
@@ -65,7 +65,7 @@
 
   tasks:
     - name: Ensure we can access the server, for testing
-      ldap_entry:
+      community.general.ldap_entry:
         server_uri: "ldap://localhost"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
@@ -76,7 +76,7 @@
         state: present
 
     - name: Ensure suffix entry exists
-      ldap_entry:
+      community.general.ldap_entry:
         server_uri: "ldap://localhost"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
@@ -92,7 +92,7 @@
     # The purpose of that test is one of a coal-mine canary: if RH changes the dn of the certificate the tests
     # fail and we notice it, and can change the dn we check against accordingly rather than havin a silent fail.
     - name: Ensure no self-signed certificate has been created
-      shell:
+      ansible.builtin.shell:
         cmd: >
           set -o pipefail && \
             grep -rhsc 'CN=ssca.389ds.example.com,O=testing' /etc/dirsrv/slapd-{{ dirsrv_serverid }}/ | sort -r | uniq | head -n 1
@@ -102,7 +102,7 @@
       changed_when: false
 
     - name: Ensure TLS is disabled
-      ldap_attrs:
+      community.general.ldap_attrs:
         server_uri: "ldap://localhost"
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         start_tls: "{{ dirsrv_tls_enabled }}"

@@ -22,7 +22,7 @@
     # force the two tasks to not change.
     - name: Remove systemctl binary
       become: true
-      file:
+      ansible.builtin.file:
         path: /usr/bin/systemctl
         state: absent
       changed_when: false
@@ -35,38 +35,38 @@
     # still licensed under the Apache 2 license as opposed as the downloaded asset which is licensed under the EUPL.
     - name: Implant systemctl replacement
       become: true
-      uri:
+      ansible.builtin.uri:
         creates: /usr/local/bin/systemctl
         dest: /usr/bin/systemctl
         owner: root
         group: root
-        mode: u=rwx,g=rx,o=rx
+        mode: '0755'
         url: https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/1bb5768abbf68245b7b6a8bd9d6ac4df4d78044f/files/docker/systemctl.py
       changed_when: false
       when: ansible_facts["nodename"] is search("SYSCTL")
 
     - name: Create dirsrv service dropin directory
-      file:
+      ansible.builtin.file:
         path: /etc/systemd/system/dirsrv@.service.d/
         owner: root
         group: root
-        mode: "u=rwx,g=rx,o=rx"
+        mode: '0755'
         state: directory
 
     - name: Copy dirsrv service dropin config
       become: true
-      copy:
+      ansible.builtin.copy:
         src: dirsrv-dropin.conf
         dest: /etc/systemd/system/dirsrv@.service.d/custom.conf
         owner: root
         group: root
-        mode: "u=rw,g=r,o=r"
+        mode: '0644'
         force: true
 
     # Ansible is not secure enough for a SSF of 256 for 389DS 1.4.X
     # Unfortunately we don't yet have access to dirsrv_legacy or the installed version so we need to base the condition on the CentOS version
     - name: Set minimum SSF
-      set_fact:
+      ansible.builtin.set_fact:
         dirsrv_tls_minssf: "{%if ansible_facts['distribution_major_version'] | int == 8 %}128{% else %}256{% endif %}"
 
   roles:
@@ -74,7 +74,7 @@
 
   tasks:
     - name: Ensure we can access the server, for testing
-      ldap_entry:
+      community.general.ldap_entry:
         server_uri: "ldap://localhost"
         bind_dn: "{{ dirsrv_rootdn }}"
         bind_pw: "{{ dirsrv_rootdn_password }}"
@@ -84,9 +84,10 @@
         validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
         state: present
 
-    - block:
+    - name: Test TLS enforcement
+      block:
         - name: Ensure TLS is enforced
-          ldap_entry:
+          community.general.ldap_entry:
             server_uri: "ldap://localhost"
             bind_dn: "{{ dirsrv_rootdn }}"
             bind_pw: "{{ dirsrv_rootdn_password }}"
@@ -98,6 +99,6 @@
 
       rescue:
         - name: Assert that task failed successfully
-          assert:
+          ansible.builtin.assert:
             that:
               - "{{ dirsrv_tls_test.details }}.info == 'Minimum SSF not met.'"

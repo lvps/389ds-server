@@ -1,6 +1,8 @@
 name: Notify Ansible Galaxy
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -10,5 +12,6 @@ jobs:
       - name: Notify Ansible Galaxy
         run: |
           curl -X POST https://galaxy.ansible.com/api/v2/notifications/ \
+               -H "Authorization: Bearer ${{ secrets.GALAXY_API_KEY }}" \
                -H "Content-Type: application/json" \
                -d '{"repository":"${{ github.repository }}"}'

@@ -1,9 +1,9 @@
 ---
 - name: Copy schema files
-  copy:
+  ansible.builtin.copy:
     src: "{{ item }}"
     dest: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema"
-    mode: '440'  # 99user.ldif is 660, but these ones should be read only
+    mode: '0440'  # 99user.ldif is 660, but these ones should be read only
     seuser: unconfined_u  # Same as 99user.ldif
     owner: dirsrv
     group: dirsrv
@@ -12,7 +12,7 @@
   register: dirsrv_restart_condition_schema_reload_1
 
 - name: Search other schema files
-  find:
+  ansible.builtin.find:
     paths: "/etc/dirsrv/slapd-{{ dirsrv_serverid }}/schema"
     file_type: file
     # https://stackoverflow.com/a/53758369
@@ -21,7 +21,7 @@
   tags: [ dirsrv_schema ]
 
 - name: Delete other schema files
-  file:
+  ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
   loop: "{{ dirsrv_found_files['files'] }}"
