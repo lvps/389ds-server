@@ -36,11 +36,11 @@ jobs:
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
-        run: molecule test --all --debug
+        run: molecule test --all
 
-      - name: Notify Ansible Galaxy
-        if: success()
-        run: |
-          curl -X POST https://galaxy.ansible.com/api/v2/notifications/ \
-               -H "Content-Type: application/json" \
-               -d '{"repository":"${{ github.repository }}"}'
+#      - name: Notify Ansible Galaxy
+#        if: success()
+#        run: |
+#          curl -X POST https://galaxy.ansible.com/api/v2/notifications/ \
+#               -H "Content-Type: application/json" \
+#               -d '{"repository":"${{ github.repository }}"}'
