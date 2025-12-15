@@ -104,6 +104,20 @@ Default: `ldap://localhost` · Can be changed: ¹
 
 Server URI for tasks that connect via LDAP. Since tasks are running on the same server as 389DS, this will be localhost in most cases, no need to customize it.
 
+#### dirsrv_use_mdb
+Default: `unset` - Can be changed: Yes
+
+Starting from version 3.0.0 of 389ds, new instances are no longer created with BerkeleyDB by default but with LMDB (mdb). Depending on the operating system's
+packaged version of 389ds, newly created instances may still be created with BDB.  
+If this variable is unset, the effect would be that of using the default db lib for the installed version of 389ds.
+Setting this variable to true will force the installer to use LMDB.
+
+#### dirsrv_mdb_max_size
+Default: `unset` - Can be changed: Yes
+
+Sets the maximum database size (0 to compute it based on disk size up to 1GB). If left unset, the default value of the installed version of 389ds will be used.
+This only makes sense together with `dirsrv_use_mdb: true`.
+
 #### dirsrv_factory
 Default: `false` · Can be changed: Yes
 

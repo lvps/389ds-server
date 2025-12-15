@@ -105,6 +105,8 @@ dirsrv_ldapi_enabled: false
 dirsrv_sasl_plain_enabled: true
 dirsrv_listen_host:
 dirsrv_secure_listen_host:
+dirsrv_use_mdb:
+dirsrv_mdb_max_size:
 
 # Display supported cipher suites:
 # ldapsearch -xLLL -H ldap://server.example.com:389 -D "cn=Directory Manager" -W -b 'cn=encryption,cn=config' -s base nsSSLSupportedCiphers -o ldif-wrap=no dn: cn=encryption,cn=config
