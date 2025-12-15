@@ -16,6 +16,12 @@ instance_name = {{ dirsrv_serverid }}
 port = {{ dirsrv_port }}
 root_dn = {{ dirsrv_rootdn }}
 root_password = {{ dirsrv_rootdn_password }}
+{% if dirsrv_use_mdb %}
+db_lib = mdb
+{% if dirsrv_mdb_max_size is defined %}
+mdb_max_size = {{ dirsrv_mdb_max_size }}
+{% endif %}
+{% endif %}
 {% if dirsrv_selfsigned_cert is defined %}
 self_sign_cert = {{ "True" if dirsrv_selfsigned_cert else "False" }}
 {% endif %}
