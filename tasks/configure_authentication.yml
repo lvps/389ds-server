@@ -41,7 +41,7 @@
       register: dirsrv_restart_condition_auth_2
 
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
-# EXTERNAL is always added since it we cannot disable it.
+# EXTERNAL is always enabled, so we add it to the list of mechanisms to make sure it is always present in the configuration, even if the user did not explicitly add it to the list of mechanisms to enable
 - name: Configure SASL mechanisms
   community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
