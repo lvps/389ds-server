@@ -41,31 +41,18 @@
       register: dirsrv_restart_condition_auth_2
 
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
-# TODO: "none" means "everything is allowed"... how to allow none (or just EXTERNAL that is always enabled but not always allowed or whatever?)
+# EXTERNAL is always added since it we cannot disable it.
 - name: Configure SASL mechanisms
-  block:
-    - name: Configure SASL
-      community.general.ldap_attrs:
-        server_uri: "{{ dirsrv_server_uri }}"
-        validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
-        start_tls: "{{ dirsrv_starttls_early }}"
-        bind_dn: "{{ dirsrv_rootdn }}"
-        bind_pw: "{{ dirsrv_rootdn_password }}"
-        dn: "cn=config"
-        attributes:
-          nsslapd-allowed-sasl-mechanisms: "{{ 'PLAIN' if dirsrv_sasl_plain_enabled else [] }}"
-        state: exact
-      register: dirsrv_sasl_result
-
-  rescue:
-    # Deleting an attribute fails if the the attribute doesn't exist,
-    # yay for idempotence...
-    - name: Assert that task failed successfully
-      ansible.builtin.assert:
-        that:
-          - not dirsrv_sasl_result.changed
-          - "'desc' in dirsrv_sasl_result.details"
-          - "{{ dirsrv_sasl_result.details }}.desc == 'No such attribute'"
+  community.general.ldap_attrs:
+    server_uri: "{{ dirsrv_server_uri }}"
+    validate_certs: "{{ dirsrv_tls_certificate_trusted }}"
+    start_tls: "{{ dirsrv_starttls_early }}"
+    bind_dn: "{{ dirsrv_rootdn }}"
+    bind_pw: "{{ dirsrv_rootdn_password }}"
+    dn: "cn=config"
+    attributes:
+      nsslapd-allowed-sasl-mechanisms: "{{ (['EXTERNAL'] + dirsrv_sasl_mechanisms) | join(' ') }}"
+    state: exact
 
 - name: Configure password storage settings
   block:

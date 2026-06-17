@@ -102,7 +102,7 @@ dirsrv_selinux_seuser: unconfined_u
 
 dirsrv_factory: false
 dirsrv_ldapi_enabled: false
-dirsrv_sasl_plain_enabled: true
+dirsrv_sasl_mechanisms: ['PLAIN']
 dirsrv_listen_host:
 dirsrv_secure_listen_host:
 dirsrv_use_mdb:
