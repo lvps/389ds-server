@@ -41,7 +41,9 @@
       register: dirsrv_restart_condition_auth_2
 
 # Documentation: https://directory.fedoraproject.org/docs/389ds/design/sasl-mechanism-configuration.html
-# EXTERNAL is always enabled, so we add it to the list of mechanisms to make sure it is always present in the configuration, even if the user did not explicitly add it to the list of mechanisms to enable
+# If dirsrv_allowed_sasl_mechanisms is not set, the task is skipped and the 389-DS default is used (all mechanisms allowed).
+# EXTERNAL is always prepended to the list since it is always enabled in 389-DS regardless of this setting,
+# ensuring the attribute is never empty when the task runs, which avoids idempotency issues with ldap_attrs.
 - name: Configure SASL mechanisms
   community.general.ldap_attrs:
     server_uri: "{{ dirsrv_server_uri }}"
@@ -51,8 +53,9 @@
     bind_pw: "{{ dirsrv_rootdn_password }}"
     dn: "cn=config"
     attributes:
-      nsslapd-allowed-sasl-mechanisms: "{{ (['EXTERNAL'] + dirsrv_sasl_mechanisms) | join(' ') }}"
+      nsslapd-allowed-sasl-mechanisms: "{{ (['EXTERNAL'] + dirsrv_allowed_sasl_mechanisms) | join(' ') }}"
     state: exact
+  when: dirsrv_allowed_sasl_mechanisms is defined and dirsrv_allowed_sasl_mechanisms is not none
 
 - name: Configure password storage settings
   block:
