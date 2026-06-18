@@ -220,10 +220,14 @@ Default: `false` · Can be changed: Yes
 
 Enable LDAPI (connect to the server via a UNIX socket at `ldapi:///var/run/dirsrv/slapd-{{ dirsrv_serverid }}.socket`). Note that this is subject to TLS enforcing and TLS is not supported, so it's useless if you set dirsrv_tls_enforced to true.
 
-#### dirsrv_sasl_plain_enabled
-Default: `true` · Can be changed: Yes
+#### dirsrv_allowed_sasl_mechanisms
+Default: `not set` · Can be changed: Yes
 
-Enable SASL PLAIN authentication: if a client tries to authenticate without TLS and TLS is enforced, this kind of authentication should stop it before it sends the plaintext password, while a SIMPLE bind will send the password and then fail because SSF is too low.
+List of SASL mechanisms to allow in addition to `EXTERNAL`, which is always enabled. `EXTERNAL` allows certificate-based authentication over TLS and cannot be disabled. If this variable is not set, the 389-DS default is used, which allows all supported mechanisms.
+
+Common values include `PLAIN`, `GSSAPI` and `GSS-SPNEGO`. Set to `[]` to restrict to `EXTERNAL` only.
+
+Note: `PLAIN` transmits credentials in base64-encoding and should only be used when TLS is enforced, as the password is included in the bind request itself and is not protected at the SASL layer.
 
 #### dirsrv_selinux_setype
 Default: `user_tmp_t` · Can be changed: yes
