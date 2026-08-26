@@ -6,7 +6,7 @@ driver:
 role_name_check: 1
 platforms:
   - name: Rocky9-Default
-    image: rockylinux:9
+    image: rockylinux/rockylinux:9-ubi-init
     python_package: python3
     python_devel_package: python3-devel
     install_epel: true

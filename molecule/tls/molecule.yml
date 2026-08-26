@@ -7,7 +7,7 @@ role_name_check: 1
 platforms:
   # Images that contain the string "SYSCTL" run systemd as PID 1.
   - name: Rocky9-TLS
-    image: rockylinux:9
+    image: rockylinux/rockylinux:9-ubi-init
     python_package: python3
     python_devel_package: python3-devel
     install_epel: true
