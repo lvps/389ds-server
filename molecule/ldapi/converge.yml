@@ -1,0 +1,42 @@
+---
+- name: Converge
+  hosts: all
+
+  vars:
+    dirsrv_suffix: "dc=test,dc=local"
+
+    dirsrv_rootdn: "cn=Directory Manager"
+    dirsrv_rootdn_password: "P455W0RD"
+
+    dirsrv_serverid: "test"
+    dirsrv_listen_host: 0.0.0.0
+
+    dirsrv_tls_enabled: false
+
+    dirsrv_install_examples: true
+    dirsrv_ldapi_enabled: true
+    dirsrv_ldapilisten_enabled: true
+
+    dirsrv_selfsigned_cert: False
+    dirsrv_create_suffix_entry: True
+
+  tasks:
+    - name: Apply local lvps.389ds_server role
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."
+
+    - name: Ensure we can access the server, for testing
+      community.general.ldap_entry:
+        server_uri: "{{ dirsrv_ldapi_uri }}"
+        bind_dn: "{{ dirsrv_rootdn }}"
+        bind_pw: "{{ dirsrv_rootdn_password }}"
+        dn: "cn=config"
+        objectClass: "top"
+        start_tls: "{{ dirsrv_tls_enabled }}"
+        validate_certs: "{{ dirsrv_tls_certificate_trusted | default(false) }}"
+        state: present
+      loop:
+        - { dn: "ou=Groups,dc=example,dc=local", objectClass: ["organizationalunit", "top"] }
+        - { dn: "ou=People,dc=example,dc=local", objectClass: ["organizationalunit", "top"] }
+      register: dirsrv_test_containers
+      failed_when: dirsrv_test_containers.changed

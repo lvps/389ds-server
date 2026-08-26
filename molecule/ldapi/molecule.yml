@@ -1,0 +1,35 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+role_name_check: 1
+platforms:
+  - name: CentOS8-LDAPI
+    image: centos:8
+    python_package: python3
+    python_devel_package: python3-devel
+    install_epel: true
+    command: /sbin/init
+    user: root
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - no-new-privileges
+    cgroupns_mode: host
+    shm_size: 2048M
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    tmpfs:
+      - /run
+      - /run/lock
+      - /dev/shm:size=2g
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      CentOS8-LDAPI:
+        # Use the Python 3 interpreter installed for this CentOS 8 platform.
+        ansible_python_interpreter: /usr/bin/python3
+verifier:
+  name: testinfra

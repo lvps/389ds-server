@@ -44,7 +44,7 @@
         dirsrv_ldapi_uri: >-
           {{ "ldapi://" ~
              ( ( dirsrv_rundir | default("/var/run") ) ~
-               "/slapd-" ~ dirsrv_serverid ~ ".socket" ) | quote_plus }}
+               "/slapd-" ~ dirsrv_serverid ~ ".socket" ) | urlencode | regex_replace("/", "%2F") }}
 
     - name: Prepare LDAP auth data
       ansible.builtin.set_fact:
@@ -53,7 +53,7 @@
              ( dirsrv_tls_enforced_initially_binds or
                dirsrv_tls_enforced_initially_ssf | int > 0 ) }}
         dirsrv_server_uri: >-
-          {{ dirsrv_ldapi_uri if dirsrv_ldapilisten_enabled
+          {{ dirsrv_ldapi_uri if dirsrv_ldapilisten_enabled and dirsrv_ldapi_enabled
                               else dirsrv_server_uri }}
 
 - name: Configure listen address

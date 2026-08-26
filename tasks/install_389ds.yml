@@ -20,6 +20,11 @@
     dirsrv_legacy: "{{ dirsrv_package_version is version('1.4.0', '<') }}"
 
 # as suggested by Red Hat Directory Server manual
+- name: Add group 'dirsrv'
+  ansible.builtin.group:
+    name: dirsrv
+    system: true
+
 - name: Add user 'dirsrv'
   ansible.builtin.user:
     name: dirsrv
@@ -28,7 +33,6 @@
     shell: /sbin/nologin
     system: true
     create_home: false
-  when: dirsrv_legacy
 
 - name: Check if instance directory exists
   ansible.builtin.stat:

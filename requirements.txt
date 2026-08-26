@@ -1,10 +1,18 @@
--i https://pypi.org/simple
-ansible
-ansible-core; python_version >= '3.11'
-ansible-lint
-docker==5.0.0
-molecule>=3.3.3
-molecule-plugins[docker]
+# CentOS 8 provides Python 3.6 on the managed host. Ansible Core 2.16 is the
+# latest supported family for that target interpreter; the controller uses
+# Python 3.10 in CI.
+ansible==9.13.0
+ansible-core==2.16.14
+ansible-lint==6.22.2
+# Docker SDK 5 is incompatible with Requests 2.32+, which current GitHub-hosted
+# runners install. Molecule uses this SDK for its Docker driver sanity check.
+docker==7.1.0
+# Molecule 25 supports the current scenario configuration and requires Core 2.15+.
+molecule==25.9.0
+molecule-plugins[docker]==25.8.12
+# The testinfra verifier invokes pytest during `molecule test`.
+pytest
+testinfra
 six>=1.16.0
 setuptools>=67.8.0  # For distutils
 yamllint

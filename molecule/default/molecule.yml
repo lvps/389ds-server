@@ -5,28 +5,31 @@ driver:
   name: docker
 role_name_check: 1
 platforms:
-  - name: CentOS7-Default
-    image: centos:7
-    python_package: python
-    python_devel_package: python-devel
-    install_epel: false
-    command: /sbin/init
-    capabilities:
-      - SYS_ADMIN
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  # Images that contain the string "SYSCTL" will be trated with the "docker systemctl replacement" script
-  - name: CentOS8-Default-SYSCTL
+  - name: CentOS8-Default
     image: centos:8
-    python_package: python2
-    python_devel_package: python2-devel
+    python_package: python3
+    python_devel_package: python3-devel
     install_epel: true
     command: /sbin/init
+    user: root
     capabilities:
       - SYS_ADMIN
+    security_opts:
+      - no-new-privileges
+    cgroupns_mode: host
+    shm_size: 2048M
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    tmpfs:
+      - /run
+      - /run/lock
+      - /dev/shm:size=2g
 provisioner:
   name: ansible
+  inventory:
+    host_vars:
+      CentOS8-Default:
+        # Use the Python 3 interpreter installed for this CentOS 8 platform.
+        ansible_python_interpreter: /usr/bin/python3
 verifier:
   name: testinfra
