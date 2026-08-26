@@ -6,8 +6,8 @@ driver:
 role_name_check: 1
 platforms:
   # Images that contain the string "SYSCTL" run systemd as PID 1.
-  - name: CentOS8-TLS
-    image: centos:8
+  - name: Rocky9-TLS
+    image: rockylinux:9
     python_package: python3
     python_devel_package: python3-devel
     install_epel: true
@@ -29,7 +29,7 @@ provisioner:
   name: ansible
   inventory:
     host_vars:
-      CentOS8-TLS:
+      Rocky9-TLS:
         # Use the Python 3 interpreter installed for this CentOS 8 platform.
         ansible_python_interpreter: /usr/bin/python3
 verifier:

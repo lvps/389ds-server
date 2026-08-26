@@ -6,57 +6,8 @@ FROM {{ item.registry.url }}/{{ item.image }}
 FROM {{ item.image }}
 {% endif %}
 
-# CentOS Linux 7 and 8 are EOL. Configure their fixed vault releases before
-# the package-manager selection below; CentOS 8 selects DNF rather than YUM.
-RUN if [ -f /etc/centos-release ]; then \
-            major_version=$(rpm -E %{rhel}); \
-            rm -f /etc/yum.repos.d/*.repo; \
-            if [ "$major_version" = "7" ]; then \
-                printf '%s\n' \
-                    '[base]' \
-                    'name=CentOS-7.9.2009 - Base' \
-                    'baseurl=http://vault.centos.org/7.9.2009/os/$basearch/' \
-                    'enabled=1' \
-                    'gpgcheck=0' \
-                    '[updates]' \
-                    'name=CentOS-7.9.2009 - Updates' \
-                    'baseurl=http://vault.centos.org/7.9.2009/updates/$basearch/' \
-                    'enabled=1' \
-                    'gpgcheck=0' \
-                    '[extras]' \
-                    'name=CentOS-7.9.2009 - Extras' \
-                    'baseurl=http://vault.centos.org/7.9.2009/extras/$basearch/' \
-                    'enabled=1' \
-                    'gpgcheck=0' > /etc/yum.repos.d/CentOS-Vault.repo; \
-            elif [ "$major_version" = "8" ]; then \
-                printf '%s\n' \
-                    '[baseos]' \
-                    'name=CentOS-8.5.2111 - BaseOS' \
-                    'baseurl=http://vault.centos.org/8.5.2111/BaseOS/$basearch/os/' \
-                    'enabled=1' \
-                    'gpgcheck=0' \
-                    '[appstream]' \
-                    'name=CentOS-8.5.2111 - AppStream' \
-                    'baseurl=http://vault.centos.org/8.5.2111/AppStream/$basearch/os/' \
-                    'enabled=1' \
-                    'gpgcheck=0' \
-                    '[extras]' \
-                    'name=CentOS-8.5.2111 - Extras' \
-                    'baseurl=http://vault.centos.org/8.5.2111/extras/$basearch/os/' \
-                    'enabled=1' \
-                    'gpgcheck=0' \
-                    '[powertools]' \
-                    'name=CentOS-8.5.2111 - PowerTools' \
-                    'baseurl=http://vault.centos.org/8.5.2111/PowerTools/$basearch/os/' \
-                    'enabled=1' \
-                    'gpgcheck=0' > /etc/yum.repos.d/CentOS-Vault.repo; \
-            fi; \
-            if command -v dnf >/dev/null; then dnf clean all; else yum clean all; fi; \
-        fi
-
 RUN if [ $(command -v apt-get) ]; then apt-get update && apt-get install -y {{ item.python_package }} sudo bash ca-certificates iproute && apt-get clean; \
     elif [ $(command -v dnf) ]; then dnf makecache && dnf --assumeyes install {{ item.python_package }} python3 sudo {{ item.python_devel_package }} python*-dnf bash iproute libselinux-utils policycoreutils policycoreutils-python-utils selinux-policy-targeted {% if item.install_epel %}epel-release{% endif %} && dnf clean all; \
-        elif [ $(command -v yum) ]; then yum makecache fast && yum install -y {{ item.python_package }} sudo yum-plugin-ovl bash iproute && sed -i 's/plugins=0/plugins=1/g' /etc/yum.conf && yum clean all; \
     elif [ $(command -v zypper) ]; then zypper refresh && zypper install -y {{ item.python_package }} sudo bash python-xml iproute && zypper clean -a; \
     elif [ $(command -v apk) ]; then apk update && apk add --no-cache {{ item.python_package }} sudo bash iproute ca-certificates; \
     elif [ $(command -v xbps-install) ]; then xbps-install -Syu && xbps-install -y {{ item.python_package }} sudo bash ca-certificates iproute && xbps-remove -O; fi

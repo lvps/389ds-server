@@ -38,7 +38,7 @@ Not supported        | Use role v3.1.x | Use latest role version
 
 ### Managed Node
 
-- SUSE (OpenSUSE or SLES) or CentOS 7, CentOS 8, CentOS 9 or other RHEL based OS
+- SUSE (OpenSUSE or SLES) or Rocky Linux or other RHEL based OS
 
 ## Role Variables
 

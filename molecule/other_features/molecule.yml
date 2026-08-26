@@ -5,8 +5,8 @@ driver:
   name: docker
 role_name_check: 1
 platforms:
-  - name: CentOS8-Other
-    image: centos:8
+  - name: Rocky9-Other
+    image: rockylinux:9
     python_package: python3
     python_devel_package: python3-devel
     install_epel: true
@@ -28,7 +28,7 @@ provisioner:
   name: ansible
   inventory:
     host_vars:
-      CentOS8-Other:
+      Rocky9-Other:
         # Use the Python 3 interpreter installed for this CentOS 8 platform.
         ansible_python_interpreter: /usr/bin/python3
 verifier:
